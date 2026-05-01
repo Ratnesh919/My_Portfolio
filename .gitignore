@@ -1,0 +1,6 @@
+node_modules/
+.env
+raya-memory.db
+raya-memory.db-shm
+raya-memory.db-wal
+.DS_Store

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio — Select A Theme</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="description" content="A premium interactive portfolio theme selector. Pick your visual style and explore a unique experience.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- ─── Importmap for Three.js and three-vrm ────────────────────────── -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/",
+                "@pixiv/three-vrm": "https://unpkg.com/@pixiv/three-vrm@3.4.0/lib/three-vrm.module.js"
+            }
+        }
+    </script>
+    <!-- Basic Security Obfuscation -->
+    <script>
+        // Disable Right-Click
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Disable common DevTools shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+        document.addEventListener('keydown', function(e) {
+            // Block F12
+            if (e.key === "F12" || e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            // Block Ctrl+Shift+I, J, C
+            if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
+                e.preventDefault();
+                return false;
+            }
+            // Block Ctrl+U (View Source)
+            if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Prevent dragging to extract models
+        document.addEventListener('dragstart', event => {
+            if(event.target.nodeName.toUpperCase() === "IMG" || event.target.nodeName.toUpperCase() === "CANVAS") {
+                event.preventDefault();
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- ─── Site Global Loading Screen ─────────────────────────────────── -->
+    <div id="site-loader">
+        <div class="site-loader-bg"></div>
+        <div class="site-loader-content">
+            <div class="site-loader-logo">
+                <i data-lucide="zap" style="color: #ff416c; width: 48px; height: 48px;"></i>
+            </div>
+            <h1 class="site-loader-title">SYSTEM INITIALIZING</h1>
+            <div class="site-loader-bar-wrap">
+                <div id="site-loader-bar"></div>
+            </div>
+            <div class="site-loader-footer">
+                <span id="site-loader-text">Loading Character Engine...</span>
+                <span id="site-loader-pct">0%</span>
+            </div>
+            <p class="site-loader-warning">Switch to desktop or rotate your phone for better experience</p>
+        </div>
+    </div>
+
+    <!-- ─── Interactive Bubble Overlay ─────────────────────────────────── -->
+    <div id="bubble-screen">
+        <div class="bubble-instructions" id="bubble-text">Tap a Bubble to Enter</div>
+        <div id="bubble-container"></div>
+    </div>
+
+    <!-- ─── Background decorations ──────────────────────────────────────── -->
+    <div class="bg-gradient"></div>
+    <div class="glow" style="top: -10%; left: -10%; background: radial-gradient(circle, rgba(79, 172, 254, 0.3) 0%, transparent 70%);"></div>
+    <div class="glow" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(254, 154, 158, 0.3) 0%, transparent 70%);"></div>
+
+    <!-- ─── VRM Character canvas (ABOVE cards, always on top) ─────────────── -->
+    <canvas id="vrm-canvas"></canvas>
+
+    <!-- ─── Loading indicator ───────────────────────────────────────────── -->
+    <div id="vrm-loading">
+        <div class="loading-text">INITIALIZING AVATAR... <span id="vrm-loading-pct">0%</span></div>
+        <div class="loading-bar-container">
+            <div id="vrm-loading-bar"></div>
+        </div>
+    </div>
+
+    <!-- ─── Page content (z-index above canvas) ─────────────────────────── -->
+    <header>
+        <h1>Select A Theme.</h1>
+    </header>
+    
+    <main class="container">
+        <a href="./3d Model/dist/" class="card" id="card-1">
+            <div class="card-icon"><i data-lucide="box"></i></div>
+            <div class="card-vertical-title">3D MODEL</div>
+            <div class="card-content">
+                <div class="card-title">3D Model</div>
+                <div class="card-subtitle">An immersive, multidimensional experience.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Cute Alien/dist/" class="card" id="card-2">
+            <div class="card-icon"><i data-lucide="ghost"></i></div>
+            <div class="card-vertical-title">CUTE ALIEN</div>
+            <div class="card-content">
+                <div class="card-title">Cute Alien</div>
+                <div class="card-subtitle">Playful, quirky, and out of this world.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Grafitti/dist/" class="card" id="card-3">
+            <div class="card-icon"><i data-lucide="palette"></i></div>
+            <div class="card-vertical-title">GRAFITTI</div>
+            <div class="card-content">
+                <div class="card-title">Grafitti</div>
+                <div class="card-subtitle">Bold, urban styling and street art aesthetics.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Minimalist/dist/" class="card" id="card-4">
+            <div class="card-icon"><i data-lucide="layers"></i></div>
+            <div class="card-vertical-title">MINIMALIST</div>
+            <div class="card-content">
+                <div class="card-title">Minimalist</div>
+                <div class="card-subtitle">Clean lines, white space, and elegant simplicity.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Lumen/dist/" class="card" id="card-5">
+            <div class="card-icon"><i data-lucide="sun"></i></div>
+            <div class="card-vertical-title">LUMEN</div>
+            <div class="card-content">
+                <div class="card-title">Lumen</div>
+                <div class="card-subtitle">Soothing contrast, elegant dark mode, and calm vibes.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+    </main>
+
+
+    <!-- ─── Theme Switcher / Iframe Container ───────────────────────────── -->
+    <button id="change-theme-btn">Change Theme <i data-lucide="refresh-cw" style="width:18px;height:18px;margin-left:5px;display:inline-block;vertical-align:middle;"></i></button>
+    <div id="iframe-container"></div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+        
+        // Iframe Logic for Seamless Theme Switching
+        const container = document.querySelector('.container');
+        const header = document.querySelector('header');
+        const contactSection = document.querySelector('.contact-section'); // may be null
+        const changeThemeBtn = document.getElementById('change-theme-btn');
+        const iframeContainer = document.getElementById('iframe-container');
+
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetUrl = card.getAttribute('href');
+                
+                // Animate cards out
+                document.querySelectorAll('.card').forEach((c, idx) => {
+                    c.classList.add('exiting');
+                    c.style.animationDelay = `${idx * 0.05}s`;
+                });
+
+                // Hide main UI
+                container.style.opacity = '0';
+                container.style.pointerEvents = 'none';
+                header.style.opacity = '0';
+                header.style.pointerEvents = 'none';
+                if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
+                
+                setTimeout(() => {
+                    const is3DModel = targetUrl.includes('3d Model');
+                    let loaderHTML = '';
+                    if (!is3DModel) {
+                        loaderHTML = `
+                            <div id="iframe-loader" style="position:absolute; inset:0; display:flex; justify-content:center; align-items:center; background:#080808; z-index:5;">
+                                <div style="width:40px; height:40px; border:3px solid rgba(255,65,108,0.2); border-top-color:#ff416c; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                                <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+                            </div>
+                        `;
+                    }
+
+                    // Create and show iframe
+                    iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
+                    iframeContainer.style.opacity = '1';
+                    iframeContainer.style.pointerEvents = 'auto';
+                    
+                    // Show switch theme button, hide avatar button
+                    changeThemeBtn.style.opacity = '1';
+                    changeThemeBtn.style.pointerEvents = 'auto';
+                    const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+                    if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
+                    const avatarPanel = document.getElementById('avatar-panel');
+                    if (avatarPanel) { avatarPanel.classList.remove('open'); }
+                }, 600); // Wait for card exit and fade out
+            });
+        });
+
+        changeThemeBtn.addEventListener('click', () => {
+            // Hide iframe and button
+            iframeContainer.style.opacity = '0';
+            iframeContainer.style.pointerEvents = 'none';
+            changeThemeBtn.style.opacity = '0';
+            changeThemeBtn.style.pointerEvents = 'none';
+            // Restore avatar button
+            const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+            if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '1'; avatarToggleBtn.style.pointerEvents = 'auto'; }
+            
+            setTimeout(() => {
+                iframeContainer.innerHTML = ''; // clear iframe memory
+                
+                // Show main UI
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+                header.style.opacity = '1';
+                header.style.pointerEvents = 'auto';
+                if (contactSection) { contactSection.style.opacity = '1'; contactSection.style.pointerEvents = 'auto'; }
+                
+                // Animate cards back in
+                document.querySelectorAll('.card').forEach((c) => {
+                    c.style.animationDelay = ''; // clear exit delay
+                    c.style.animation = 'none';
+                    c.offsetHeight; /* trigger reflow */
+                    c.classList.remove('exiting');
+                    c.style.animation = ''; // restore CSS defined animation
+                });
+            }, 500);
+        });
+    </script>
+
+    <!-- SVG Filter for Liquid Effect -->
+    <svg style="visibility: hidden; position: absolute;" width="0" height="0">
+        <filter id="liquid-filter">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="liquid" />
+            <feComposite in="SourceGraphic" in2="liquid" operator="atop" />
+        </filter>
+    </svg>
+
+    <!-- ─── Avatar Switcher ──────────────────────────────────────────── -->
+    <button id="avatar-toggle-btn" title="Switch Avatar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>Avatar</span>
+    </button>
+
+    <div id="avatar-panel">
+        <div class="avatar-panel-header">
+            <span>Choose Avatar</span>
+            <button id="avatar-panel-close">✕</button>
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-size-slider">Character Size <span id="avatar-size-pct">95%</span></label>
+            <input type="range" id="avatar-size-slider" min="0.5" max="1.5" step="0.01" value="0.95">
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-brightness-slider">Scene Brightness <span id="avatar-brightness-pct">100%</span></label>
+            <input type="range" id="avatar-brightness-slider" min="0.2" max="3.0" step="0.05" value="1.0">
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-hair-slider">💇 Hair Brightness <span id="avatar-hair-pct">100%</span></label>
+            <input type="range" id="avatar-hair-slider" min="0.1" max="3.0" step="0.05" value="1.0">
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-skin-slider">✨ Skin Brightness <span id="avatar-skin-pct">100%</span></label>
+            <input type="range" id="avatar-skin-slider" min="0.1" max="3.0" step="0.05" value="1.0">
+        </div>
+        <div class="avatar-grid" id="avatar-grid">
+            <!-- filled by JS -->
+        </div>
+    </div>
+
+    <script>
+        const AVATARS = [
+            { name: 'Changli',        file: './Wuwa/changli(fixed).vrm' },
+            { name: 'Camellya',       file: './Wuwa/CamellyaV1.vrm' },
+            { name: 'Carlotta',       file: './Wuwa/CarlottaV1.vrm' },
+            { name: 'Chixia',         file: './Wuwa/chixia.vrm' },
+            { name: 'Jinshi',         file: './Wuwa/jinshi.vrm' },
+            { name: 'Kid Changli',    file: './Wuwa/Kid changli.vrm' },
+            { name: 'Pinkshi',        file: './Wuwa/PinkshiV1.vrm' },
+            { name: 'Roccia',         file: './Wuwa/RocciaV3.vrm' },
+            { name: 'Rover',          file: './Wuwa/rover.vrm' },
+            { name: 'Sanhua',         file: './Wuwa/SanhuaV2.vrm' },
+            { name: 'Shorekeeper',    file: './Wuwa/ShorekeeperV3.vrm' },
+            { name: 'Verina',         file: './Wuwa/verina.vrm' },
+            { name: 'Yangyang',       file: './Wuwa/yangyang.vrm' },
+            { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
+        ];
+
+        // Load random avatar on startup
+        let activeAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)].file;
+        window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
+
+        const panel      = document.getElementById('avatar-panel');
+        const toggleBtn  = document.getElementById('avatar-toggle-btn');
+        const closeBtn   = document.getElementById('avatar-panel-close');
+        const grid       = document.getElementById('avatar-grid');
+
+        // Build grid
+        AVATARS.forEach(av => {
+            const btn = document.createElement('button');
+            btn.className = 'avatar-item' + (av.file === activeAvatar ? ' active' : '');
+            btn.dataset.file = av.file;
+            btn.innerHTML = `
+                <div class="avatar-icon">✦</div>
+                <div class="avatar-name">${av.name}</div>`;
+            btn.addEventListener('click', () => {
+                if (av.file === activeAvatar) return;
+                activeAvatar = av.file;
+                grid.querySelectorAll('.avatar-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // Call the exposed switch function from vrm-character.js
+                if (typeof window.switchVRM === 'function') window.switchVRM(av.file);
+                // Reset brightness sliders to defaults for new avatar
+                if (typeof resetBrightnessSliders === 'function') resetBrightnessSliders();
+                panel.classList.remove('open');
+            });
+            grid.appendChild(btn);
+        });
+
+        toggleBtn.addEventListener('click', () => panel.classList.toggle('open'));
+        closeBtn.addEventListener('click',  () => panel.classList.remove('open'));
+        // Close when clicking outside
+        document.addEventListener('click', e => {
+            if (!panel.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target))
+                panel.classList.remove('open');
+        });
+
+        // Setup size slider
+        const sizeSlider = document.getElementById('avatar-size-slider');
+        const sizePct = document.getElementById('avatar-size-pct');
+        sizeSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            sizePct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMScale === 'function') {
+                window.setVRMScale(val);
+            }
+        });
+
+        // Setup scene brightness slider
+        const brightSlider = document.getElementById('avatar-brightness-slider');
+        const brightPct = document.getElementById('avatar-brightness-pct');
+        brightSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            brightPct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMBrightness === 'function') window.setVRMBrightness(val);
+        });
+
+        // Setup hair brightness slider
+        const hairSlider = document.getElementById('avatar-hair-slider');
+        const hairPct = document.getElementById('avatar-hair-pct');
+        hairSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            hairPct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMHairBrightness === 'function') window.setVRMHairBrightness(val);
+        });
+
+        // Setup skin brightness slider
+        const skinSlider = document.getElementById('avatar-skin-slider');
+        const skinPct = document.getElementById('avatar-skin-pct');
+        skinSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            skinPct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMSkinBrightness === 'function') window.setVRMSkinBrightness(val);
+        });
+
+        // Reset sliders to default when avatar switches
+        function resetBrightnessSliders() {
+            brightSlider.value = 1.0; brightPct.innerText = '100%';
+            hairSlider.value = 1.0;   hairPct.innerText = '100%';
+            skinSlider.value = 1.0;   skinPct.innerText = '100%';
+        }
+    </script>
+
+    <!-- ─── Copyright Footer ──────────────────────────────────────────── -->
+    <div style="position: fixed; bottom: 15px; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.4); font-family: 'Outfit', sans-serif; font-size: 11px; z-index: 8000; pointer-events: none; letter-spacing: 1px;">
+        &copy; <span id="copyright-year"></span> Ratnesh Singh. All Rights Reserved.
+        <script>document.getElementById('copyright-year').innerText = new Date().getFullYear();</script>
+    </div>
+    <!-- ─── VRM Configuration & Controller ────────────────────────────── -->
+    <script src="./vrm-config.js"></script>
+    <script type="module" src="./vrm-character.js"></script>
+
+    <!-- ─── Voice Chatbot ─────────────────────────────────────────────── -->
+    <script src="./chatbot.js"></script>
+</body>
+</html>

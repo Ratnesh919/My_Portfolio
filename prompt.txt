@@ -1,0 +1,4 @@
+npx -y serve . -p 3000
+node server.js
+taskkill /F /IM node.exe 2>$null; Start-Sleep 1; node server.js
+
