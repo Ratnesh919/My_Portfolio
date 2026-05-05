@@ -49,16 +49,15 @@ const ANIM = {
     excited:   PFX + 'Excited.fbx',
     yawn:      PFX + 'Yawn.fbx',
     angry:     PFX + 'Angry.fbx',
-    walk:      './Animation/Walking.fbx',
-    sad1:      './Animation/Sad%20Idle1.fbx',
-    sad2:      './Animation/Sad%20Idle2.fbx',
-    sitTalk:   './Animation/Sitting%20Talking.fbx',
-    sit1:      './Animation/Sitting1.fbx',
-    sit2:      './Animation/Sitting2.fbx',
-    sitRub:    './Animation/Sitting%20Rubbing%20Arm.fbx',
-    no:          './Animation/No.fbx',
-    reaching:    './Animation/ImageToStl.com_changli(fixed).vrm@Reaching%20Out.fbx',
-    thinking:    './Animation/ImageToStl.com_changli(fixed).vrm@Thinking.fbx',
+    walk:      PFX + 'Walking.fbx',
+    sad1:      PFX + 'Sad%20Idle1.fbx',
+    sad2:      PFX + 'Sad%20Idle2.fbx',
+    sitTalk:   PFX + 'Sitting%20Talking.fbx',
+    sit1:      PFX + 'Sitting1.fbx',
+    sit2:      PFX + 'Sitting2.fbx',
+    sitRub:    PFX + 'Sitting%20Rubbing%20Arm.fbx',
+    no:        PFX + 'No.fbx',
+    reaching:  PFX + 'ImageToStl.com_changli(fixed).vrm@Reaching%20Out.fbx'
 };
 
 // Walk is loaded separately so it doesn't block main animation loading
@@ -72,14 +71,16 @@ const ANIM_POOL = [
     { key: 'yawn',        loop: false, maxDuration: null, fingerPose: 'yawn',        expr: 'yawn',      exprVal: 0.85 },
     { key: 'angry',       loop: false, maxDuration: null, fingerPose: 'angry',       expr: 'angry',     exprVal: 0.90 },
     { key: 'sad1',        loop: true,  maxDuration: 8,    fingerPose: 'sad',         expr: 'sad',       exprVal: 0.85 },
-    { key: 'sad2',        loop: true,  maxDuration: 8,    fingerPose: 'sad',         expr: 'sad',       exprVal: 0.85 },
-    { key: 'thinking',    loop: true,  maxDuration: 8,    fingerPose: 'thinking',    expr: 'thinking',  exprVal: 0.0  },
+    { key: 'sad2',        loop: true,  maxDuration: 8,    fingerPose: 'sad',         expr: 'sad',       exprVal: 0.85 }
 ];
 
 const SITTING_POOL = [
-    { key: 'sit1', loop: true, maxDuration: 10, fingerPose: 'happyIdle', expr: 'happy',   exprVal: 0.60 },
-    { key: 'sit2', loop: true, maxDuration: 10, fingerPose: 'happyIdle', expr: 'relaxed', exprVal: 0.55 },
+    { key: 'sit1',     loop: true,  maxDuration: 10, fingerPose: 'happyIdle', expr: 'happy',   exprVal: 0.60 },
+    { key: 'sit2',     loop: true,  maxDuration: 10, fingerPose: 'happyIdle', expr: 'relaxed', exprVal: 0.55 },
 ];
+
+// (No extra breathing set needed — sitRub already has its own body motion)
+const SITTING_BREATHE_KEYS = new Set();
 
 // ─── FINGER POSES (per animation) ─────────────────────────────────────────────
 const FINGER_POSES = {
@@ -91,7 +92,6 @@ const FINGER_POSES = {
     angry:       { proximal:0.52, intermediate:0.62, distal:0.42, spread:-0.06, thumbCurl:0.38, thumbSpread:0.08, indexMult: 1.0 },
     yawn:        { proximal:0.42, intermediate:0.52, distal:0.36, spread:0.02,  thumbCurl:0.30, thumbSpread:0.14, indexMult: 1.0 },
     sad:         { proximal:0.50, intermediate:0.60, distal:0.40, spread:0.02,  thumbCurl:0.35, thumbSpread:0.05, indexMult: 1.0 },
-    thinking:    { proximal:0.58, intermediate:0.72, distal:0.52, spread:-0.04, thumbCurl:0.38, thumbSpread:0.12, indexMult: 0.12 },
     pointing:    { proximal:0.88, intermediate:1.02, distal:0.85, spread:-0.06, thumbCurl:0.85, thumbSpread:-0.10, indexMult: 0.04,
                    leftPose: 'idle' },          // right index fully extended, thumb & all others tightly closed
     no:          { proximal:0.95, intermediate:1.10, distal:0.95, spread:-0.06, thumbCurl:1.05, thumbSpread:0.35, indexMult: 0.05,
@@ -180,6 +180,27 @@ const cursor = { nx:0, ny:0 };
 window.addEventListener('mousemove', e => {
     cursor.nx =  (e.clientX/window.innerWidth  - 0.5)*2;
     cursor.ny = -(e.clientY/window.innerHeight - 0.5)*2;
+});
+
+// Forward pointer events from iframe
+window.addEventListener('message', e => {
+    if (!e.data || typeof e.data.type !== 'string') return;
+    if (e.data.type.startsWith('vrm-pointer')) {
+        const evt = new PointerEvent(e.data.type.replace('vrm-', ''), {
+            clientX: e.data.clientX,
+            clientY: e.data.clientY,
+            button: e.data.button !== undefined ? e.data.button : 0,
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+        // pointermove/down are on document, pointerup is on window
+        if (e.data.type === 'vrm-pointerup') {
+            window.dispatchEvent(evt);
+        } else {
+            document.dispatchEvent(evt);
+        }
+    }
 });
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -622,9 +643,6 @@ async function loadAllAnimations(vrm) {
             const fbx  = await new Promise((res,rej) => fbxLoader.load(file, res, undefined, rej));
             const clip = retargetMixamoToVRM(fbx, vrm, file);
             if (clip) {
-                if (file === ANIM.thinking) {
-                    clip.duration = clip.duration / 2; // Play only half part
-                }
                 clips[file]   = clip;
                 actions[file] = mixer.clipAction(clip);
                 console.log('[VRM] ✓ Loaded:', file, '| tracks:', clip.tracks.length);
@@ -1169,12 +1187,12 @@ function animate() {
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blinkRight', yawnSquint); } catch(_){}
     }
 
-    // Chatbot Lipsync (fake talking) — tuned to ~175 WPM / rate 1.18
+    // Chatbot Lipsync (fake talking) — tuned to ~195 WPM / rate 1.32
     if (window.chatbotTalking) {
-        // Primary open-vowel: ~10.3 cycles/s → matches syllable rate at 175 WPM
-        const talkMouth = Math.abs(Math.sin(t * 10.3)) * 0.75;
+        // Primary open-vowel: ~11.5 cycles/s → matches syllable rate at 195 WPM
+        const talkMouth = Math.abs(Math.sin(t * 11.5)) * 0.75;
         // Secondary vowel for realism: offset phase, lower amplitude
-        const talkIh    = Math.abs(Math.sin(t * 10.3 + 1.8)) * 0.35;
+        const talkIh    = Math.abs(Math.sin(t * 11.5 + 1.8)) * 0.35;
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('aa', talkMouth); } catch(_){}
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('a',  talkMouth); } catch(_){}
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('A',  talkMouth); } catch(_){}
@@ -1190,7 +1208,7 @@ function animate() {
     const dy = cursor.ny - vrmScreenPos.y;
     const dist = Math.sqrt(dx*dx + dy*dy);
     
-    const isHovering = (dist < 0.8 && !isDragging);
+    const isHovering = (dist < 0.8 && !isDragging) || window.chatbotTalking;
     hoverBlend = lerp(hoverBlend, isHovering ? 1 : 0, dt * 6);
 
     // Head tracking adjustment (only track cursor when hovering)

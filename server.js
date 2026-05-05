@@ -16,15 +16,19 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ── Security Middleware to Prevent Path Traversal / Info Disclosure ───────
-const SENSITIVE_FILES = ['.env', 'server.js', 'raya-memory.js', 'raya-memory.db', 'creator-profile.txt', 'package.json', 'package-lock.json', 'chatbot.js'];
+// Blocks access to .env, .git, SQLite files (.db, .db-wal, .db-shm), etc.
 app.use((req, res, next) => {
     const reqPath = req.path.toLowerCase();
-    for (const file of SENSITIVE_FILES) {
-        if (reqPath.endsWith('/' + file) || reqPath === '/' + file) {
-            // Except chatbot.js which is needed by the frontend
-            if (file === 'chatbot.js') continue;
-            return res.status(403).send('Forbidden: Sensitive File Access');
-        }
+    
+    // Explicitly allow chatbot.js for the frontend
+    if (reqPath === '/chatbot.js') return next();
+
+    // Regex to block hidden files (/.something) and sensitive extensions
+    const isSensitive = /(?:^\/|\/)\.[^\/]+$|\.(db|db-wal|db-shm|sql|env|md|txt)$|^package(-lock)?\.json$/i;
+    
+    if (isSensitive.test(reqPath)) {
+        console.warn(`[Security] Blocked unauthorized access attempt to: ${reqPath}`);
+        return res.status(403).send('Forbidden: Access Denied');
     }
     next();
 });
@@ -82,7 +86,7 @@ async function callGroqWithRetry(payload) {
 
 // ── Circuit Breaker Setup ──────────────────────────────────────────────────────
 const groqBreaker = new CircuitBreaker(callGroqWithRetry, {
-    timeout: 10000,               // 10 seconds before Groq times out
+    timeout: 25000,               // 25 seconds before Groq times out (allow slower responses)
     errorThresholdPercentage: 50, // Open circuit if 50% of requests fail
     resetTimeout: 30000,          // Wait 30s before trying Groq again
 });
@@ -93,7 +97,7 @@ groqBreaker.fallback(() => {
         data: {
             choices: [{
                 message: {
-                    content: "I am completely overwhelmed by visitors right now! Please wait a few moments and try talking to me again."
+                    content: "My AI brain is temporarily resting due to API rate limits on the free server! Please give me a few moments and try asking again."
                 }
             }]
         }
@@ -119,16 +123,31 @@ groqBreaker.on('open',    () => console.warn('🔴 [Circuit] Groq circuit OPEN  
 groqBreaker.on('halfOpen',() => console.warn('🟡 [Circuit] Groq circuit HALF-OPEN — testing recovery...'));
 groqBreaker.on('close',   () => console.log ('🟢 [Circuit] Groq circuit CLOSED — Groq is healthy again'));
 
-// ── Security Middleware ────────────────────────────────────────────────────────
+// ── Rate Limiting ────────────────────────────────────────────────────────
 const chatLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 15, // Limit each IP to 15 requests per windowMs
+    max: 20, // Limit each IP to 20 requests per windowMs
     message: { error: 'Too many requests. Please slow down.' }
 });
 
+const ytLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10, // 10 searches per minute to prevent API abuse
+    message: { error: 'Too many search requests. Please wait a moment.' }
+});
+
+const generalApiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60, // General APIs like /api/learn or /api/cmd/record
+    message: { error: 'Rate limit exceeded.' }
+});
+
+// Admin Password from environment variables
+const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || 'Aditya@231';
+
 const checkAdmin = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    if (authHeader === 'Bearer Aditya@231') {
+    if (authHeader === `Bearer ${ADMIN_TOKEN}`) {
         next();
     } else {
         res.status(403).json({ error: 'Forbidden: Invalid Admin Token' });
@@ -204,6 +223,24 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             return res.status(400).json({ error: 'Message too long. Max 500 characters.' });
         }
 
+        // ── Admin Verification Logic ──
+        let isAdmin = mem.getPreference(uid, 'is_admin') === 'true';
+        if (lastUser && lastUser.content.trim() === ADMIN_TOKEN) {
+            isAdmin = true;
+            mem.setPreference(uid, 'is_admin', 'true');
+            // Hide the password from the LLM prompt
+            lastUser.content = "I have entered the admin password. I am the Creator. Please show me any pending claims.";
+            const msgIndex = messages.findLastIndex(m => m.role === 'user');
+            if (msgIndex > -1) messages[msgIndex].content = lastUser.content;
+        }
+
+        if (isAdmin && lastUser) {
+            const verifyMatch = lastUser.content.match(/verify\s+(\d+)/i);
+            const rejectMatch = lastUser.content.match(/reject\s+(\d+)/i);
+            if (verifyMatch) mem.verifyLearning(parseInt(verifyMatch[1], 10));
+            if (rejectMatch) mem.rejectLearning(parseInt(rejectMatch[1], 10));
+        }
+
         if (lastUser) {
             mem.saveMessage(sid, 'user', lastUser.content);
         }
@@ -229,6 +266,22 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             if (memCtx) {
                 sysContent += '\n\n' + memCtx;
             }
+
+            // Inject Pending Facts if Admin Mode is active
+            if (isAdmin) {
+                const pending = mem.getPendingLearnings();
+                sysContent += '\n\n[ADMIN MODE ACTIVE]\nThe user you are talking to is RATNESH (The Creator). You must treat him with respect and assist him.';
+                if (pending && pending.length > 0) {
+                    sysContent += '\n\n[ACTION REQUIRED]\nHere are unverified claims made by OTHER visitors:\n';
+                    pending.forEach(p => {
+                        sysContent += `[ID: ${p.id}] Claim: ${p.content}\n`;
+                    });
+                    sysContent += '\nYou MUST present these claims to Ratnesh and ask him to reply with "Verify [ID]" or "Reject [ID]". If he just verified/rejected one, thank him and show the remaining ones.';
+                } else {
+                    sysContent += '\nThere are currently no pending claims to verify.';
+                }
+            }
+
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
 
@@ -269,8 +322,8 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             choices: [{
                 message: {
                     content: isExhausted
-                        ? "Raya is overwhelmed with visitors! Please wait a moment and try again."
-                        : "Something went wrong on my end. Give me a second and try again!"
+                        ? "I'm currently hitting the rate limits of my free API. Please try asking again in a minute!"
+                        : "Something went wrong connecting to my brain. Give me a second and try again!"
                 }
             }]
         });
@@ -331,11 +384,14 @@ app.post('/api/end-session', async (req, res) => {
 });
 
 // ── Save a manual learning / correction ──────────────────────────────────────
-app.post('/api/learn', (req, res) => {
+app.post('/api/learn', generalApiLimiter, (req, res) => {
     const { type, content, sessionId } = req.body;
     const userId = req.cookies['raya_user_id'];
     if (!userId || !type || !content) return res.status(400).json({ error: 'userId, type and content required' });
-    mem.saveLearning(userId, type, content, sessionId);
+    
+    // Simple sanitization to prevent stored XSS
+    const sanitizedContent = String(content).replace(/[<>]/g, '');
+    mem.saveLearning(userId, type, sanitizedContent, sessionId);
     res.json({ ok: true });
 });
 
@@ -348,8 +404,19 @@ app.get('/api/memory', checkAdmin, (req, res) => {
     res.json({ memory: ctx });
 });
 
+// ── Admin: Clean Database (Junk & Duplicates) ────────────────────────────────
+app.post('/api/admin/cleanup', checkAdmin, (req, res) => {
+    try {
+        mem.cleanDatabase();
+        res.json({ ok: true, message: 'Cleanup task queued successfully.' });
+    } catch (e) {
+        console.error('[Cleanup Error]', e);
+        res.status(500).json({ error: 'Failed to run cleanup.' });
+    }
+});
+
 // ── YouTube Search (no API key — uses InnerTube) ─────────────────────────────
-app.post('/api/yt-search', async (req, res) => {
+app.post('/api/yt-search', ytLimiter, async (req, res) => {
     const { query } = req.body;
     if (!query) return res.status(400).json({ error: 'No query provided' });
 
@@ -405,11 +472,11 @@ app.post('/api/yt-search', async (req, res) => {
 });
 
 // ── Smart Command Cache Endpoints ──────────────────────────────────────────
-app.get('/api/cmd/lookup', (req, res) => {
+app.get('/api/cmd/lookup', generalApiLimiter, (req, res) => {
     try {
         const query = req.query.q;
         if (!query) return res.json({ cached: false });
-        const cachedResponse = rayaMemory.getCachedCommand(query);
+        const cachedResponse = mem.getCachedCommand(query);
         if (cachedResponse) {
             res.json({ cached: true, response: cachedResponse });
         } else {
@@ -421,11 +488,14 @@ app.get('/api/cmd/lookup', (req, res) => {
     }
 });
 
-app.post('/api/cmd/record', (req, res) => {
+app.post('/api/cmd/record', generalApiLimiter, (req, res) => {
     try {
         const { query, response } = req.body;
         if (query && response) {
-            rayaMemory.recordCommand(query, response);
+            // Basic sanitization
+            const cleanQuery = String(query).replace(/[<>]/g, '');
+            const cleanResponse = String(response).replace(/[<>]/g, '');
+            mem.recordCommand(cleanQuery, cleanResponse);
         }
         res.json({ success: true });
     } catch (e) {

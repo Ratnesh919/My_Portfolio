@@ -42,15 +42,16 @@ CREATE TABLE IF NOT EXISTS `messages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── Learnings Table ──────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS `learnings` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `user_id` VARCHAR(128) NOT NULL,
-  `type` VARCHAR(32) NOT NULL COMMENT 'correction, preference, fact, summary',
-  `content` TEXT NOT NULL,
-  `source_sid` VARCHAR(128) DEFAULT NULL,
-  `weight` INT DEFAULT 1,
-  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  INDEX `idx_learnings_user` (`user_id`)
+CREATE TABLE IF NOT EXISTS learnings (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     VARCHAR(255) NOT NULL,
+    type        VARCHAR(50)  NOT NULL,  -- 'correction', 'preference', 'fact', 'summary'
+    content     TEXT         NOT NULL,
+    source_sid  VARCHAR(255),
+    weight      INT DEFAULT 1,
+    status      VARCHAR(20) DEFAULT 'verified', -- 'verified', 'pending', 'rejected'
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_learnings_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── Preferences Table ────────────────────────────────────────

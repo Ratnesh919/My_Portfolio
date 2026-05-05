@@ -1,4 +1,4 @@
-import { ArrowRight, MessageCircle, Globe } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default function HeroSection() {
   return (
@@ -44,21 +44,7 @@ export default function HeroSection() {
           Explore My Work
         </a>
       </div>
-
-      {/* Bottom social icons — Camera removed */}
-      <div className="relative z-10 flex justify-center gap-4 pb-8 sm:pb-12 w-full mt-auto">
-        <a href="mailto:kumarsinghratnesh3@gmail.com" className="liquid-glass rounded-full p-3 sm:p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all">
-          <MessageCircle size={18} className="sm:w-5 sm:h-5" />
-        </a>
-        <a href="https://tinywebs.site/mboHXS" target="_blank" rel="noopener noreferrer" className="liquid-glass rounded-full p-3 sm:p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all">
-          <Globe size={18} className="sm:w-5 sm:h-5" />
-        </a>
-        <a href="https://www.facebook.com/share/1De11Vypsn/" target="_blank" rel="noopener noreferrer" className="liquid-glass rounded-full p-3 sm:p-4 text-white/80 hover:text-white hover:bg-white/5 transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-5 sm:h-5">
-            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-          </svg>
-        </a>
-      </div>
     </section>
   );
 }
+

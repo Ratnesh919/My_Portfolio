@@ -7,6 +7,7 @@ import SkillsSection from '../components/SkillsSection';
 import ExperienceSection from '../components/ExperienceSection';
 import LinksSection from '../components/LinksSection';
 import Navbar from '../components/Navbar';
+import ContactSection from '../components/ContactSection';
 
 export default function Index() {
   return (
@@ -30,6 +31,7 @@ export default function Index() {
          <ExperienceSection />
       </div>
       <LinksSection />
+      <ContactSection />
       
       <footer className="bg-black py-10 text-center border-t border-white/10 mt-20">
         <p className="text-white/40 text-sm mb-4 tracking-widest uppercase">Based in Kolkata</p>

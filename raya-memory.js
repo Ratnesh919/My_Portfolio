@@ -59,6 +59,7 @@ db.exec(`
     content     TEXT    NOT NULL,
     source_sid  TEXT,
     weight      INTEGER DEFAULT 1,
+    status      TEXT    DEFAULT 'verified', -- 'verified', 'pending', 'rejected'
     created_at  TEXT    DEFAULT (datetime('now'))
   );
 
@@ -97,6 +98,7 @@ db.exec(`
 `);
 
 try { db.exec('ALTER TABLE users ADD COLUMN ip_address TEXT'); } catch(e){}
+try { db.exec("ALTER TABLE learnings ADD COLUMN status TEXT DEFAULT 'verified'"); } catch(e){}
 
 // ── Prepared Statements ──────────────────────────────────────────────────────
 const stmts = {
@@ -107,15 +109,20 @@ const stmts = {
   
   insertMessage:  db.prepare(`INSERT INTO messages (session_id, role, content, lang) VALUES (?, ?, ?, ?)`),
   
-  insertLearning: db.prepare(`INSERT INTO learnings (user_id, type, content, source_sid) VALUES (?, ?, ?, ?)`),
-  checkLearning:  db.prepare(`SELECT id, weight FROM learnings WHERE user_id = ? AND content = ?`),
+  insertLearning: db.prepare(`INSERT INTO learnings (user_id, type, content, source_sid, status) VALUES (?, ?, ?, ?, 'verified')`),
+  insertPendingLearning: db.prepare(`INSERT INTO learnings (user_id, type, content, source_sid, status) VALUES (?, ?, ?, ?, 'pending')`),
+  checkLearning:  db.prepare(`SELECT id, weight FROM learnings WHERE user_id = ? AND content = ? AND status = 'verified'`),
   updateLearningWeight: db.prepare(`UPDATE learnings SET weight = weight + 1 WHERE id = ?`),
   
+  getPendingLearnings: db.prepare(`SELECT id, content FROM learnings WHERE status = 'pending' ORDER BY id ASC LIMIT 10`),
+  verifyLearning: db.prepare(`UPDATE learnings SET status = 'verified' WHERE id = ?`),
+  rejectLearning: db.prepare(`UPDATE learnings SET status = 'rejected' WHERE id = ?`),
+
   upsertPref:     db.prepare(`INSERT INTO preferences (user_id, key, value, updated_at) VALUES (?, ?, ?, datetime('now')) ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`),
   getPref:        db.prepare(`SELECT value FROM preferences WHERE user_id = ? AND key = ?`),
   
   getRecentMsgs:  db.prepare(`SELECT role, content FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT ?`),
-  getLearnings:   db.prepare(`SELECT type, content FROM learnings WHERE user_id = ? ORDER BY weight DESC, id DESC LIMIT ?`),
+  getLearnings:   db.prepare(`SELECT type, content FROM learnings WHERE user_id = ? AND status = 'verified' ORDER BY weight DESC, id DESC LIMIT ?`),
   getPrefs:       db.prepare(`SELECT key, value FROM preferences WHERE user_id = ?`),
   
   getGlobalStat:  db.prepare(`SELECT value FROM global_stats WHERE key = ?`),
@@ -127,6 +134,21 @@ const stmts = {
   getAdminRules: db.prepare(`SELECT rule FROM admin_rules`),
   addAdminRule:  db.prepare(`INSERT INTO admin_rules (rule) VALUES (?)`),
   clearAdminRules: db.prepare(`DELETE FROM admin_rules`),
+
+  removeDuplicates: db.prepare(`
+    DELETE FROM learnings 
+    WHERE id NOT IN (
+      SELECT MIN(id) 
+      FROM learnings 
+      GROUP BY user_id, content
+    )
+  `),
+  removeJunk: db.prepare(`
+    DELETE FROM learnings 
+    WHERE length(content) < 4 
+       OR content LIKE '%fuck%' 
+       OR content LIKE '%shit%'
+  `)
 };
 
 // ── Write Batching (Event Loop Protection) ───────────────────────────────────
@@ -219,6 +241,22 @@ function saveLearning(userId, type, content, sessionId = null) {
     });
 }
 
+function savePendingLearning(userId, type, content, sessionId = null) {
+    deferWrite(() => stmts.insertPendingLearning.run(userId, type, content, sessionId));
+}
+
+function getPendingLearnings() {
+    return stmts.getPendingLearnings.all();
+}
+
+function verifyLearning(id) {
+    deferWrite(() => stmts.verifyLearning.run(id));
+}
+
+function rejectLearning(id) {
+    deferWrite(() => stmts.rejectLearning.run(id));
+}
+
 function setPreference(userId, key, value) {
     deferWrite(() => stmts.upsertPref.run(userId, key, value));
 }
@@ -248,6 +286,14 @@ function addAdminRule(rule) {
     } else {
         deferWrite(() => stmts.addAdminRule.run(rule));
     }
+}
+
+function cleanDatabase() {
+    deferWrite(() => {
+        const dupRes = stmts.removeDuplicates.run();
+        const junkRes = stmts.removeJunk.run();
+        console.log(`[DB Cleanup] Removed ${dupRes.changes} duplicates and ${junkRes.changes} junk entries.`);
+    });
 }
 
 /**
@@ -293,8 +339,24 @@ function buildMemoryContext(userId, sessionId) {
 function extractLearnings(userId, sessionId, userMsg, assistantReply) {
   const lowerUser = userMsg.toLowerCase();
 
+  // Basic abuse filter - do not learn anything from abusive messages
+  const abusePattern = /\b(fuck|shit|bitch|asshole|cunt|dick|bastard|idiot|stupid|slut|whore)\b/i;
+  if (abusePattern.test(lowerUser)) {
+      return; // Ignore completely
+  }
+
+  // Detect facts about the Admin/Creator (Ratnesh) to send to Pending verification
+  const creatorMatch = lowerUser.match(/(?:i am|i'm) (?:ratnesh|his|your creator)(?:'s)? (father|mother|brother|sister|friend|bestfriend)/i) || 
+                       lowerUser.match(/(?:ratnesh|your creator|he) (?:is|likes|hates|wants) (.*)/i);
+  
+  if (creatorMatch) {
+      // Put in pending queue for Admin to verify
+      savePendingLearning(userId, 'fact', `A user claimed: "${userMsg}"`, sessionId);
+      return; // Stop processing other learnings for this message
+  }
+
   // Detect corrections / mistakes
-  const correctionTriggers = ['no,', 'that\'s wrong', 'i meant', 'not that', 'incorrect', 'wrong answer', 'bad answer', 'you made a mistake', 'you misunderstood', 'you forgot'];
+  const correctionTriggers = ['no,', "that's wrong", 'i meant', 'not that', 'incorrect', 'wrong answer', 'bad answer', 'you made a mistake', 'you misunderstood', 'you forgot'];
   if (correctionTriggers.some(t => lowerUser.includes(t))) {
     saveLearning(userId, 'correction', `Mistake correction from user. User said: "${userMsg}". Raya had said: "${assistantReply}"`, sessionId);
   }
@@ -340,11 +402,16 @@ module.exports = {
   endSession,
   saveMessage,
   saveLearning,
+  savePendingLearning,
+  getPendingLearnings,
+  verifyLearning,
+  rejectLearning,
   setPreference,
   getPreference,
   getCachedCommand,
   recordCommand,
   addAdminRule,
   buildMemoryContext,
-  extractLearnings
+  extractLearnings,
+  cleanDatabase
 };

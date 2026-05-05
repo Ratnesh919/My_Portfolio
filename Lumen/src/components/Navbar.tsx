@@ -37,11 +37,8 @@ export default function Navbar() {
 
         {/* Desktop right side */}
         <div className="hidden md:flex items-center gap-4">
-          <a href="mailto:kumarsinghratnesh3@gmail.com" className="text-white text-sm font-medium hover:text-white/80 transition-colors">
+          <a href="#contact" className="text-white text-sm font-medium hover:text-white/80 transition-colors">
             Contact
-          </a>
-          <a href="#experience" className="liquid-glass rounded-full px-5 py-2 text-white text-sm font-medium hover:bg-white/10 transition-colors">
-            Resume
           </a>
         </div>
 
@@ -70,11 +67,8 @@ export default function Navbar() {
               </a>
             ))}
             <div className="flex items-center gap-4 pt-1">
-              <a href="mailto:kumarsinghratnesh3@gmail.com" className="text-white/60 hover:text-white text-sm transition-colors">
+              <a href="#contact" onClick={() => setMenuOpen(false)} className="text-white/60 hover:text-white text-sm transition-colors">
                 Contact
-              </a>
-              <a href="#experience" onClick={() => setMenuOpen(false)} className="liquid-glass rounded-full px-5 py-2 text-white text-sm font-medium hover:bg-white/10 transition-colors">
-                Resume
               </a>
             </div>
           </div>

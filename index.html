@@ -100,11 +100,11 @@
     </header>
     
     <main class="container">
-        <a href="./3d Model/dist/" class="card" id="card-1">
+        <a href="./Immersive/dist/" class="card" id="card-1">
             <div class="card-icon"><i data-lucide="box"></i></div>
-            <div class="card-vertical-title">3D MODEL</div>
+            <div class="card-vertical-title">IMMERSIVE</div>
             <div class="card-content">
-                <div class="card-title">3D Model</div>
+                <div class="card-title">Immersive</div>
                 <div class="card-subtitle">An immersive, multidimensional experience.</div>
                 <div class="view-project">
                     <span>View Portfolio</span>
@@ -112,11 +112,11 @@
                 </div>
             </div>
         </a>
-        <a href="./Cute Alien/dist/" class="card" id="card-2">
+        <a href="./Cosmic/dist/" class="card" id="card-2">
             <div class="card-icon"><i data-lucide="ghost"></i></div>
-            <div class="card-vertical-title">CUTE ALIEN</div>
+            <div class="card-vertical-title">COSMIC</div>
             <div class="card-content">
-                <div class="card-title">Cute Alien</div>
+                <div class="card-title">Cosmic</div>
                 <div class="card-subtitle">Playful, quirky, and out of this world.</div>
                 <div class="view-project">
                     <span>View Portfolio</span>
@@ -124,11 +124,11 @@
                 </div>
             </div>
         </a>
-        <a href="./Grafitti/dist/" class="card" id="card-3">
+        <a href="./Urban/dist/" class="card" id="card-3">
             <div class="card-icon"><i data-lucide="palette"></i></div>
-            <div class="card-vertical-title">GRAFITTI</div>
+            <div class="card-vertical-title">URBAN</div>
             <div class="card-content">
-                <div class="card-title">Grafitti</div>
+                <div class="card-title">Urban</div>
                 <div class="card-subtitle">Bold, urban styling and street art aesthetics.</div>
                 <div class="view-project">
                     <span>View Portfolio</span>
@@ -136,11 +136,11 @@
                 </div>
             </div>
         </a>
-        <a href="./Minimalist/dist/" class="card" id="card-4">
+        <a href="./Essential/dist/" class="card" id="card-4">
             <div class="card-icon"><i data-lucide="layers"></i></div>
-            <div class="card-vertical-title">MINIMALIST</div>
+            <div class="card-vertical-title">ESSENTIAL</div>
             <div class="card-content">
-                <div class="card-title">Minimalist</div>
+                <div class="card-title">Essential</div>
                 <div class="card-subtitle">Clean lines, white space, and elegant simplicity.</div>
                 <div class="view-project">
                     <span>View Portfolio</span>
@@ -197,7 +197,7 @@
                 if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
                 
                 setTimeout(() => {
-                    const is3DModel = targetUrl.includes('3d Model');
+                    const is3DModel = targetUrl.includes('Immersive');
                     let loaderHTML = '';
                     if (!is3DModel) {
                         loaderHTML = `
@@ -209,7 +209,7 @@
                     }
 
                     // Create and show iframe
-                    iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
+                    iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.addEventListener('pointermove', e => window.parent.postMessage({type: 'vrm-pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerdown', e => window.parent.postMessage({type: 'vrm-pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerup', e => window.parent.postMessage({type: 'vrm-pointerup', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
                     iframeContainer.style.opacity = '1';
                     iframeContainer.style.pointerEvents = 'auto';
                     
@@ -253,6 +253,15 @@
                     c.style.animation = ''; // restore CSS defined animation
                 });
             }, 500);
+        });
+
+        // Auto-load a random theme on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.card');
+            if (cards.length > 0) {
+                const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                randomCard.click();
+            }
         });
     </script>
 
