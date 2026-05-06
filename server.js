@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const CircuitBreaker = require('opossum');
 require('dotenv').config();
 
-const mem = require('./raya-memory');
+const mem = require('./raya-supabase-memory');
 
 const app = express();
 app.use(cors({ origin: true, credentials: true })); // Allow cookies
@@ -17,7 +17,7 @@ app.use(cookieParser());
 
 // ── Security Middleware to Prevent Path Traversal / Info Disclosure ───────
 // Blocks access to .env, .git, SQLite files (.db, .db-wal, .db-shm), etc.
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
     const reqPath = req.path.toLowerCase();
     
     // Explicitly allow chatbot.js for the frontend
@@ -145,7 +145,7 @@ const generalApiLimiter = rateLimit({
 // Admin Password from environment variables
 const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || 'Aditya@231';
 
-const checkAdmin = (req, res, next) => {
+const checkAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (authHeader === `Bearer ${ADMIN_TOKEN}`) {
         next();
@@ -155,7 +155,7 @@ const checkAdmin = (req, res, next) => {
 };
 
 // ── Analytics ──────────────────────────────────────────────────────────────────
-app.post('/api/init-user', (req, res) => {
+app.post('/api/init-user', async (req, res) => {
     let userId = req.cookies['raya_user_id'];
     let isNewUser = false;
     if (!userId) {
@@ -171,12 +171,12 @@ app.post('/api/init-user', (req, res) => {
     }
 
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const { userName } = mem.initUser(userId, isNewUser, ipAddress);
+    const { userName } = await mem.initUser(userId, isNewUser, ipAddress);
     res.json({ ok: true, userName });
 });
 
-app.get('/api/insights', checkAdmin, (req, res) => {
-    res.json(mem.getSiteStats());
+app.get('/api/insights', checkAdmin, async (req, res) => {
+    res.json(await mem.getSiteStats());
 });
 
 // ── Personality Form Endpoint ──────────────────────────────────────────────────
@@ -194,7 +194,7 @@ app.post('/api/personality', checkAdmin, async (req, res) => {
             const answer = String(item.answer).substring(0, 2000).replace(/[<>\[\]{}]/g, '');
             profileText += `Q: ${question}\nA: ${answer}\n\n`;
             // Also store it as a global fact for "system_creator"
-            mem.saveLearning('system_creator', 'fact', `The creator's answer to "${question}": ${answer}`, 'system');
+            await mem.saveLearning('system_creator', 'fact', `The creator's answer to "${question}": ${answer}`, 'system');
         }
         
         fs.appendFileSync(path.join(__dirname, 'creator-profile.txt'), profileText);
@@ -213,7 +213,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         const sid = sessionId || 'default';
 
         // Ensure session exists
-        mem.startSession(uid, sid);
+        await mem.startSession(uid, sid);
 
         // Extract the latest user message
         const lastUser = [...messages].reverse().find(m => m.role === 'user');
@@ -224,10 +224,10 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         }
 
         // ── Admin Verification Logic ──
-        let isAdmin = mem.getPreference(uid, 'is_admin') === 'true';
+        let isAdmin = await mem.getPreference(uid, 'is_admin') === 'true';
         if (lastUser && lastUser.content.trim() === ADMIN_TOKEN) {
             isAdmin = true;
-            mem.setPreference(uid, 'is_admin', 'true');
+            await mem.setPreference(uid, 'is_admin', 'true');
             // Hide the password from the LLM prompt
             lastUser.content = "I have entered the admin password. I am the Creator. Please show me any pending claims.";
             const msgIndex = messages.findLastIndex(m => m.role === 'user');
@@ -237,16 +237,16 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         if (isAdmin && lastUser) {
             const verifyMatch = lastUser.content.match(/verify\s+(\d+)/i);
             const rejectMatch = lastUser.content.match(/reject\s+(\d+)/i);
-            if (verifyMatch) mem.verifyLearning(parseInt(verifyMatch[1], 10));
-            if (rejectMatch) mem.rejectLearning(parseInt(rejectMatch[1], 10));
+            if (verifyMatch) await mem.verifyLearning(parseInt(verifyMatch[1], 10));
+            if (rejectMatch) await mem.rejectLearning(parseInt(rejectMatch[1], 10));
         }
 
         if (lastUser) {
-            mem.saveMessage(sid, 'user', lastUser.content);
+            await mem.saveMessage(sid, 'user', lastUser.content);
         }
 
         // Inject memory and system boundaries into the first (system) message
-        const memCtx = mem.buildMemoryContext(uid, sid);
+        const memCtx = await mem.buildMemoryContext(uid, sid);
         const enrichedMessages = [...messages];
         if (enrichedMessages.length > 0 && enrichedMessages[0].role === 'system') {
             let sysContent = enrichedMessages[0].content;
@@ -269,18 +269,18 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
             // Inject Pending Facts if Admin Mode is active
             if (isAdmin) {
-                const pending = mem.getPendingLearnings();
+                const pending = await mem.getPendingLearnings();
                 sysContent += '\n\n[ADMIN MODE ACTIVE]\nThe user you are talking to is RATNESH (The Creator). You must treat him with respect and assist him. As the admin, he is allowed to ask you for system data. If he asks about users or learnings, summarize the provided [ADMIN DATA] for him in a readable way.';
                 
                 // Dynamic Admin Queries
                 if (lastUser) {
                     const lc = lastUser.content.toLowerCase();
                     if (lc.includes('user') || lc.includes('visitor')) {
-                        const users = mem.getAllUsers();
+                        const users = await mem.getAllUsers();
                         sysContent += '\n\n[ADMIN DATA: ALL USERS]\n' + JSON.stringify(users, null, 2);
                     }
                     if (lc.includes('learn') || lc.includes('know')) {
-                        const allLearnings = mem.getAllVerifiedLearnings();
+                        const allLearnings = await mem.getAllVerifiedLearnings();
                         sysContent += '\n\n[ADMIN DATA: ALL VERIFIED LEARNINGS ACROSS SYSTEM]\n' + JSON.stringify(allLearnings, null, 2);
                     }
                 }
@@ -314,11 +314,11 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
         // Run database saves asynchronously so the event loop isn't blocked 
         // while holding open the user's socket connection.
-        setImmediate(() => {
+        setImmediate(async () => {
             try {
-                mem.saveMessage(sid, 'assistant', assistantReply);
+                await mem.saveMessage(sid, 'assistant', assistantReply);
                 if (lastUser) {
-                    mem.extractLearnings(uid, sid, lastUser.content, assistantReply);
+                    await mem.extractLearnings(uid, sid, lastUser.content, assistantReply);
                 }
             } catch (err) {
                 console.error('[Async DB Error] Failed to save memory:', err);
@@ -381,14 +381,14 @@ app.post('/api/end-session', async (req, res) => {
         }
 
         // Save structured summary as learnings
-        parsedLearnings.forEach(learning => {
+        for (const learning of parsedLearnings) {
             if (learning.trim().length > 5) {
-                mem.saveLearning(userId, 'summary', learning.trim(), sessionId);
+                await mem.saveLearning(userId, 'summary', learning.trim(), sessionId);
             }
-        });
+        }
 
         const summaryString = parsedLearnings.join(' | ');
-        mem.endSession(sessionId, messages, summaryString);
+        await mem.endSession(sessionId, messages, summaryString);
         console.log(`[Memory] Session ${sessionId} ended. Learned: ${summaryString}`);
         res.json({ ok: true, summary: summaryString });
     } catch (err) {
@@ -398,30 +398,30 @@ app.post('/api/end-session', async (req, res) => {
 });
 
 // ── Save a manual learning / correction ──────────────────────────────────────
-app.post('/api/learn', generalApiLimiter, (req, res) => {
+app.post('/api/learn', generalApiLimiter, async (req, res) => {
     const { type, content, sessionId } = req.body;
     const userId = req.cookies['raya_user_id'];
     if (!userId || !type || !content) return res.status(400).json({ error: 'userId, type and content required' });
     
     // Simple sanitization to prevent stored XSS
     const sanitizedContent = String(content).replace(/[<>]/g, '');
-    mem.saveLearning(userId, type, sanitizedContent, sessionId);
+    await mem.saveLearning(userId, type, sanitizedContent, sessionId);
     res.json({ ok: true });
 });
 
 // ── Get memory stats (for debugging) ─────────────────────────────────────────
-app.get('/api/memory', checkAdmin, (req, res) => {
+app.get('/api/memory', checkAdmin, async (req, res) => {
     const { sessionId } = req.query;
     const userId = req.cookies['raya_user_id'];
     if (!userId || !sessionId) return res.status(400).json({ error: 'userId and sessionId required' });
-    const ctx = mem.buildMemoryContext(userId, sessionId);
+    const ctx = await mem.buildMemoryContext(userId, sessionId);
     res.json({ memory: ctx });
 });
 
 // ── Admin: Clean Database (Junk & Duplicates) ────────────────────────────────
-app.post('/api/admin/cleanup', checkAdmin, (req, res) => {
+app.post('/api/admin/cleanup', checkAdmin, async (req, res) => {
     try {
-        mem.cleanDatabase();
+        await mem.cleanDatabase();
         res.json({ ok: true, message: 'Cleanup task queued successfully.' });
     } catch (e) {
         console.error('[Cleanup Error]', e);
@@ -486,11 +486,11 @@ app.post('/api/yt-search', ytLimiter, async (req, res) => {
 });
 
 // ── Smart Command Cache Endpoints ──────────────────────────────────────────
-app.get('/api/cmd/lookup', generalApiLimiter, (req, res) => {
+app.get('/api/cmd/lookup', generalApiLimiter, async (req, res) => {
     try {
         const query = req.query.q;
         if (!query) return res.json({ cached: false });
-        const cachedResponse = mem.getCachedCommand(query);
+        const cachedResponse = await mem.getCachedCommand(query);
         if (cachedResponse) {
             res.json({ cached: true, response: cachedResponse });
         } else {
@@ -502,14 +502,14 @@ app.get('/api/cmd/lookup', generalApiLimiter, (req, res) => {
     }
 });
 
-app.post('/api/cmd/record', generalApiLimiter, (req, res) => {
+app.post('/api/cmd/record', generalApiLimiter, async (req, res) => {
     try {
         const { query, response } = req.body;
         if (query && response) {
             // Basic sanitization
             const cleanQuery = String(query).replace(/[<>]/g, '');
             const cleanResponse = String(response).replace(/[<>]/g, '');
-            mem.recordCommand(cleanQuery, cleanResponse);
+            await mem.recordCommand(cleanQuery, cleanResponse);
         }
         res.json({ success: true });
     } catch (e) {
@@ -522,7 +522,7 @@ app.post('/api/cmd/record', generalApiLimiter, (req, res) => {
 // ── Health & Monitoring Endpoint ─────────────────────────────────────────────
 // Admin-only real-time status dashboard for the server.
 // Shows: circuit breaker state, API key index, uptime, memory usage.
-app.get('/api/health', checkAdmin, (req, res) => {
+app.get('/api/health', checkAdmin, async (req, res) => {
     const memUsage = process.memoryUsage();
     const uptimeSec = process.uptime();
     const hours   = Math.floor(uptimeSec / 3600);
@@ -571,7 +571,7 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
         console.log(`🚀 Server running at http://localhost:${PORT}`);
         console.log('🔒 Groq API key hidden on backend.');
         console.log('🎵 YouTube direct-play search enabled.');
-        console.log('🧠 Raya Memory DB active → raya-memory.db');
+        console.log('🧠 Supabase Cloud Memory active → PostgreSQL');
         console.log(`🏥 Health check at  /api/health  (admin only)`);
         console.log(`🔁 Circuit Breaker: ACTIVE (${GROQ_API_KEYS.length} Groq keys in rotation)`);
         console.log('======================================================\n');
