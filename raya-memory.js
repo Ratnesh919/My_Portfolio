@@ -135,6 +135,9 @@ const stmts = {
   addAdminRule:  db.prepare(`INSERT INTO admin_rules (rule) VALUES (?)`),
   clearAdminRules: db.prepare(`DELETE FROM admin_rules`),
 
+  getAllUsers: db.prepare(`SELECT cookie_id, last_active_at FROM users ORDER BY last_active_at DESC LIMIT 50`),
+  getAllVerifiedLearnings: db.prepare(`SELECT user_id, type, content FROM learnings WHERE status = 'verified' ORDER BY id DESC LIMIT 100`),
+
   removeDuplicates: db.prepare(`
     DELETE FROM learnings 
     WHERE id NOT IN (
@@ -395,6 +398,14 @@ function extractLearnings(userId, sessionId, userMsg, assistantReply) {
   }
 }
 
+function getAllUsers() {
+    return stmts.getAllUsers.all();
+}
+
+function getAllVerifiedLearnings() {
+    return stmts.getAllVerifiedLearnings.all();
+}
+
 module.exports = {
   initUser,
   getSiteStats,
@@ -413,5 +424,7 @@ module.exports = {
   addAdminRule,
   buildMemoryContext,
   extractLearnings,
-  cleanDatabase
+  cleanDatabase,
+  getAllUsers,
+  getAllVerifiedLearnings
 };

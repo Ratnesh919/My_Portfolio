@@ -41,13 +41,13 @@ export default function ContactSection() {
                 </div>
               </a>
               
-              <a href="https://www.instagram.com/ratnesh_10_/" target="_blank" rel="noopener noreferrer" className="group text-white/60 hover:text-white transition-colors">
+              <a href="https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==" target="_blank" rel="noopener noreferrer" className="group text-white/60 hover:text-white transition-colors">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shrink-0 group-hover:scale-110 group-hover:bg-[#E4405F]/20 group-hover:text-[#E4405F] group-hover:border-[#E4405F]/50 transition-all">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                 </div>
               </a>
               
-              <a href="https://www.linkedin.com/in/ratneshkumarsingh" target="_blank" rel="noopener noreferrer" className="group text-white/60 hover:text-white transition-colors">
+              <a href="https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="group text-white/60 hover:text-white transition-colors">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shrink-0 group-hover:scale-110 group-hover:bg-[#0A66C2]/20 group-hover:text-[#0A66C2] group-hover:border-[#0A66C2]/50 transition-all">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
                 </div>

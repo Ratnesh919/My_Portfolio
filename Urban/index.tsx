@@ -121,19 +121,6 @@ export default function Portfolio() {
 
 
 
-          {/* Social Links Side Bar */}
-          <div className="hidden lg:flex fixed left-10 bottom-10 flex-col gap-6 z-40">
-            <a href="#" className="text-white/30 hover:text-[#ff00ff] transition-all hover:scale-125">
-              <Instagram size={20} />
-            </a>
-            <a href="#" className="text-white/30 hover:text-[#ff00ff] transition-all hover:scale-125">
-              <Linkedin size={20} />
-            </a>
-            <a href="https://www.facebook.com/share/1De11Vypsn/" target="_blank" rel="noreferrer" className="text-white/30 hover:text-[#ff00ff] transition-all hover:scale-125">
-              <Facebook size={20} />
-            </a>
-            <div className="w-[1px] h-20 bg-white/10 mx-auto" />
-          </div>
         </section>
 
         {/* About Section */}
@@ -363,27 +350,27 @@ export default function Portfolio() {
             className="w-full rounded-[60px] bg-gradient-to-br from-[#ff00ff] via-[#3400f1] to-[#00ffff] p-[1px] group overflow-hidden"
           >
              <div className="w-full h-full bg-[#050505] rounded-[60px] p-12 lg:p-24 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay pointer-events-none" />
                 
-                <h2 className="text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-[0.25em] mb-12 py-10 flex flex-col gap-6 md:gap-10 leading-[1.8]" style={{ fontFamily: '"Abraham Outline", sans-serif' }}>
+                <h2 className="text-4xl md:text-6xl lg:text-8xl font-black text-white tracking-[0.25em] mb-12 py-10 flex flex-col gap-6 md:gap-10 leading-[1.8] relative z-10" style={{ fontFamily: '"Abraham Outline", sans-serif' }}>
                    <span>READY</span>
                    <span>TO</span>
                    <span>BUILD?</span>
                 </h2>
                 
-                <p className="text-xl md:text-2xl text-white/60 max-w-2xl mb-12 font-medium">
+                <p className="text-xl md:text-2xl text-white/60 max-w-2xl mb-12 font-medium relative z-10">
                    Currently open to collaborations and full-time opportunities. Drop a ping if you want to create something truly unique.
                 </p>
 
-                <div className="flex flex-col items-center gap-8">
+                <div className="flex flex-col items-center gap-8 relative z-10">
                   <div className="flex gap-8">
                     <a href="mailto:kumarsinghratnesh3@gmail.com" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#ff00ff] hover:bg-[#ff00ff]/10 transition-all hover:scale-110">
                       <Mail size={24} />
                     </a>
-                    <a href="https://www.instagram.com/ratnesh_10_/" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#E4405F] hover:bg-[#E4405F]/10 transition-all hover:scale-110">
+                    <a href="https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#E4405F] hover:bg-[#E4405F]/10 transition-all hover:scale-110">
                       <Instagram size={24} />
                     </a>
-                    <a href="https://www.linkedin.com/in/ratneshkumarsingh" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#0A66C2] hover:bg-[#0A66C2]/10 transition-all hover:scale-110">
+                    <a href="https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#0A66C2] hover:bg-[#0A66C2]/10 transition-all hover:scale-110">
                       <Linkedin size={24} />
                     </a>
                     <a href="https://www.facebook.com/share/1De11Vypsn/" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#1877F2] hover:bg-[#1877F2]/10 transition-all hover:scale-110">

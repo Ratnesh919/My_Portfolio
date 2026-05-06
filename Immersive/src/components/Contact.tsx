@@ -13,10 +13,10 @@ const Contact = () => {
               <a href="mailto:kumarsinghratnesh3@gmail.com" data-cursor="disable" className="contact-social" style={{ color: 'inherit' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
               </a>
-              <a href="https://www.instagram.com/ratnesh_10_/" target="_blank" rel="noreferrer" data-cursor="disable" className="contact-social" style={{ color: 'inherit' }}>
+              <a href="https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==" target="_blank" rel="noreferrer" data-cursor="disable" className="contact-social" style={{ color: 'inherit' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
               </a>
-              <a href="https://www.linkedin.com/in/ratneshkumarsingh" target="_blank" rel="noreferrer" data-cursor="disable" className="contact-social" style={{ color: 'inherit' }}>
+              <a href="https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noreferrer" data-cursor="disable" className="contact-social" style={{ color: 'inherit' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
               </a>
               <a href="https://www.facebook.com/share/1De11Vypsn/" target="_blank" rel="noreferrer" data-cursor="disable" className="contact-social" style={{ color: 'inherit' }}>

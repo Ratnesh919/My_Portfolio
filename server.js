@@ -270,7 +270,21 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             // Inject Pending Facts if Admin Mode is active
             if (isAdmin) {
                 const pending = mem.getPendingLearnings();
-                sysContent += '\n\n[ADMIN MODE ACTIVE]\nThe user you are talking to is RATNESH (The Creator). You must treat him with respect and assist him.';
+                sysContent += '\n\n[ADMIN MODE ACTIVE]\nThe user you are talking to is RATNESH (The Creator). You must treat him with respect and assist him. As the admin, he is allowed to ask you for system data. If he asks about users or learnings, summarize the provided [ADMIN DATA] for him in a readable way.';
+                
+                // Dynamic Admin Queries
+                if (lastUser) {
+                    const lc = lastUser.content.toLowerCase();
+                    if (lc.includes('user') || lc.includes('visitor')) {
+                        const users = mem.getAllUsers();
+                        sysContent += '\n\n[ADMIN DATA: ALL USERS]\n' + JSON.stringify(users, null, 2);
+                    }
+                    if (lc.includes('learn') || lc.includes('know')) {
+                        const allLearnings = mem.getAllVerifiedLearnings();
+                        sysContent += '\n\n[ADMIN DATA: ALL VERIFIED LEARNINGS ACROSS SYSTEM]\n' + JSON.stringify(allLearnings, null, 2);
+                    }
+                }
+
                 if (pending && pending.length > 0) {
                     sysContent += '\n\n[ACTION REQUIRED]\nHere are unverified claims made by OTHER visitors:\n';
                     pending.forEach(p => {
@@ -549,13 +563,20 @@ app.get('/api/health', checkAdmin, (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log('\n======================================================');
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-    console.log('🔒 Groq API key hidden on backend.');
-    console.log('🎵 YouTube direct-play search enabled.');
-    console.log('🧠 Raya Memory DB active → raya-memory.db');
-    console.log(`🏥 Health check at  /api/health  (admin only)`);
-    console.log(`🔁 Circuit Breaker: ACTIVE (${GROQ_API_KEYS.length} Groq keys in rotation)`);
-    console.log('======================================================\n');
-});
+
+// Only start the server locally. Vercel will import the app directly.
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log('\n======================================================');
+        console.log(`🚀 Server running at http://localhost:${PORT}`);
+        console.log('🔒 Groq API key hidden on backend.');
+        console.log('🎵 YouTube direct-play search enabled.');
+        console.log('🧠 Raya Memory DB active → raya-memory.db');
+        console.log(`🏥 Health check at  /api/health  (admin only)`);
+        console.log(`🔁 Circuit Breaker: ACTIVE (${GROQ_API_KEYS.length} Groq keys in rotation)`);
+        console.log('======================================================\n');
+    });
+}
+
+// Export the Express API for Vercel Serverless Functions
+module.exports = app;
