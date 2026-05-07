@@ -316,8 +316,8 @@
             { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
         ];
 
-        // Load random avatar on startup
-        let activeAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)].file;
+        // Load a specific, lightweight avatar on startup (Kid changli is ~11MB) to ensure fast loading
+        let activeAvatar = './Wuwa/Kid changli.vrm';
         window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
 
         const panel      = document.getElementById('avatar-panel');

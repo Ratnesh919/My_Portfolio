@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "start": "node server.js"
+  },
   "dependencies": {
     "@pixiv/three-vrm-animation": "^3.5.1",
     "@supabase/supabase-js": "^2.105.3",
