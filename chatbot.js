@@ -55,6 +55,7 @@ const WAKE_WORD_VARIANTS = [
 
 class AvatarChatBot {
     constructor() {
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.messages    = [{ role: 'system', content: SYSTEM_PROMPT }];
         this.isListening = false;
         this.isSpeaking  = false;
@@ -578,6 +579,14 @@ class AvatarChatBot {
         this.recognition.onend = () => {
             this.isListening = false;
             this.updateMicUI();
+            
+            // Mobile devices emit beeps/prompts on mic start. Constant loops cause rapid on/off switching.
+            // Disable passive auto-restarting on mobile so it acts strictly as push-to-talk.
+            if (this.isMobile) {
+                this.userStoppedMic = true;
+                return;
+            }
+
             // Restart passive mic unless user explicitly stopped it
             if (!this.userStoppedMic) {
                 const restartWhenReady = () => {
@@ -617,7 +626,7 @@ class AvatarChatBot {
     // Called once after the user makes their first gesture (bubble pop / interaction).
     // Starts mic in background without showing "Listening" UI.
     startPassiveListening() {
-        if (!this.recognition || this.isListening || this.micGranted === false) return;
+        if (!this.recognition || this.isListening || this.micGranted === false || this.isMobile) return;
         this._passiveModeActive = true;
         this.userStoppedMic = false;
         try { this.recognition.start(); } catch(e) {}
@@ -1321,7 +1330,7 @@ class AvatarChatBot {
                 const ytIframe2 = document.querySelector('#raya-yt-wrapper iframe');
                 if (ytIframe2) ytIframe2.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [100]}), '*');
                 setTimeout(() => { this._wakeWordCooldown = false; }, 1500);
-                if (autoListen && this.micGranted) {
+                if (autoListen && this.micGranted && !this.isMobile) {
                     setTimeout(() => this.startListening(), 500);
                 }
             };
