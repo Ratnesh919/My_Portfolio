@@ -602,7 +602,7 @@ vrmLoader.load(initialFile, async gltf => {
             bubbleContainer.appendChild(b);
             // Remove bubbles that float off screen to prevent DOM buildup
             setTimeout(() => { if (b.parentNode) b.remove(); }, 9000);
-        }, 300);
+        }, 800);
     } else {
         // Fallback if no bubble screen exists
         setTimeout(async () => {
@@ -617,8 +617,8 @@ vrmLoader.load(initialFile, async gltf => {
 
 }, xhr => {
     const siteLoaderEl = document.getElementById('site-loader');
-    if (siteLoaderEl && xhr.total) {
-        const pct = Math.round((xhr.loaded / xhr.total) * 100);
+    if (siteLoaderEl) {
+        const pct = xhr.total ? Math.round((xhr.loaded / xhr.total) * 100) : Math.min(99, Math.round((xhr.loaded / (15 * 1024 * 1024)) * 100));
         const pctEl = document.getElementById('site-loader-pct');
         const barEl = document.getElementById('site-loader-bar');
         const textEl = document.getElementById('site-loader-text');
@@ -1189,10 +1189,10 @@ function animate() {
 
     // Chatbot Lipsync (fake talking) — tuned to ~195 WPM / rate 1.32
     if (window.chatbotTalking) {
-        // Primary open-vowel: ~11.5 cycles/s → matches syllable rate at 195 WPM
-        const talkMouth = Math.abs(Math.sin(t * 11.5)) * 0.75;
+        // Primary open-vowel: ~10.0 cycles/s → matches syllable rate at 195 WPM
+        const talkMouth = Math.abs(Math.sin(t * 10.0)) * 0.75;
         // Secondary vowel for realism: offset phase, lower amplitude
-        const talkIh    = Math.abs(Math.sin(t * 11.5 + 1.8)) * 0.35;
+        const talkIh    = Math.abs(Math.sin(t * 10.0 + 1.8)) * 0.35;
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('aa', talkMouth); } catch(_){}
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('a',  talkMouth); } catch(_){}
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('A',  talkMouth); } catch(_){}
@@ -1387,10 +1387,10 @@ window.switchVRM = function(modelPath) {
             }
         }, undefined, () => {});
     }, xhr => {
-        if (loadingEl && xhr.total) {
+        if (loadingEl) {
             loadingEl.style.display = 'flex';
             loadingEl.style.opacity = '1';
-            const pct = Math.round(xhr.loaded / xhr.total * 100);
+            const pct = xhr.total ? Math.round((xhr.loaded / xhr.total) * 100) : Math.min(99, Math.round((xhr.loaded / (15 * 1024 * 1024)) * 100));
             const pctEl = document.getElementById('vrm-loading-pct');
             const barEl = document.getElementById('vrm-loading-bar');
             if (pctEl) pctEl.textContent = `${pct}%`;

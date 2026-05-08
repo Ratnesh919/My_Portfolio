@@ -1,4 +1,4 @@
-﻿const SYSTEM_PROMPT = `You are Raya, a friendly, playful female AI assistant living inside Ratnesh Singh's virtual portfolio.
+const SYSTEM_PROMPT = `You are Raya, a friendly, playful female AI assistant living inside Ratnesh Singh's virtual portfolio.
 Your name is Raya. Speak naturally, warmly, and conversationally.
 CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at the end) MUST be under 200 words. Never exceed 200 words. Aim for 1-3 sentences for most replies.
 CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during the conversation, even if you know it from previous interactions.
@@ -40,16 +40,16 @@ REMEMBER: NEVER exceed 200 words in any reply.`;
 
 const INTRO_TEXT = "Hi! I am Raya, your AI guide for this portfolio. I can navigate you through portfolio themes, play any song on YouTube, tell you all about Ratnesh, his skills and projects, or just have a friendly chat. What is your name?";
 
-// ── Wake word variants (declared here so passive+active handlers share the same list) ──
+// -- Wake word variants (declared here so passive+active handlers share the same list) --
 // All variants map to a single display name: "Raya"
 const WAKE_WORD_VARIANTS = [
-    // ── User-specified variants ──
+    // -- User-specified variants --
     'hey', 'hey raya', 'raya', 'ray', 'raayaa', 'raaya', 'rya',
     'raaayooo', 'rayya', 'raayya',
-    // ── Additional phonetic variants for robustness ──
+    // -- Additional phonetic variants for robustness --
     'ryaa', 'ryaaa', 'raaaya', 'raaaaya', 'raaayaaa',
     'ryaaa', 'raaaayaaaa', 'rayaaa', 'rayo', 'raaayoo',
-    'raia', 'reya', 'rhaya', 'rÄya', 'rayaa',
+    'raia', 'reya', 'rhaya', 'rāya', 'rayaa',
     'raaaya', 'raayaa', 'rayyaa', 'raaayaa','raja','raaja', 'rayoo',
 ];
 
@@ -64,8 +64,8 @@ class AvatarChatBot {
         this.femaleVoice = null;
         this.sessionId   = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
-        // ─ Intro state ─
-        // hasIntroduced: user clicked input / mic early â€” marks general "intro shown"
+        // - Intro state -
+        // hasIntroduced: user clicked input / mic early — marks general "intro shown"
         // vrmIntroPlayed: VRM wave has triggered the REAL intro. These are separate
         // so early user interactions don't block the avatar wave intro.
         this.hasIntroduced   = false;
@@ -90,7 +90,7 @@ class AvatarChatBot {
                         this.startPassiveListening();
                     })
                     .catch(() => {
-                        // Permission denied â€” passive mode not available, that's fine
+                        // Permission denied — passive mode not available, that's fine
                         this.micGranted = false;
                     });
             }
@@ -111,7 +111,7 @@ class AvatarChatBot {
         speechSynthesis.onvoiceschanged = () => this.loadVoices();
     }
 
-    // ── Analytics & Cookies ──────────────────────────────────────────────────
+    // -- Analytics & Cookies --------------------------------------------------
     async initAnalytics() {
         // Send to backend so server can issue HttpOnly cookie
         try {
@@ -129,7 +129,7 @@ class AvatarChatBot {
         }
     }
 
-    // ── Intro ──────────────────────────────────────────────────────────────────
+    // -- Intro ------------------------------------------------------------------
 
     // Called by vrm-character.js once Wave1 animation starts.
     // Single authoritative entry point for the startup intro.
@@ -152,24 +152,24 @@ class AvatarChatBot {
             isReturningUser = true;
         }
 
-        // 1. Always show text bubble â€” no gesture required
+        // 1. Always show text bubble — no gesture required
         this.messages.push({ role: 'assistant', content: introMessage });
         this.showBubble(introMessage);
 
         // After intro, allow user to reply with their name WITHOUT saying the wake word.
-        // For new users Raya asks "What is your name?" â€” their reply should just work.
-        // For returning users she asks "How can I help?" â€” same applies.
+        // For new users Raya asks "What is your name?" — their reply should just work.
+        // For returning users she asks "How can I help?" — same applies.
         this._awaitingCommand = true;
 
         // 2. Speak if user already interacted with the page
         if (this._userHasGestured) {
-            console.log('[Raya Intro] Gesture detected â€” speaking immediately.');
+            console.log('[Raya Intro] Gesture detected — speaking immediately.');
             this.speakAvatar(introMessage, false);
             return;
         }
 
-        // 3. No gesture yet â€” show tap button AND also queue on next gesture
-        console.log('[Raya Intro] No gesture yet â€” showing tap button + gesture queue.');
+        // 3. No gesture yet — show tap button AND also queue on next gesture
+        console.log('[Raya Intro] No gesture yet — showing tap button + gesture queue.');
         this._showTapToHearButton(() => this.speakAvatar(introMessage, false));
 
         // Also attach a one-shot gesture listener as a silent parallel fallback
@@ -190,7 +190,7 @@ class AvatarChatBot {
 
         const btn = document.createElement('button');
         btn.id = 'raya-tap-btn';
-        btn.innerHTML = `<span style="font-size:1.1rem">ðŸ”Š</span> Tap to hear Raya`;
+        btn.innerHTML = `<span style="font-size:1.1rem">🔊</span> Tap to hear Raya`;
         Object.assign(btn.style, {
             position:       'fixed',
             bottom:         '130px',
@@ -236,7 +236,7 @@ class AvatarChatBot {
         setTimeout(() => btn.remove?.(), 30000);
     }
 
-    // Called when user focuses text input before VRM loads â€”
+    // Called when user focuses text input before VRM loads —
     // only shows bubble, never speaks (no gesture = no TTS).
     showIntro(autoListen = false) {
         if (this.hasIntroduced) return;
@@ -272,7 +272,7 @@ class AvatarChatBot {
 
 
 
-    // ── UI ─────────────────────────────────────────────────────────────────────
+    // -- UI ---------------------------------------------------------------------
     initUI() {
         const panel = document.createElement('div');
         panel.id = 'chatbot-panel';
@@ -363,11 +363,11 @@ class AvatarChatBot {
             if (!this.hasIntroduced) this.showIntro(false);
             this.handleMicClick();
         });
-        // NOTE: Do NOT auto-start mic here â€” browsers block getUserMedia without a
+        // NOTE: Do NOT auto-start mic here — browsers block getUserMedia without a
         // direct user gesture. The mic will start when the user clicks the mic button.
     }
 
-    // ── Text Send ──────────────────────────────────────────────────────────────
+    // -- Text Send --------------------------------------------------------------
     handleTextSend() {
         const text = this.textInput.value.trim();
         if (!text) return;
@@ -385,11 +385,11 @@ class AvatarChatBot {
         this.handleUserInput(text);
     }
 
-    // ── Realistic Voice Selection ──────────────────────────────────────────────
+    // -- Realistic Voice Selection ----------------------------------------------
     loadVoices(retryCount = 0) {
         const voices = this.synth.getVoices();
         if (!voices.length) {
-            // Chrome loads voices asynchronously â€” retry up to 10 times
+            // Chrome loads voices asynchronously — retry up to 10 times
             if (retryCount < 10) {
                 setTimeout(() => this.loadVoices(retryCount + 1), 200 * (retryCount + 1));
             }
@@ -399,40 +399,40 @@ class AvatarChatBot {
         // Log all voices for debug
         console.log('[Raya TTS] Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
 
-        // ── Priority 1: Best neural/natural Indian English female voices ──
+        // -- Priority 1: Best neural/natural Indian English female voices --
         const neuralIndianFemale =
             voices.find(v => v.name.includes('Neerja')) ||
             voices.find(v => v.name.includes('Heera')) ||
             voices.find(v => v.name === 'Microsoft Neerja Online (Natural) - English (India)');
 
-        // ── Priority 2: Google voices â€” high quality, non-robotic ──
+        // -- Priority 2: Google voices — high quality, non-robotic --
         const googleFemale =
             voices.find(v => v.name === 'Google UK English Female') ||
             voices.find(v => v.name === 'Google US English') ||
             voices.find(v => v.name.startsWith('Google') && v.lang === 'en-IN') ||
             voices.find(v => v.name.startsWith('Google') && v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
 
-        // ── Priority 3: Modern Edge neural female voices (very natural) ──
+        // -- Priority 3: Modern Edge neural female voices (very natural) --
         const edgeNeuralFemale =
             voices.find(v => v.name.includes('Jenny') && v.lang.startsWith('en')) ||
             voices.find(v => v.name.includes('Aria')  && v.lang.startsWith('en')) ||
             voices.find(v => v.name.includes('Ana')   && v.lang.startsWith('en')) ||
             voices.find(v => v.name.includes('Emma')  && v.lang.startsWith('en'));
 
-        // ── Priority 4: Apple natural voices ──
+        // -- Priority 4: Apple natural voices --
         const appleFemale =
             voices.find(v => v.name === 'Samantha') ||
             voices.find(v => v.name === 'Karen')    ||
             voices.find(v => v.name === 'Moira')    ||
             voices.find(v => v.name === 'Tessa');
 
-        // ── Priority 5: Any English female-sounding voice ──
+        // -- Priority 5: Any English female-sounding voice --
         const anyEnglishFemale =
             voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
             voices.find(v => v.name.includes('Zira'))  ||
             voices.find(v => v.name.includes('Hazel'));
 
-        // ── Priority 6: Fallback avoiding male voices ──
+        // -- Priority 6: Fallback avoiding male voices --
         const fallback = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().match(/male|ravi|david|mark|george/));
 
         this.femaleVoice = neuralIndianFemale || googleFemale || edgeNeuralFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
@@ -441,7 +441,7 @@ class AvatarChatBot {
     }
 
 
-    // ── Speech Recognition ─────────────────────────────────────────────────────
+    // -- Speech Recognition -----------------------------------------------------
     initSpeechRecognition() {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SR) { console.warn('[Raya] No SpeechRecognition support.'); return; }
@@ -459,7 +459,7 @@ class AvatarChatBot {
             this.isListening = true;
             this.updateMicUI();
             // Only show "Listening" bubble if user clicked the mic button
-            if (!this._passiveModeActive) this.showBubble('🎤 Listening...');
+            if (!this._passiveModeActive) this.showBubble('?? Listening...');
         };
 
         this.recognition.onresult = (event) => {
@@ -481,7 +481,7 @@ class AvatarChatBot {
                 // In passive mode (and not awaiting command): show interim only if wake word is detected
                 const lowerInt = interim.toLowerCase();
                 const wakeDetected = WAKE_WORD_VARIANTS.some(w => lowerInt.includes(w));
-                if (wakeDetected) this.showBubble('🎤 ' + interim);
+                if (wakeDetected) this.showBubble('?? ' + interim);
             }
 
             if (final) {
@@ -489,7 +489,7 @@ class AvatarChatBot {
 
                 this.textInput.value = ''; // clear when done
 
-                // ── Wake word detection ──────────────────────────────────────
+                // -- Wake word detection --------------------------------------
                 const lowerFinal = final.toLowerCase().trim();
                 
                 // Find matching variant (prioritize exact word match, fallback to includes)
@@ -613,7 +613,7 @@ class AvatarChatBot {
         };
     }
 
-    // ── Passive (always-on) mic starter ───────────────────────────────────────
+    // -- Passive (always-on) mic starter ---------------------------------------
     // Called once after the user makes their first gesture (bubble pop / interaction).
     // Starts mic in background without showing "Listening" UI.
     startPassiveListening() {
@@ -623,7 +623,7 @@ class AvatarChatBot {
         try { this.recognition.start(); } catch(e) {}
     }
 
-    // ── Mic Click ──────────────────────────────────────────────────────────────
+    // -- Mic Click --------------------------------------------------------------
     async handleMicClick() {
         // Switch from passive to active mic mode
         this._passiveModeActive = false;
@@ -655,7 +655,7 @@ class AvatarChatBot {
         try { this.recognition.start(); } catch (e) {}
     }
 
-    // ── Main Input Handler ─────────────────────────────────────────────────────
+    // -- Main Input Handler -----------------------------------------------------
     async handleUserInput(text) {
         if (!text) return;
 
@@ -736,7 +736,7 @@ class AvatarChatBot {
             if (cacheRes.ok) {
                 const cacheData = await cacheRes.json();
                 if (cacheData.cached) {
-                    console.log('ðŸ§  [Raya Smart Cache] Hit for query:', text);
+                    console.log('🧠 [Raya Smart Cache] Hit for query:', text);
                     this.hideTyping();
                     this.processAIResponse(cacheData.response, text, true); // true = fromCache
                     return;
@@ -749,7 +749,7 @@ class AvatarChatBot {
         // Fall through to Groq for real conversation
         this.showTyping();
 
-        // ── Safety timeout: if no reply in 15s, reset and prompt user to retry
+        // -- Safety timeout: if no reply in 15s, reset and prompt user to retry
         const thinkingTimeout = setTimeout(() => {
             if (this.isThinking) {
                 this.isThinking = false;
@@ -891,7 +891,7 @@ class AvatarChatBot {
         return null; // Let Groq handle it
     }
 
-    // ── Avatar Size Helpers ───────────────────────────────────────────────────
+    // -- Avatar Size Helpers ---------------------------------------------------
     adjustAvatarSize(multiplier) {
         // Use window.adjustVRMScale which has closure over live vrm reference
         const next = typeof window.adjustVRMScale === 'function'
@@ -911,7 +911,7 @@ class AvatarChatBot {
     }
 
 
-    // ── Process AI Reply ───────────────────────────────────────────────────────
+    // -- Process AI Reply -------------------------------------------------------
     async processAIResponse(fullMsg, originalQuery = null, fromCache = false) {
         this.isThinking = false;
         this.updateMicUI();
@@ -972,7 +972,7 @@ class AvatarChatBot {
         }
     }
 
-    // ── Website Control Actions ────────────────────────────────────────────────
+    // -- Website Control Actions ------------------------------------------------
     executeNavigation(target) {
         if (!target) return;
         const targetClean = target.toLowerCase().replace(/card\s*/, '');
@@ -1048,7 +1048,7 @@ class AvatarChatBot {
     }
 
     executeChangeAvatar(target) {
-        // Full avatar map: keyword aliases â†’ VRM file path
+        // Full avatar map: keyword aliases → VRM file path
         const avatarMap = {
             'changli':      './Wuwa/changli(fixed).vrm',
             'camellya':     './Wuwa/CamellyaV1.vrm',
@@ -1105,7 +1105,7 @@ class AvatarChatBot {
     }
 
 
-    // ── YouTube Search + Direct Embed Play ───────────────────────────────────
+    // -- YouTube Search + Direct Embed Play -----------------------------------
     async searchAndPlay(query) {
         // If query is too vague (e.g. "a song", "music", "something"), ask for specifics
         const genericTerms = /^(a song|some music|music|a track|something|a video|random|anything|any song)$/i;
@@ -1115,7 +1115,7 @@ class AvatarChatBot {
         }
 
         console.log('[Raya] Searching YouTube for:', query);
-        this.showBubble('ðŸ” Searching for "' + query + '"â€¦');
+        this.showBubble('🔍 Searching for "' + query + '"…');
 
         try {
             const res = await fetch('/api/yt-search', {
@@ -1143,7 +1143,7 @@ class AvatarChatBot {
         }
     }
 
-    // ── Show disambiguation UI ─────────────────────────────────────────────────
+    // -- Show disambiguation UI -------------------------------------------------
     showDisambiguation(options) {
         const questionText = 'I found this song by multiple artists! Which version would you like?';
         this.bubbleText.innerText = questionText;
@@ -1170,7 +1170,7 @@ class AvatarChatBot {
         this.pendingResults = null;
     }
 
-    // ── Direct Play ───────────────────────────────────────────────────────────
+    // -- Direct Play -----------------------------------------------------------
     playVideoById(video) {
         this.hideChoices();
         const artistClean = video.artist.replace(/\s*-\s*Topic$/i, '').trim();
@@ -1230,14 +1230,14 @@ class AvatarChatBot {
         openBtn.href = ytUrl;
         openBtn.target = '_blank';
         openBtn.rel = 'noopener';
-        openBtn.innerHTML = '▶ Open on YouTube';
+        openBtn.innerHTML = '? Open on YouTube';
         openBtn.style.cssText = `display:inline-block;margin-top:5px;font-size:0.7rem;
             font-weight:700;color:#ff416c;text-decoration:none;
             font-family:'Outfit',sans-serif;letter-spacing:0.5px;`;
         openBtn.addEventListener('click', () => setTimeout(() => wrapper.remove(), 8000));
 
         const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '✕';
+        closeBtn.innerHTML = '?';
         closeBtn.style.cssText = `background:none;border:none;color:rgba(255,255,255,0.4);
             cursor:pointer;font-size:0.85rem;padding:0 0 0 6px;flex-shrink:0;line-height:1;`;
         closeBtn.onclick = () => wrapper.remove();
@@ -1261,7 +1261,7 @@ class AvatarChatBot {
         setTimeout(() => wrapper.remove?.(), 60000 * 10); // 10 minutes
     }
 
-    // ── TTS ────────────────────────────────────────────────────────────────────
+    // -- TTS --------------------------------------------------------------------
     speakAvatar(text, autoListen = true) {
         if (!text) return;
         if (!window.speechSynthesis) {
@@ -1299,11 +1299,11 @@ class AvatarChatBot {
             } else {
                 utterance.lang  = 'en-IN';
             }
-            utterance.rate   = 1.32;
+            utterance.rate   = 1.15;
             utterance.pitch  = 1.35;
             utterance.volume = 1.0;
 
-            // ── Safety watchdog ──────────────────────────────────────────────
+            // -- Safety watchdog ----------------------------------------------
             const wordCount = cleanText.split(/\s+/).length;
             const estimatedMs = Math.max(3000, (wordCount / 3.25) * 1000 + 2500);
             let watchdog = null;
@@ -1349,7 +1349,7 @@ class AvatarChatBot {
                     this.setAvatarTalkingStatus(true);
                 };
 
-                // Watchdog: poll every 300ms â€” catch silent failures faster
+                // Watchdog: poll every 300ms — catch silent failures faster
                 watchdog = setInterval(() => {
                     if (!this.synth.speaking && !this.synth.pending && this.isSpeaking && !speechEnded) {
                         console.warn('[Raya TTS] Watchdog: synthesis silently stopped, forcing cleanup.');
@@ -1379,7 +1379,7 @@ class AvatarChatBot {
     }
 
 
-    // ── Bubble Helpers ─────────────────────────────────────────────────────────
+    // -- Bubble Helpers ---------------------------------------------------------
     showBubble(text) {
         this.bubbleText.innerText = text;
         this.chatBubble.style.opacity = '1';
@@ -1410,10 +1410,10 @@ class AvatarChatBot {
 
     setAvatarTalkingStatus(isTalking) { window.chatbotTalking = isTalking; }
 
-    // ── Intro Speech ───────────────────────────────────────────────────────────
+    // -- Intro Speech -----------------------------------------------------------
     // Handled by the master introduceHerself() method at the top of the class.
 
-    // ── Save session memory on exit ────────────────────────────────────────────
+    // -- Save session memory on exit --------------------------------------------
     endSession() {
         const userMessages = this.messages.filter(m => m.role !== 'system');
         if (!userMessages.length) return;
