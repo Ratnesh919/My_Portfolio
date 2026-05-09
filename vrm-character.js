@@ -554,7 +554,7 @@ vrmLoader.load(initialFile, async gltf => {
             b.style.left = (5 + Math.random() * 85) + 'vw';
             b.style.animationDuration = (4 + Math.random() * 4) + 's';
             
-            b.addEventListener('click', (e) => {
+            b.addEventListener('pointerdown', (e) => {
                 clearInterval(spawnInterval);
                 document.querySelectorAll('.bubble-item').forEach(bbl => bbl.style.opacity = '0');
 
@@ -1187,12 +1187,12 @@ function animate() {
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blinkRight', yawnSquint); } catch(_){}
     }
 
-    // Chatbot Lipsync (fake talking) — tuned to ~195 WPM / rate 1.32
+    // Chatbot Lipsync (fake talking) — tuned to ~165 WPM / rate 1.10
     if (window.chatbotTalking) {
-        // Primary open-vowel: ~10.0 cycles/s → matches syllable rate at 195 WPM
-        const talkMouth = Math.abs(Math.sin(t * 10.0)) * 0.75;
+        // Primary open-vowel: ~8.5 cycles/s → matches syllable rate at 165 WPM
+        const talkMouth = Math.abs(Math.sin(t * 8.5)) * 0.75;
         // Secondary vowel for realism: offset phase, lower amplitude
-        const talkIh    = Math.abs(Math.sin(t * 10.0 + 1.8)) * 0.35;
+        const talkIh    = Math.abs(Math.sin(t * 8.5 + 1.8)) * 0.35;
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('aa', talkMouth); } catch(_){}
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('a',  talkMouth); } catch(_){}
         try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('A',  talkMouth); } catch(_){}

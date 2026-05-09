@@ -100,7 +100,7 @@
     </header>
     
     <main class="container">
-        <a href="./Immersive/dist/" class="card" id="card-1">
+        <a href="./Immersive/dist/index.html" class="card" id="card-1">
             <div class="card-icon"><i data-lucide="box"></i></div>
             <div class="card-vertical-title">IMMERSIVE</div>
             <div class="card-content">
@@ -112,7 +112,7 @@
                 </div>
             </div>
         </a>
-        <a href="./Cosmic/dist/" class="card" id="card-2">
+        <a href="./Cosmic/dist/index.html" class="card" id="card-2">
             <div class="card-icon"><i data-lucide="ghost"></i></div>
             <div class="card-vertical-title">COSMIC</div>
             <div class="card-content">
@@ -124,7 +124,7 @@
                 </div>
             </div>
         </a>
-        <a href="./Urban/dist/" class="card" id="card-3">
+        <a href="./Urban/dist/index.html" class="card" id="card-3">
             <div class="card-icon"><i data-lucide="palette"></i></div>
             <div class="card-vertical-title">URBAN</div>
             <div class="card-content">
@@ -136,7 +136,7 @@
                 </div>
             </div>
         </a>
-        <a href="./Essential/dist/" class="card" id="card-4">
+        <a href="./Essential/dist/index.html" class="card" id="card-4">
             <div class="card-icon"><i data-lucide="layers"></i></div>
             <div class="card-vertical-title">ESSENTIAL</div>
             <div class="card-content">
@@ -148,7 +148,7 @@
                 </div>
             </div>
         </a>
-        <a href="./Lumen/dist/" class="card" id="card-5">
+        <a href="./Lumen/dist/index.html" class="card" id="card-5">
             <div class="card-icon"><i data-lucide="sun"></i></div>
             <div class="card-vertical-title">LUMEN</div>
             <div class="card-content">
@@ -178,10 +178,11 @@
         const changeThemeBtn = document.getElementById('change-theme-btn');
         const iframeContainer = document.getElementById('iframe-container');
 
-        document.querySelectorAll('.card').forEach(card => {
+                document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetUrl = card.getAttribute('href');
+                localStorage.setItem('selectedTheme', targetUrl);
                 
                 // Animate cards out
                 document.querySelectorAll('.card').forEach((c, idx) => {
@@ -222,6 +223,7 @@
         });
 
         changeThemeBtn.addEventListener('click', () => {
+            localStorage.removeItem('selectedTheme');
             // Hide iframe and button
             iframeContainer.style.opacity = '0';
             iframeContainer.style.pointerEvents = 'none';
@@ -249,10 +251,45 @@
                     c.classList.remove('exiting');
                     c.style.animation = ''; // restore CSS defined animation
                 });
-            }, 500);
+            }, 500); // Wait for fade out
         });
 
-        // No auto-load — let the user choose their theme
+        // Auto-load previously selected theme
+        const savedTheme = localStorage.getItem('selectedTheme');
+        if (savedTheme) {
+            const card = Array.from(document.querySelectorAll('.card')).find(c => c.getAttribute('href') === savedTheme);
+            if (card) {
+                // Simulate quick transition without animation delays
+                const targetUrl = savedTheme;
+                const container = document.querySelector('.container');
+                const header = document.querySelector('header');
+                const contactSection = document.querySelector('.contact-section');
+                
+                container.style.opacity = '0';
+                container.style.pointerEvents = 'none';
+                header.style.opacity = '0';
+                header.style.pointerEvents = 'none';
+                if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
+                
+                const loaderHTML = `
+                    <div id="iframe-loader" style="position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; background:#080808; z-index:5;">
+                        <div style="width:48px; height:48px; border:3px solid rgba(255,65,108,0.2); border-top-color:#ff416c; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        <span style="color:rgba(255,255,255,0.4); font-family:'Outfit',sans-serif; font-size:13px; letter-spacing:1px;">LOADING...</span>
+                        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+                    </div>
+                `;
+                iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.addEventListener('pointermove', e => window.parent.postMessage({type: 'vrm-pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerdown', e => window.parent.postMessage({type: 'vrm-pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerup', e => window.parent.postMessage({type: 'vrm-pointerup', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
+                iframeContainer.style.opacity = '1';
+                iframeContainer.style.pointerEvents = 'auto';
+                
+                changeThemeBtn.style.opacity = '1';
+                changeThemeBtn.style.pointerEvents = 'auto';
+                const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+                if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
+                const avatarPanel = document.getElementById('avatar-panel');
+                if (avatarPanel) { avatarPanel.classList.remove('open'); }
+            }
+        }
     </script>
 
     <!-- SVG Filter for Liquid Effect -->
@@ -316,8 +353,8 @@
             { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
         ];
 
-        // Load a specific, lightweight avatar on startup (Kid changli is ~11MB) to ensure fast loading
-        let activeAvatar = './Wuwa/Kid changli.vrm';
+        // Load user's saved avatar, defaulting to Changli
+        let activeAvatar = localStorage.getItem('selectedAvatar') || './Wuwa/changli(fixed).vrm';
         window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
 
         const panel      = document.getElementById('avatar-panel');
@@ -335,7 +372,7 @@
                 <div class="avatar-name">${av.name}</div>`;
             btn.addEventListener('click', () => {
                 if (av.file === activeAvatar) return;
-                activeAvatar = av.file;
+                activeAvatar = av.file; localStorage.setItem('selectedAvatar', activeAvatar);
                 grid.querySelectorAll('.avatar-item').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 // Call the exposed switch function from vrm-character.js

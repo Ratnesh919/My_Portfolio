@@ -1,0 +1,1 @@
+export class ScrollSmoother { static create(config: any) { return new ScrollSmoother(); } paused(p: boolean) { return false; } }

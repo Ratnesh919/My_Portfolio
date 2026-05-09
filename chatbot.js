@@ -56,7 +56,21 @@ const WAKE_WORD_VARIANTS = [
 class AvatarChatBot {
     constructor() {
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        this.messages    = [{ role: 'system', content: SYSTEM_PROMPT }];
+        
+        try {
+            const savedMsgs = localStorage.getItem('rayaMessages');
+            this.messages = savedMsgs ? JSON.parse(savedMsgs) : [{ role: 'system', content: SYSTEM_PROMPT }];
+            this.userName = localStorage.getItem('rayaUserName') || '';
+            if (this.messages.length > 1) {
+                this.hasIntroduced = true;
+                this.vrmIntroPlayed = true;
+                this._introDone = true;
+            }
+        } catch(e) {
+            this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
+            this.userName = '';
+        }
+
         this.isListening = false;
         this.isSpeaking  = false;
         this.isThinking  = false;
@@ -124,6 +138,7 @@ class AvatarChatBot {
             const data = await res.json();
             if (data.userName) {
                 this.userName = data.userName;
+                localStorage.setItem('rayaUserName', this.userName);
             }
         } catch (err) {
             console.error('[Analytics Error]', err);
@@ -155,6 +170,7 @@ class AvatarChatBot {
 
         // 1. Always show text bubble — no gesture required
         this.messages.push({ role: 'assistant', content: introMessage });
+        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(introMessage);
 
         // After intro, allow user to reply with their name WITHOUT saying the wake word.
@@ -243,6 +259,7 @@ class AvatarChatBot {
         if (this.hasIntroduced) return;
         this.hasIntroduced = true;
         this.messages.push({ role: 'assistant', content: INTRO_TEXT });
+        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(INTRO_TEXT);
         // Queue speech for first real gesture (click / keydown)
         this._queueSpeechOnGesture(INTRO_TEXT, autoListen);
@@ -724,6 +741,7 @@ class AvatarChatBot {
         this.updateMicUI();
         this.showUserBubble(text);
         this.messages.push({ role: 'user', content: text });
+        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
         // LOCAL COMMAND ROUTING - handles simple commands with zero API calls
         const localResult = this._tryLocalCommand(text);
@@ -732,6 +750,7 @@ class AvatarChatBot {
             this._awaitingCommand = false;
             this.updateMicUI();
             this.messages.push({ role: 'assistant', content: localResult.speech });
+            localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
             // For song actions: run the action FIRST (opens tab synchronously
             // while user-gesture context is still alive), then speak.
             if (localResult.action) localResult.action();
@@ -937,7 +956,7 @@ class AvatarChatBot {
             } catch (e) { console.warn('[Raya] JSON parse error:', e); }
         }
 
-        this.messages.push({ role: 'assistant', content: spokenText });
+        this.messages.push({ role: 'assistant', content: spokenText }); localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
         if (actionObj) {
             // Record successful actions to the crowd-sourced cache to save future API calls
