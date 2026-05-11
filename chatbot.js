@@ -89,7 +89,15 @@ class AvatarChatBot {
         // Track whether user has interacted with the page (gesture = TTS allowed)
         // Uses passive listeners so it never blocks scrolling/input performance.
         this._userHasGestured = false;
-        const markGesture = () => { this._userHasGestured = true; };
+        const markGesture = () => { 
+            this._userHasGestured = true; 
+            // Prime speech synthesis on first interaction to unlock it for mobile
+            try {
+                const u = new SpeechSynthesisUtterance('');
+                u.volume = 0;
+                speechSynthesis.speak(u);
+            } catch(e) {}
+        };
         ['click','touchstart','keydown','pointerdown'].forEach(ev =>
             document.addEventListener(ev, markGesture, { once: true, passive: true })
         );
@@ -597,12 +605,7 @@ class AvatarChatBot {
             this.isListening = false;
             this.updateMicUI();
             
-            // Mobile devices emit beeps/prompts on mic start. Constant loops cause rapid on/off switching.
-            // Disable passive auto-restarting on mobile so it acts strictly as push-to-talk.
-            if (this.isMobile) {
-                this.userStoppedMic = true;
-                return;
-            }
+            if (this.userStoppedMic) { return; }
 
             // Restart passive mic unless user explicitly stopped it
             if (!this.userStoppedMic) {
@@ -643,7 +646,7 @@ class AvatarChatBot {
     // Called once after the user makes their first gesture (bubble pop / interaction).
     // Starts mic in background without showing "Listening" UI.
     startPassiveListening() {
-        if (!this.recognition || this.isListening || this.micGranted === false || this.isMobile) return;
+        if (!this.recognition || this.isListening || this.micGranted === false) return;
         this._passiveModeActive = true;
         this.userStoppedMic = false;
         try { this.recognition.start(); } catch(e) {}
@@ -1327,7 +1330,7 @@ class AvatarChatBot {
             } else {
                 utterance.lang  = 'en-IN';
             }
-            utterance.rate   = 1.15;
+            utterance.rate   = 1.10; // ~165 WPM
             utterance.pitch  = 1.35;
             utterance.volume = 1.0;
 
@@ -1349,7 +1352,7 @@ class AvatarChatBot {
                 const ytIframe2 = document.querySelector('#raya-yt-wrapper iframe');
                 if (ytIframe2) ytIframe2.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [100]}), '*');
                 setTimeout(() => { this._wakeWordCooldown = false; }, 1500);
-                if (autoListen && this.micGranted && !this.isMobile) {
+                if (autoListen && this.micGranted) {
                     setTimeout(() => this.startListening(), 500);
                 }
             };

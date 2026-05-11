@@ -707,8 +707,8 @@ function returnToIdle() {
         applyState('idle', 'happy', 0.6);
         playAnim(ANIM.idle, true, 0.5);
         introComplete = true;
-        // Fixed 30s wait before the next random animation fires
-        const delay = 30000 + Math.random() * 5000;   // 30–35s
+        // Fixed 20s wait before the next random animation fires
+        const delay = 20000;   // 20s
         autoTimerId = setTimeout(playRandomAnim, delay);
         // Kick off smile scheduler when entering idle (if not already running)
         if (!smileTimerId) scheduleNextSmile();
@@ -1079,7 +1079,7 @@ function animate() {
         }
         
         // Randomly look around the viewport when idle
-        if (currentKey && currentKey.includes('Idle')) {
+        if (currentKey && currentKey.includes('Idle') && !window.chatbotTalking) {
             // Use combination of sine waves for pseudo-random smooth wandering
             const lookX = Math.sin(t * 0.6) * 3.0 + Math.sin(t * 1.3) * 1.5;
             const lookY = Math.sin(t * 0.4) * 2.0 + Math.cos(t * 1.1) * 1.0 + 1.2;
