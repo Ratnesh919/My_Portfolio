@@ -128,11 +128,11 @@ const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(na
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: true,  // always on for best avatar quality
-    powerPreference: 'high-performance' 
+    antialias: !isMobile,          // antialias OFF on mobile: doubles GPU VRAM, causes Chrome OOM
+    powerPreference: isMobile ? 'default' : 'high-performance'
 });
-// Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 2 : 2));
+// Mobile: 1x DPR prevents 4x overdraw OOM crash. Desktop: up to 2x for crisp screens.
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
