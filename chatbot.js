@@ -383,12 +383,94 @@ class AvatarChatBot {
 
         sendBtn.addEventListener('click', () => this.handleTextSend());
         this.textInput.addEventListener('keydown', e => { if (e.key === 'Enter') this.handleTextSend(); });
+
         // NOTE: Removed focus->showIntro binding. It caused hasIntroduced to be set
         // before the VRM wave loaded, permanently blocking the avatar intro speech.
-        this.micBtn.addEventListener('click', () => {
-            if (!this.hasIntroduced) this.showIntro(false);
-            this.handleMicClick();
-        });
+        if (this.isMobile) {
+            // --- Mobile: Tap to toggle mic OR hold to talk ---
+            // Show tooltip bubble on the mic button to guide the user
+            this._micTooltipEl = document.createElement('div');
+            Object.assign(this._micTooltipEl.style, {
+                position: 'absolute',
+                bottom: '110%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'rgba(255,65,108,0.95)',
+                color: '#fff',
+                fontSize: '0.72rem',
+                fontFamily: "'Outfit', sans-serif",
+                whiteSpace: 'nowrap',
+                padding: '5px 10px',
+                borderRadius: '20px',
+                pointerEvents: 'none',
+                opacity: '0',
+                transition: 'opacity 0.25s',
+                zIndex: '999',
+                boxShadow: '0 2px 8px rgba(255,65,108,0.4)',
+            });
+            this._micTooltipEl.textContent = '🎤 Tap to talk — hold for continuous';
+            this.micBtn.style.position = 'relative';
+            this.micBtn.appendChild(this._micTooltipEl);
+
+            // Show tooltip for 4 seconds on first render
+            setTimeout(() => {
+                this._micTooltipEl.style.opacity = '1';
+                setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 4000);
+            }, 1200);
+
+            let _holdTimer = null;
+            let _isHolding = false;
+
+            this.micBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                if (!this.hasIntroduced) this.showIntro(false);
+                _holdTimer = setTimeout(() => {
+                    // HOLD mode: keep mic on while held
+                    _isHolding = true;
+                    this._micTooltipEl.textContent = '🔴 Holding — release to stop';
+                    this._micTooltipEl.style.opacity = '1';
+                    if (this.isListening) return;
+                    this.userStoppedMic = false;
+                    this._passiveModeActive = false;
+                    if (!this.hasIntroduced) this.showIntro(false);
+                    this.startListening();
+                }, 400);
+            });
+
+            this.micBtn.addEventListener('pointerup', (e) => {
+                e.preventDefault();
+                if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
+                if (_isHolding) {
+                    // Release hold — stop mic
+                    _isHolding = false;
+                    this._micTooltipEl.textContent = '🎤 Tap to talk — hold for continuous';
+                    setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2000);
+                    this.userStoppedMic = true;
+                    this.recognition?.stop();
+                } else {
+                    // TAP — toggle mic
+                    this.handleMicClick();
+                    this._micTooltipEl.textContent = this.isListening ? '🔴 Listening — tap to stop' : '🎤 Tap to talk';
+                    this._micTooltipEl.style.opacity = '1';
+                    setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2500);
+                }
+            });
+
+            this.micBtn.addEventListener('pointerleave', () => {
+                if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
+                if (_isHolding) {
+                    _isHolding = false;
+                    this.userStoppedMic = true;
+                    this.recognition?.stop();
+                    this._micTooltipEl.style.opacity = '0';
+                }
+            });
+        } else {
+            this.micBtn.addEventListener('click', () => {
+                if (!this.hasIntroduced) this.showIntro(false);
+                this.handleMicClick();
+            });
+        }
         // NOTE: Do NOT auto-start mic here — browsers block getUserMedia without a
         // direct user gesture. The mic will start when the user clicks the mic button.
     }
@@ -1268,7 +1350,7 @@ class AvatarChatBot {
         openBtn.addEventListener('click', () => setTimeout(() => wrapper.remove(), 8000));
 
         const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '?';
+        closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
         closeBtn.style.cssText = `background:none;border:none;color:rgba(255,255,255,0.4);
             cursor:pointer;font-size:0.85rem;padding:0 0 0 6px;flex-shrink:0;line-height:1;`;
         closeBtn.onclick = () => wrapper.remove();

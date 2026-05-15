@@ -128,11 +128,11 @@ const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(na
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: !isMobile,  // disable antialias on mobile for smoother performance
+    antialias: true,  // always on for best avatar quality
     powerPreference: 'high-performance' 
 });
 // Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS)
-renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 2 : 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
