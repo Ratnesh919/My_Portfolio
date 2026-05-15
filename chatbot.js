@@ -355,10 +355,10 @@ class AvatarChatBot {
         inputRow.appendChild(sendBtn);
         inputRow.appendChild(this.micBtn);
 
-        // Wake word hint
+        // Mic usage hint
         this.wakeWordHint = document.createElement('div');
         this.wakeWordHint.id = 'chatbot-wake-word-hint';
-        this.wakeWordHint.innerText = "Say wake word 'Hey Raya' to chat";
+        this.wakeWordHint.innerText = this.isMobile ? "Tap 🎤 to talk to Raya" : "Click 🎤 and speak to Raya";
         this.wakeWordHint.style.cssText = `
             font-size: 0.75rem;
             color: rgba(255,255,255,0.6);
@@ -566,12 +566,11 @@ class AvatarChatBot {
         this.recognition.onstart = () => {
             this.isListening = true;
             this.updateMicUI();
-            // Only show "Listening" bubble if user clicked the mic button
-            if (!this._passiveModeActive) this.showBubble('?? Listening...');
+            this.showBubble('🎙️ Listening...');
         };
 
         this.recognition.onresult = (event) => {
-            // Ignore mic input while Raya's TTS is playing or cooldown is active
+            // Ignore mic input while Raya's TTS is playing
             if (this._wakeWordCooldown) return;
 
             let interim = '', final = '';
@@ -581,38 +580,19 @@ class AvatarChatBot {
                 else interim += t;
             }
 
-            // Only show interim in bubble if NOT in passive mode OR if awaiting a command
-            if (interim && (!this._passiveModeActive || this._awaitingCommand)) {
+            // Show interim result in the text input and bubble while user speaks
+            if (interim) {
                 this.textInput.value = interim;
                 this.showBubble(interim);
-            } else if (interim && this._passiveModeActive) {
-                // In passive mode (and not awaiting command): show interim only if wake word is detected
-                const lowerInt = interim.toLowerCase();
-                const wakeDetected = WAKE_WORD_VARIANTS.some(w => lowerInt.includes(w));
-                if (wakeDetected) this.showBubble('?? ' + interim);
             }
 
             if (final) {
-                // (Removed strict confidence filter here as it was blocking valid voice commands on many microphones)
+                this.textInput.value = ''; // clear input when done
 
-                this.textInput.value = ''; // clear when done
+                const command = final.toLowerCase().trim()
+                    .replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, '').trim();
 
-                // -- Wake word detection --------------------------------------
-                const lowerFinal = final.toLowerCase().trim();
-                
-                // Find matching variant (prioritize exact word match, fallback to includes)
-                let matchedVariant = WAKE_WORD_VARIANTS.find(w => new RegExp(`\\b${w}\\b`, 'i').test(lowerFinal));
-                if (!matchedVariant) matchedVariant = WAKE_WORD_VARIANTS.find(w => lowerFinal.includes(w));
-
-                if (!matchedVariant && !this._awaitingCommand) {
-                    // In passive mode: silently ignore non-wake-word speech
-                    if (this._passiveModeActive) return;
-                    // In active mic mode: show hint
-                    console.log('[Raya] Wake word not detected, ignoring:', final);
-                    this.showBubble('Say "Raya" to wake me up!');
-                    setTimeout(() => this.hideBubble(), 2000);
-                    return;
-                }
+                if (!command) return;
 
                 // If Raya is currently speaking, stop her first
                 if (this.isSpeaking) {
@@ -621,53 +601,20 @@ class AvatarChatBot {
                     this.setAvatarTalkingStatus(false);
                 }
 
-                // Strip the matched wake word variant from the command if it exists
-                let commandWithoutWake = lowerFinal;
-                if (matchedVariant) {
-                    // Just replace the first occurrence of the exact word, case insensitive
-                    const exactRegex = new RegExp(`\\b${matchedVariant}\\b`, 'i');
-                    const initialLen = commandWithoutWake.length;
-                    commandWithoutWake = commandWithoutWake.replace(exactRegex, '');
-                    
-                    // Fallback to substring replace if exact word boundary failed (e.g. punctuation attached without spaces)
-                    if (commandWithoutWake.length === initialLen) {
-                        commandWithoutWake = commandWithoutWake.replace(new RegExp(matchedVariant, 'i'), '');
-                    }
-                }
-                
-                // Clean up any remaining punctuation or spaces
-                commandWithoutWake = commandWithoutWake.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, '').trim();
-
-                // Display text: just show the command directly
-                this.showUserBubble(commandWithoutWake || 'Raya');
+                // Show user bubble
+                this.showUserBubble(command);
 
                 // Handle disambiguation by voice
                 if (this.awaitingChoice && this.pendingResults) {
-                    const num = parseInt(commandWithoutWake, 10);
+                    const num = parseInt(command, 10);
                     if (!isNaN(num) && num >= 1 && num <= this.pendingResults.length) {
                         this.playVideoById(this.pendingResults[num - 1]);
                         return;
                     }
                 }
 
-                // If only the wake word was said, give a fast local reply (no API call)
-                if (!commandWithoutWake) {
-                    const acks = [
-                        'Yes?', 
-                        "I'm here, what do you need?", 
-                        "I didn't quite catch the rest, could you say it again?", 
-                        "Please say your command again.", 
-                        "I'm listening!"
-                    ];
-                    const ack = acks[Math.floor(Math.random() * acks.length)];
-                    this._awaitingCommand = true; // Wait for the actual command in the next speech!
-                    this.speakAvatar(ack, false);
-                    return;
-                }
-
-                this._awaitingCommand = false; // Reset since we are executing a command
-                // Send the command (without wake word) to AI
-                this.handleUserInput(commandWithoutWake);
+                // Send directly to AI — no wake word needed
+                this.handleUserInput(command);
             }
         };
 
@@ -728,7 +675,8 @@ class AvatarChatBot {
     // Called once after the user makes their first gesture (bubble pop / interaction).
     // Starts mic in background without showing "Listening" UI.
     startPassiveListening() {
-        if (!this.recognition || this.isListening || this.micGranted === false) return;
+        // Never auto-start mic on mobile — user must tap the mic button
+        if (!this.recognition || this.isListening || this.micGranted === false || this.isMobile) return;
         this._passiveModeActive = true;
         this.userStoppedMic = false;
         try { this.recognition.start(); } catch(e) {}
