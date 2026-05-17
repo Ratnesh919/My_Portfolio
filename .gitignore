@@ -4,3 +4,7 @@ raya-memory.db
 raya-memory.db-shm
 raya-memory.db-wal
 .DS_Store
+
+Wuwa/
+*.vrm
+*.glb
