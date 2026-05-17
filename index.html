@@ -50,11 +50,16 @@
     ──────────────────────────────────────────────────────────────────────── -->
     <script>
         (function() {
-            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+            var ua = navigator.userAgent;
+            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
                         || (navigator.maxTouchPoints > 1 && window.screen.width < 1024);
-            // Allow user to force desktop experience via localStorage flag
-            var forceDesktop = localStorage.getItem('forceDesktop') === '1';
+            // Only allow forceDesktop on tablets/wide screens - phones always get lightweight page
+            var isPhone = window.screen.width < 768 || window.screen.height < 768;
+            var forceDesktop = !isPhone && localStorage.getItem('forceDesktop') === '1';
             if (isMobile && !forceDesktop) {
+                // Clear any saved theme so Immersive doesn't auto-load on next visit
+                localStorage.removeItem('selectedTheme');
+                localStorage.removeItem('forceDesktop');
                 window.location.replace('./mobile.html');
             }
         })();
@@ -375,25 +380,32 @@
     </div>
 
     <script>
+        // VRM files hosted on GitHub Releases (removed from git repo to fix LFS bandwidth limit)
+        const VRM_BASE = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1';
         const AVATARS = [
-            { name: 'Changli',        file: './Wuwa/changli(fixed).vrm' },
-            { name: 'Camellya',       file: './Wuwa/CamellyaV1.vrm' },
-            { name: 'Carlotta',       file: './Wuwa/CarlottaV1.vrm' },
-            { name: 'Chixia',         file: './Wuwa/chixia.vrm' },
-            { name: 'Jinshi',         file: './Wuwa/jinshi.vrm' },
-            { name: 'Kid Changli',    file: './Wuwa/Kid changli.vrm' },
-            { name: 'Pinkshi',        file: './Wuwa/PinkshiV1.vrm' },
-            { name: 'Roccia',         file: './Wuwa/RocciaV3.vrm' },
-            { name: 'Rover',          file: './Wuwa/rover.vrm' },
-            { name: 'Sanhua',         file: './Wuwa/SanhuaV2.vrm' },
-            { name: 'Shorekeeper',    file: './Wuwa/ShorekeeperV3.vrm' },
-            { name: 'Verina',         file: './Wuwa/verina.vrm' },
-            { name: 'Yangyang',       file: './Wuwa/yangyang.vrm' },
-            { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
+            { name: 'Changli',        file: `${VRM_BASE}/changli(fixed).vrm` },
+            { name: 'Camellya',       file: `${VRM_BASE}/CamellyaV1.vrm` },
+            { name: 'Carlotta',       file: `${VRM_BASE}/CarlottaV1.vrm` },
+            { name: 'Chixia',         file: `${VRM_BASE}/chixia.vrm` },
+            { name: 'Jinshi',         file: `${VRM_BASE}/jinshi.vrm` },
+            { name: 'Kid Changli',    file: `${VRM_BASE}/Kid changli.vrm` },
+            { name: 'Pinkshi',        file: `${VRM_BASE}/PinkshiV1.vrm` },
+            { name: 'Roccia',         file: `${VRM_BASE}/RocciaV3.vrm` },
+            { name: 'Rover',          file: `${VRM_BASE}/rover.vrm` },
+            { name: 'Sanhua',         file: `${VRM_BASE}/SanhuaV2.vrm` },
+            { name: 'Shorekeeper',    file: `${VRM_BASE}/ShorekeeperV3.vrm` },
+            { name: 'Verina',         file: `${VRM_BASE}/verina.vrm` },
+            { name: 'Yangyang',       file: `${VRM_BASE}/yangyang.vrm` },
+            { name: 'Yinlin',         file: `${VRM_BASE}/yinlin.vrm` },
         ];
 
-        // Load user's saved avatar, defaulting to Changli
-        let activeAvatar = localStorage.getItem('selectedAvatar') || './Wuwa/changli(fixed).vrm';
+        // Load user's saved avatar — migrate old ./Wuwa/ paths to new GitHub Releases URLs
+        let activeAvatar = localStorage.getItem('selectedAvatar') || `${VRM_BASE}/changli(fixed).vrm`;
+        if (activeAvatar.startsWith('./Wuwa/')) {
+            // Migrate old localStorage path to new CDN path
+            activeAvatar = activeAvatar.replace('./Wuwa/', `${VRM_BASE}/`);
+            localStorage.setItem('selectedAvatar', activeAvatar);
+        }
         window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
 
         const panel      = document.getElementById('avatar-panel');

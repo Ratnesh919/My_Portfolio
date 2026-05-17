@@ -442,7 +442,8 @@ function fixVRMHitbox(vrmObj) {
     });
 }
 
-const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
+const VRM_CDN_BASE = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1';
+const initialFile = window.initialAvatarFile || `${VRM_CDN_BASE}/changli(fixed).vrm`;
 vrmLoader.load(initialFile, async gltf => {
     vrm = gltf.userData.vrm;
     if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);

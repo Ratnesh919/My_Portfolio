@@ -1166,21 +1166,22 @@ class AvatarChatBot {
 
     executeChangeAvatar(target) {
         // Full avatar map: keyword aliases → VRM file path
+        const _VRM = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1';
         const avatarMap = {
-            'changli':      './Wuwa/changli(fixed).vrm',
-            'camellya':     './Wuwa/CamellyaV1.vrm',
-            'carlotta':     './Wuwa/CarlottaV1.vrm',
-            'chixia':       './Wuwa/chixia.vrm',
-            'jinshi':       './Wuwa/jinshi.vrm',
-            'kid changli':  './Wuwa/Kid changli.vrm',
-            'pinkshi':      './Wuwa/PinkshiV1.vrm',
-            'roccia':       './Wuwa/RocciaV3.vrm',
-            'rover':        './Wuwa/rover.vrm',
-            'sanhua':       './Wuwa/SanhuaV2.vrm',
-            'shorekeeper':  './Wuwa/ShorekeeperV3.vrm',
-            'verina':       './Wuwa/verina.vrm',
-            'yangyang':     './Wuwa/yangyang.vrm',
-            'yinlin':       './Wuwa/yinlin.vrm',
+            'changli':      `${_VRM}/changli(fixed).vrm`,
+            'camellya':     `${_VRM}/CamellyaV1.vrm`,
+            'carlotta':     `${_VRM}/CarlottaV1.vrm`,
+            'chixia':       `${_VRM}/chixia.vrm`,
+            'jinshi':       `${_VRM}/jinshi.vrm`,
+            'kid changli':  `${_VRM}/Kid changli.vrm`,
+            'pinkshi':      `${_VRM}/PinkshiV1.vrm`,
+            'roccia':       `${_VRM}/RocciaV3.vrm`,
+            'rover':        `${_VRM}/rover.vrm`,
+            'sanhua':       `${_VRM}/SanhuaV2.vrm`,
+            'shorekeeper':  `${_VRM}/ShorekeeperV3.vrm`,
+            'verina':       `${_VRM}/verina.vrm`,
+            'yangyang':     `${_VRM}/yangyang.vrm`,
+            'yinlin':       `${_VRM}/yinlin.vrm`,
         };
 
         const allFiles = Object.values(avatarMap);
