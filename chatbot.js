@@ -268,7 +268,8 @@ class AvatarChatBot {
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(INTRO_TEXT);
         // Queue speech for first real gesture (click / keydown)
-        this._queueSpeechOnGesture(INTRO_TEXT, autoListen);
+        // On mobile: never auto-listen after intro — user must tap mic button
+        this._queueSpeechOnGesture(INTRO_TEXT, this.isMobile ? false : autoListen);
     }
 
     // Queue speech/callback to fire on the very next user interaction gesture.
@@ -1437,7 +1438,8 @@ class AvatarChatBot {
                 const ytIframe2 = document.querySelector('#raya-yt-wrapper iframe');
                 if (ytIframe2) ytIframe2.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [100]}), '*');
                 setTimeout(() => { this._wakeWordCooldown = false; }, 1500);
-                if (autoListen && this.micGranted) {
+                // On mobile: NEVER auto-restart mic after speech — user must tap mic button
+                if (autoListen && this.micGranted && !this.isMobile) {
                     setTimeout(() => this.startListening(), 500);
                 }
             };

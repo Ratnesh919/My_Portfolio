@@ -129,7 +129,7 @@ const renderer = new THREE.WebGLRenderer({
     canvas, 
     alpha: true, 
     antialias: !isMobile,          // antialias OFF on mobile: doubles GPU VRAM, causes Chrome OOM
-    powerPreference: isMobile ? 'default' : 'high-performance'
+    powerPreference: isMobile ? 'low-power' : 'high-performance'  // low-power = mobile GPU saver
 });
 // Mobile: 1x DPR prevents 4x overdraw OOM crash. Desktop: up to 2x for crisp screens.
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
@@ -1044,8 +1044,19 @@ function applyFingerPose(t, dt) {
 let wasTalking  = false;
 let wasThinking = false;
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
-function animate() {
+// Mobile FPS throttle — cap at 24fps to prevent OOM crash on mid-range Android phones
+const MOBILE_FPS_INTERVAL = isMobile ? (1000 / 24) : 0;
+let _lastFrameTime = 0;
+let _mobileFrameCount = 0;
+
+function animate(now = 0) {
     requestAnimationFrame(animate);
+    // On mobile: skip frames to maintain ~24fps
+    if (isMobile) {
+        if (now - _lastFrameTime < MOBILE_FPS_INTERVAL) return;
+        _lastFrameTime = now;
+        _mobileFrameCount++;
+    }
     const dt = Math.min(clock.getDelta(), 0.05);
     const t  = clock.elapsedTime;
     renderer.render(scene, camera);
@@ -1287,7 +1298,10 @@ function animate() {
     }
 
     // Update VRM SpringBones — dt * 0.18 for stiffer, less floppy cloth
-    vrm.update(dt * 0.18);
+    // VRM physics (SpringBones) — skip every 2nd frame on mobile to halve CPU load
+    if (!isMobile || _mobileFrameCount % 2 === 0) {
+        vrm.update(dt * 0.18);
+    }
 }
 animate();
 

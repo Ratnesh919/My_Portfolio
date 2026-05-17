@@ -2,10 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
     <title>My Portfolio — Select A Theme</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="description" content="A premium interactive portfolio theme selector. Pick your visual style and explore a unique experience.">
+    <!-- GPU / PWA acceleration hints -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#080808">
+    <!-- Force GPU compositing on critical elements before CSS loads -->
+    <style>
+        /* Promote body to GPU compositor layer for smooth rendering */
+        html, body {
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Prevent FOUC while fonts and CSS load */
+        body { background: #080808; }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
