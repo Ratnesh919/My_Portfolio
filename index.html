@@ -44,6 +44,21 @@
             }
         }
     </script>
+    <!-- ─── MOBILE REDIRECT — must be first script to run ──────────────────
+         The heavy theme bundles (Immersive=4.1MB JS, VRM=30-122MB) crash
+         Chrome on Android. Redirect mobile to a lightweight page instead.
+    ──────────────────────────────────────────────────────────────────────── -->
+    <script>
+        (function() {
+            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                        || (navigator.maxTouchPoints > 1 && window.screen.width < 1024);
+            // Allow user to force desktop experience via localStorage flag
+            var forceDesktop = localStorage.getItem('forceDesktop') === '1';
+            if (isMobile && !forceDesktop) {
+                window.location.replace('./mobile.html');
+            }
+        })();
+    </script>
     <!-- Basic Security Obfuscation -->
     <script>
         // Disable Right-Click
