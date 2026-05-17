@@ -1460,3 +1460,81 @@ header, .container, .contact-section {
 }
 
 
+
+/* -------------------------------------------------------------------
+   MOBILE 2D AVATAR CARD  — replaces Three.js VRM on phones
+   Pure CSS, zero GPU memory, eliminates 'Aw, Snap!' OOM crash
+   ------------------------------------------------------------------- */
+#mobile-avatar-card {
+    position: fixed;
+    bottom: 140px;
+    right: 20px;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    animation: mobileAvatarFloat 3s ease-in-out infinite;
+    cursor: pointer;
+    user-select: none;
+}
+.mobile-avatar-ring {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(140,100,255,0.4), rgba(80,40,180,0.8) 60%, rgba(30,10,80,0.95));
+    border: 2px solid rgba(180,140,255,0.5);
+    box-shadow: 0 0 20px rgba(140,80,255,0.6), 0 0 40px rgba(100,40,200,0.3), inset 0 0 15px rgba(200,160,255,0.1);
+    animation: mobileRingPulse 2.5s ease-in-out infinite;
+}
+.mobile-avatar-face {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: -8px;
+}
+.mobile-avatar-eyes { display: flex; gap: 18px; align-items: center; }
+.mobile-eye {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e8d0ff, #c084fc);
+    box-shadow: 0 0 8px rgba(200,130,255,0.8);
+    animation: mobileEyeBlink 4s ease-in-out infinite;
+}
+.mobile-eye.left  { animation-delay: 0s; }
+.mobile-eye.right { animation-delay: 0.1s; }
+.mobile-avatar-mouth {
+    width: 22px;
+    height: 8px;
+    border-radius: 0 0 12px 12px;
+    background: rgba(220,170,255,0.7);
+    box-shadow: 0 0 6px rgba(200,120,255,0.5);
+    transition: all 0.2s ease;
+}
+.mobile-avatar-label {
+    position: absolute;
+    bottom: -22px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(200,160,255,0.9);
+    text-shadow: 0 0 10px rgba(160,80,255,0.8);
+}
+#mobile-avatar-card.talking .mobile-avatar-mouth { animation: mobileMouthTalk 0.18s steps(2) infinite; }
+#mobile-avatar-card.talking .mobile-avatar-ring { border-color: rgba(120,255,200,0.7); box-shadow: 0 0 25px rgba(80,255,160,0.5), 0 0 50px rgba(40,200,120,0.3); }
+#mobile-avatar-card.talking .mobile-eye { background: linear-gradient(135deg,#a0ffdc,#34d399); box-shadow: 0 0 8px rgba(80,255,160,0.9); }
+#mobile-avatar-card.thinking .mobile-avatar-ring { animation: mobileRingPulse 0.8s ease-in-out infinite; border-color: rgba(255,200,80,0.7); }
+#mobile-avatar-card.thinking .mobile-eye { background: linear-gradient(135deg,#fde68a,#f59e0b); animation: mobileEyeThink 0.6s ease-in-out infinite alternate; }
+@keyframes mobileAvatarFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes mobileRingPulse { 0%,100%{box-shadow:0 0 20px rgba(140,80,255,0.6),0 0 40px rgba(100,40,200,0.3);transform:scale(1)} 50%{box-shadow:0 0 30px rgba(160,100,255,0.8),0 0 60px rgba(120,60,220,0.4);transform:scale(1.04)} }
+@keyframes mobileEyeBlink { 0%,90%,100%{transform:scaleY(1)} 95%{transform:scaleY(0.05)} }
+@keyframes mobileEyeThink { from{transform:translateY(0)} to{transform:translateY(-3px)} }
+@keyframes mobileMouthTalk { 0%{height:8px;width:22px} 50%{height:14px;width:18px;border-radius:50%} }
