@@ -8,24 +8,7 @@ require('dotenv').config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-
-// Guard: if env vars are missing (e.g. Render without configured secrets),
-// return a no-op client instead of crashing the process at startup.
-let supabase;
-if (supabaseUrl && supabaseKey) {
-    supabase = createClient(supabaseUrl, supabaseKey);
-} else {
-    console.warn('[Supabase] WARNING: SUPABASE_URL or SUPABASE_KEY not set. Memory features will be disabled. Set these in Render > Environment.');
-    // No-op stub so the rest of the module loads without throwing
-    const noop = async () => ({ data: null, error: null });
-    supabase = {
-        from: () => ({
-            select: () => ({ eq: () => ({ single: noop, order: () => ({ limit: noop }) }), order: () => ({ limit: noop }) }),
-            upsert: noop, insert: noop, update: () => ({ eq: noop }), delete: () => ({ neq: noop, eq: noop, ilike: noop })
-        })
-    };
-}
-
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function initUser(userId, isNewUser, ipAddress) {
     // Upsert User

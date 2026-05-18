@@ -102,23 +102,25 @@ class AvatarChatBot {
             document.addEventListener(ev, markGesture, { once: true, passive: true })
         );
 
-        // Auto-start passive listening on desktop only (not mobile — mobile uses tap-to-talk)
-        if (!this.isMobile) {
-            const startPassiveOnGesture = () => {
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    navigator.mediaDevices.getUserMedia({ audio: true })
-                        .then(stream => {
-                            stream.getTracks().forEach(t => t.stop());
-                            this.micGranted = true;
-                            this.startPassiveListening();
-                        })
-                        .catch(() => { this.micGranted = false; });
-                }
-            };
-            ['click','touchstart','keydown','pointerdown'].forEach(ev =>
-                document.addEventListener(ev, () => setTimeout(startPassiveOnGesture, 800), { once: true, passive: true })
-            );
-        }
+        // Auto-start passive listening when user makes their FIRST gesture
+        const startPassiveOnGesture = () => {
+            // Request mic permission silently in background
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        stream.getTracks().forEach(t => t.stop());
+                        this.micGranted = true;
+                        this.startPassiveListening();
+                    })
+                    .catch(() => {
+                        // Permission denied — passive mode not available, that's fine
+                        this.micGranted = false;
+                    });
+            }
+        };
+        ['click','touchstart','keydown','pointerdown'].forEach(ev =>
+            document.addEventListener(ev, () => setTimeout(startPassiveOnGesture, 800), { once: true, passive: true })
+        );
 
         this.awaitingChoice  = false;
         this._ytPreWin       = null; // pre-opened window for popup-blocker bypass
@@ -268,8 +270,7 @@ class AvatarChatBot {
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(INTRO_TEXT);
         // Queue speech for first real gesture (click / keydown)
-        // On mobile: never auto-listen after intro — user must tap mic button
-        this._queueSpeechOnGesture(INTRO_TEXT, this.isMobile ? false : autoListen);
+        this._queueSpeechOnGesture(INTRO_TEXT, autoListen);
     }
 
     // Queue speech/callback to fire on the very next user interaction gesture.
@@ -407,7 +408,7 @@ class AvatarChatBot {
                 zIndex: '999',
                 boxShadow: '0 2px 8px rgba(255,65,108,0.4)',
             });
-            this._micTooltipEl.textContent = '🎤 Tap to talk — hold for continuous';
+            this._micTooltipEl.textContent = 'Tap to talk - hold for continuous';
             this.micBtn.style.position = 'relative';
             this.micBtn.appendChild(this._micTooltipEl);
 
@@ -420,50 +421,40 @@ class AvatarChatBot {
             let _holdTimer = null;
             let _isHolding = false;
 
-            this.micBtn.addEventListener('pointerdown', (e) => {
+            const onTouchStart = (e) => {
                 e.preventDefault();
                 if (!this.hasIntroduced) this.showIntro(false);
                 _holdTimer = setTimeout(() => {
-                    // HOLD mode: keep mic on while held
                     _isHolding = true;
-                    this._micTooltipEl.textContent = '🔴 Holding — release to stop';
+                    this._micTooltipEl.textContent = 'Holding - release to stop';
                     this._micTooltipEl.style.opacity = '1';
                     if (this.isListening) return;
                     this.userStoppedMic = false;
                     this._passiveModeActive = false;
-                    if (!this.hasIntroduced) this.showIntro(false);
                     this.startListening();
                 }, 400);
-            });
+            };
 
-            this.micBtn.addEventListener('pointerup', (e) => {
+            const onTouchEnd = (e) => {
                 e.preventDefault();
                 if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
                 if (_isHolding) {
-                    // Release hold — stop mic
                     _isHolding = false;
-                    this._micTooltipEl.textContent = '🎤 Tap to talk — hold for continuous';
+                    this._micTooltipEl.textContent = 'Tap to talk - hold for continuous';
                     setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2000);
                     this.userStoppedMic = true;
                     this.recognition?.stop();
                 } else {
-                    // TAP — toggle mic
                     this.handleMicClick();
-                    this._micTooltipEl.textContent = this.isListening ? '🔴 Listening — tap to stop' : '🎤 Tap to talk';
+                    this._micTooltipEl.textContent = this.isListening ? 'Listening - tap to stop' : 'Tap to talk';
                     this._micTooltipEl.style.opacity = '1';
                     setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2500);
                 }
-            });
+            };
 
-            this.micBtn.addEventListener('pointerleave', () => {
-                if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
-                if (_isHolding) {
-                    _isHolding = false;
-                    this.userStoppedMic = true;
-                    this.recognition?.stop();
-                    this._micTooltipEl.style.opacity = '0';
-                }
-            });
+            this.micBtn.addEventListener('touchstart', onTouchStart, { passive: false });
+            this.micBtn.addEventListener('touchend', onTouchEnd, { passive: false });
+            this.micBtn.addEventListener('touchcancel', onTouchEnd, { passive: false });
         } else {
             this.micBtn.addEventListener('click', () => {
                 if (!this.hasIntroduced) this.showIntro(false);
@@ -604,14 +595,9 @@ class AvatarChatBot {
                 if (!matchedVariant) matchedVariant = WAKE_WORD_VARIANTS.find(w => lowerFinal.includes(w));
 
                 if (!matchedVariant && !this._awaitingCommand) {
-                    // On mobile: no wake word needed — send speech directly to AI
-                    if (this.isMobile && !this._passiveModeActive) {
-                        this.handleUserInput(commandWithoutWake || final.trim());
-                        return;
-                    }
                     // In passive mode: silently ignore non-wake-word speech
                     if (this._passiveModeActive) return;
-                    // In active mic mode on desktop: show hint
+                    // In active mic mode: show hint
                     console.log('[Raya] Wake word not detected, ignoring:', final);
                     this.showBubble('Say "Raya" to wake me up!');
                     setTimeout(() => this.hideBubble(), 2000);
@@ -1166,22 +1152,21 @@ class AvatarChatBot {
 
     executeChangeAvatar(target) {
         // Full avatar map: keyword aliases → VRM file path
-        const _VRM = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1';
         const avatarMap = {
-            'changli':      `${_VRM}/changli(fixed).vrm`,
-            'camellya':     `${_VRM}/CamellyaV1.vrm`,
-            'carlotta':     `${_VRM}/CarlottaV1.vrm`,
-            'chixia':       `${_VRM}/chixia.vrm`,
-            'jinshi':       `${_VRM}/jinshi.vrm`,
-            'kid changli':  `${_VRM}/Kid changli.vrm`,
-            'pinkshi':      `${_VRM}/PinkshiV1.vrm`,
-            'roccia':       `${_VRM}/RocciaV3.vrm`,
-            'rover':        `${_VRM}/rover.vrm`,
-            'sanhua':       `${_VRM}/SanhuaV2.vrm`,
-            'shorekeeper':  `${_VRM}/ShorekeeperV3.vrm`,
-            'verina':       `${_VRM}/verina.vrm`,
-            'yangyang':     `${_VRM}/yangyang.vrm`,
-            'yinlin':       `${_VRM}/yinlin.vrm`,
+            'changli':      './Wuwa/changli(fixed).vrm',
+            'camellya':     './Wuwa/CamellyaV1.vrm',
+            'carlotta':     './Wuwa/CarlottaV1.vrm',
+            'chixia':       './Wuwa/chixia.vrm',
+            'jinshi':       './Wuwa/jinshi.vrm',
+            'kid changli':  './Wuwa/Kid changli.vrm',
+            'pinkshi':      './Wuwa/PinkshiV1.vrm',
+            'roccia':       './Wuwa/RocciaV3.vrm',
+            'rover':        './Wuwa/rover.vrm',
+            'sanhua':       './Wuwa/SanhuaV2.vrm',
+            'shorekeeper':  './Wuwa/ShorekeeperV3.vrm',
+            'verina':       './Wuwa/verina.vrm',
+            'yangyang':     './Wuwa/yangyang.vrm',
+            'yinlin':       './Wuwa/yinlin.vrm',
         };
 
         const allFiles = Object.values(avatarMap);
@@ -1317,11 +1302,11 @@ class AvatarChatBot {
         const wrapper = document.createElement('div');
         wrapper.id = 'raya-yt-wrapper';
         wrapper.style.cssText = `
-            position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:15;
+            position:fixed; bottom:20px; left:16px; z-index:15;
             display:flex; align-items:center; gap:10px;
             background:rgba(10,10,14,0.92); backdrop-filter:blur(12px);
             border:1px solid rgba(255,65,108,0.35); border-radius:14px;
-            padding:10px 14px; max-width:min(340px, calc(100vw - 24px)); width:max-content;
+            padding:10px 14px; max-width:300px;
             box-shadow:0 8px 32px rgba(0,0,0,0.6);
             animation:rayaSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) both;
         `;
@@ -1348,8 +1333,8 @@ class AvatarChatBot {
         openBtn.href = ytUrl;
         openBtn.target = '_blank';
         openBtn.rel = 'noopener';
-        openBtn.innerHTML = '? Open on YouTube';
-        openBtn.style.cssText = `display:inline-block;margin-top:5px;font-size:0.7rem;
+        openBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-1px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Open on YouTube`;
+        openBtn.style.cssText = `display:inline-flex;align-items:center;margin-top:5px;font-size:0.7rem;
             font-weight:700;color:#ff416c;text-decoration:none;
             font-family:'Outfit',sans-serif;letter-spacing:0.5px;`;
         openBtn.addEventListener('click', () => setTimeout(() => wrapper.remove(), 8000));
@@ -1439,8 +1424,7 @@ class AvatarChatBot {
                 const ytIframe2 = document.querySelector('#raya-yt-wrapper iframe');
                 if (ytIframe2) ytIframe2.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [100]}), '*');
                 setTimeout(() => { this._wakeWordCooldown = false; }, 1500);
-                // On mobile: NEVER auto-restart mic after speech — user must tap mic button
-                if (autoListen && this.micGranted && !this.isMobile) {
+                if (autoListen && this.micGranted) {
                     setTimeout(() => this.startListening(), 500);
                 }
             };

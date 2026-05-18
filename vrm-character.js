@@ -128,11 +128,11 @@ const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(na
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: !isMobile,          // antialias OFF on mobile: doubles GPU VRAM, causes Chrome OOM
-    powerPreference: isMobile ? 'low-power' : 'high-performance'  // low-power = mobile GPU saver
+    antialias: true,  // always on for best avatar quality
+    powerPreference: 'high-performance' 
 });
-// Mobile: 1x DPR prevents 4x overdraw OOM crash. Desktop: up to 2x for crisp screens.
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+// Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 2 : 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -162,11 +162,6 @@ function getVisibleWidth() {
 
 function updateCharPos() {
     if (hasDragged || !vrm) return;
-    if (isMobile) {
-        // Center avatar on mobile
-        vrm.scene.position.x = 0;
-        return;
-    }
     const width = getVisibleWidth();
     // Position on far left side (where the avatar button used to be)
     let xTarget = -(width / 2) + 0.7;
@@ -181,19 +176,11 @@ window.addEventListener('resize', () => {
     updateCharPos();
 });
 
-canvas.style.touchAction = 'none'; // prevent scroll hijacking on mobile drag
 const cursor = { nx:0, ny:0 };
 window.addEventListener('mousemove', e => {
     cursor.nx =  (e.clientX/window.innerWidth  - 0.5)*2;
     cursor.ny = -(e.clientY/window.innerHeight - 0.5)*2;
 });
-// Track finger position on mobile for head look-at
-window.addEventListener('touchmove', e => {
-    if (e.touches.length > 0) {
-        cursor.nx =  (e.touches[0].clientX/window.innerWidth  - 0.5)*2;
-        cursor.ny = -(e.touches[0].clientY/window.innerHeight - 0.5)*2;
-    }
-}, { passive: true });
 
 // Forward pointer events from iframe
 window.addEventListener('message', e => {
@@ -442,8 +429,7 @@ function fixVRMHitbox(vrmObj) {
     });
 }
 
-const VRM_CDN_BASE = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1';
-const initialFile = window.initialAvatarFile || `${VRM_CDN_BASE}/changli(fixed).vrm`;
+const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
 vrmLoader.load(initialFile, async gltf => {
     vrm = gltf.userData.vrm;
     if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
@@ -452,7 +438,7 @@ vrmLoader.load(initialFile, async gltf => {
     applyModelVisuals(vrm, initialFile);
     fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
 
-    window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.55 : 0.95);
+    window.currentVRMScale = window.currentVRMScale || 0.95;
     window.setVRMScale = (scale) => {
         window.currentVRMScale = scale;
         if (vrm) vrm.scene.scale.setScalar(scale);
@@ -803,8 +789,8 @@ const mouse2d           = new THREE.Vector2();
 
 document.addEventListener('pointerdown', e => {
     if (!vrm || !introComplete) return;
-    // Ignore right/middle mouse buttons — but always allow touch/pen
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // Ignore right/middle buttons
+    if (e.button !== 0) return;
 
     mouse2d.x =  (e.clientX / window.innerWidth)  * 2 - 1;
     mouse2d.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -885,7 +871,7 @@ window.addEventListener('pointerup', e => {
     const clickedAvatar = isClickedOnAvatar;
     isClickedOnAvatar = false;
 
-    if (clickedAvatar && !wasDragging && !isSittingOnChatbox) {
+    if (clickedAvatar && !wasDragging && !isSittingOnChatbox && e.target && e.target.nodeName === 'CANVAS') {
         clearAutoTimer();
         applyState('no', 'sad', 0.50);
         playAnim(ANIM.no, false, 0.2);
@@ -1045,19 +1031,8 @@ function applyFingerPose(t, dt) {
 let wasTalking  = false;
 let wasThinking = false;
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
-// Mobile FPS throttle — cap at 24fps to prevent OOM crash on mid-range Android phones
-const MOBILE_FPS_INTERVAL = isMobile ? (1000 / 24) : 0;
-let _lastFrameTime = 0;
-let _mobileFrameCount = 0;
-
-function animate(now = 0) {
+function animate() {
     requestAnimationFrame(animate);
-    // On mobile: skip frames to maintain ~24fps
-    if (isMobile) {
-        if (now - _lastFrameTime < MOBILE_FPS_INTERVAL) return;
-        _lastFrameTime = now;
-        _mobileFrameCount++;
-    }
     const dt = Math.min(clock.getDelta(), 0.05);
     const t  = clock.elapsedTime;
     renderer.render(scene, camera);
@@ -1299,10 +1274,7 @@ function animate(now = 0) {
     }
 
     // Update VRM SpringBones — dt * 0.18 for stiffer, less floppy cloth
-    // VRM physics (SpringBones) — skip every 2nd frame on mobile to halve CPU load
-    if (!isMobile || _mobileFrameCount % 2 === 0) {
-        vrm.update(dt * 0.18);
-    }
+    vrm.update(dt * 0.18);
 }
 animate();
 

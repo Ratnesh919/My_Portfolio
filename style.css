@@ -279,7 +279,6 @@ body {
     pointer-events: none;  /* Transparent regions let clicks reach UI beneath */
     display: block;
     cursor: default;
-    touch-action: none;    /* Essential: prevents browser scroll hijacking mobile drag */
 }
 
 /* ── Enhanced Gaming Loading Bar ── */
@@ -859,50 +858,17 @@ h1 {
         font-size: 0.75rem;
     }
 
-    /* Chatbot — full-width bottom sheet on mobile */
+    /* Chatbot — full width on mobile */
     #chatbot-panel {
-        bottom: 0;
-        right: 0;
-        left: 0;
-        width: 100%;
-        max-width: 100%;
-        border-radius: 20px 20px 0 0;
-        padding: 12px 12px 20px;
-        background: rgba(8, 8, 12, 0.97);
-        border: 1px solid rgba(255,65,108,0.2);
-        border-bottom: none;
-        box-shadow: 0 -8px 32px rgba(0,0,0,0.6);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        gap: 8px;
-        z-index: 1002;
+        bottom: 12px;
+        right: 8px;
+        left: 8px;
+        width: auto;
     }
 
     #chatbot-bubble {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         padding: 12px 14px;
-        max-height: 140px;
-        border-radius: 14px;
-    }
-
-    #chatbot-text-input {
-        font-size: 0.88rem;
-        padding: 11px 12px;
-    }
-
-    #chatbot-send-btn, #chatbot-mic-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-    }
-
-    #chatbot-wake-word-hint {
-        font-size: 0.72rem;
-    }
-
-    /* Container margin so cards don't sit behind the chatbot panel */
-    .container {
-        margin-bottom: 180px;
     }
 
     /* Bubble screen text */
@@ -974,19 +940,13 @@ h1 {
     .bubble-instructions { font-size: 1.3rem; }
 
     #chatbot-panel {
-        border-radius: 18px 18px 0 0;
-        padding: 10px 10px 18px;
+        bottom: 8px;
+        right: 6px;
+        left: 6px;
     }
 
-    #chatbot-bubble {
-        font-size: 0.82rem;
-        max-height: 120px;
-    }
-
-    #chatbot-text-input { font-size: 0.82rem; padding: 10px 12px; }
-    #chatbot-send-btn, #chatbot-mic-btn { width: 42px; height: 42px; }
-
-    .container { margin-bottom: 195px; }
+    #chatbot-text-input { font-size: 0.82rem; padding: 9px 12px; }
+    #chatbot-send-btn, #chatbot-mic-btn { width: 38px; height: 38px; }
 
     #avatar-toggle-btn {
         top: 12px;
@@ -1460,81 +1420,3 @@ header, .container, .contact-section {
 }
 
 
-
-/* -------------------------------------------------------------------
-   MOBILE 2D AVATAR CARD  � replaces Three.js VRM on phones
-   Pure CSS, zero GPU memory, eliminates 'Aw, Snap!' OOM crash
-   ------------------------------------------------------------------- */
-#mobile-avatar-card {
-    position: fixed;
-    bottom: 140px;
-    right: 20px;
-    width: 110px;
-    height: 110px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 500;
-    animation: mobileAvatarFloat 3s ease-in-out infinite;
-    cursor: pointer;
-    user-select: none;
-}
-.mobile-avatar-ring {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(140,100,255,0.4), rgba(80,40,180,0.8) 60%, rgba(30,10,80,0.95));
-    border: 2px solid rgba(180,140,255,0.5);
-    box-shadow: 0 0 20px rgba(140,80,255,0.6), 0 0 40px rgba(100,40,200,0.3), inset 0 0 15px rgba(200,160,255,0.1);
-    animation: mobileRingPulse 2.5s ease-in-out infinite;
-}
-.mobile-avatar-face {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: -8px;
-}
-.mobile-avatar-eyes { display: flex; gap: 18px; align-items: center; }
-.mobile-eye {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #e8d0ff, #c084fc);
-    box-shadow: 0 0 8px rgba(200,130,255,0.8);
-    animation: mobileEyeBlink 4s ease-in-out infinite;
-}
-.mobile-eye.left  { animation-delay: 0s; }
-.mobile-eye.right { animation-delay: 0.1s; }
-.mobile-avatar-mouth {
-    width: 22px;
-    height: 8px;
-    border-radius: 0 0 12px 12px;
-    background: rgba(220,170,255,0.7);
-    box-shadow: 0 0 6px rgba(200,120,255,0.5);
-    transition: all 0.2s ease;
-}
-.mobile-avatar-label {
-    position: absolute;
-    bottom: -22px;
-    font-family: 'Syne', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: rgba(200,160,255,0.9);
-    text-shadow: 0 0 10px rgba(160,80,255,0.8);
-}
-#mobile-avatar-card.talking .mobile-avatar-mouth { animation: mobileMouthTalk 0.18s steps(2) infinite; }
-#mobile-avatar-card.talking .mobile-avatar-ring { border-color: rgba(120,255,200,0.7); box-shadow: 0 0 25px rgba(80,255,160,0.5), 0 0 50px rgba(40,200,120,0.3); }
-#mobile-avatar-card.talking .mobile-eye { background: linear-gradient(135deg,#a0ffdc,#34d399); box-shadow: 0 0 8px rgba(80,255,160,0.9); }
-#mobile-avatar-card.thinking .mobile-avatar-ring { animation: mobileRingPulse 0.8s ease-in-out infinite; border-color: rgba(255,200,80,0.7); }
-#mobile-avatar-card.thinking .mobile-eye { background: linear-gradient(135deg,#fde68a,#f59e0b); animation: mobileEyeThink 0.6s ease-in-out infinite alternate; }
-@keyframes mobileAvatarFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-@keyframes mobileRingPulse { 0%,100%{box-shadow:0 0 20px rgba(140,80,255,0.6),0 0 40px rgba(100,40,200,0.3);transform:scale(1)} 50%{box-shadow:0 0 30px rgba(160,100,255,0.8),0 0 60px rgba(120,60,220,0.4);transform:scale(1.04)} }
-@keyframes mobileEyeBlink { 0%,90%,100%{transform:scaleY(1)} 95%{transform:scaleY(0.05)} }
-@keyframes mobileEyeThink { from{transform:translateY(0)} to{transform:translateY(-3px)} }
-@keyframes mobileMouthTalk { 0%{height:8px;width:22px} 50%{height:14px;width:18px;border-radius:50%} }
