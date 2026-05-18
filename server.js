@@ -143,7 +143,7 @@ const generalApiLimiter = rateLimit({
 });
 
 // Admin Password from environment variables
-const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || 'Aditya@231';
+const ADMIN_TOKEN = process.env.ADMIN_PASSWORD;
 
 const checkAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -436,7 +436,7 @@ app.post('/api/yt-search', ytLimiter, async (req, res) => {
 
     try {
         const ytRes = await axios.post(
-            'https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+            `https://www.youtube.com/youtubei/v1/search?key=${process.env.YOUTUBE_INNERTUBE_KEY}`,
             {
                 context: {
                     client: {
