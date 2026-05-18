@@ -1,5 +1,5 @@
 window.VRM_MODEL_CONFIGS = {
-    './Wuwa/changli(fixed).vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/changli.fixed.vrm': {
         brightness: 1.0,         
         glow: 1.0,               
         chestStiffness: 1,       
@@ -7,7 +7,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/CamellyaV1.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/CamellyaV1.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -15,7 +15,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/CarlottaV1.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/CarlottaV1.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -23,7 +23,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/chixia.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/chixia.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -31,7 +31,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/jinshi.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/jinshi.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,      
@@ -39,7 +39,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/Kid changli.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/Kid.changli.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -47,7 +47,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/PinkshiV1.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/PinkshiV1.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,      
@@ -55,7 +55,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/RocciaV3.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/RocciaV3.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -63,7 +63,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/rover.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/rover.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -71,7 +71,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/SanhuaV2.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/SanhuaV2.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -79,7 +79,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/ShorekeeperV3.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/ShorekeeperV3.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -87,7 +87,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/verina.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/verina.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -95,7 +95,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/yangyang.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/yangyang.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 10,
@@ -103,7 +103,7 @@ window.VRM_MODEL_CONFIGS = {
         hairBrightness: 1.0,
         skinBrightness: 1.0
     },
-    './Wuwa/yinlin.vrm': {
+    'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/yinlin.vrm': {
         brightness: 1.0,
         glow: 1.0,
         chestStiffness: 80,      

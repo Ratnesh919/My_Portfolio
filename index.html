@@ -336,25 +336,31 @@
     </div>
 
     <script>
+        const CDN = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1';
         const AVATARS = [
-            { name: 'Changli',        file: './Wuwa/changli(fixed).vrm' },
-            { name: 'Camellya',       file: './Wuwa/CamellyaV1.vrm' },
-            { name: 'Carlotta',       file: './Wuwa/CarlottaV1.vrm' },
-            { name: 'Chixia',         file: './Wuwa/chixia.vrm' },
-            { name: 'Jinshi',         file: './Wuwa/jinshi.vrm' },
-            { name: 'Kid Changli',    file: './Wuwa/Kid changli.vrm' },
-            { name: 'Pinkshi',        file: './Wuwa/PinkshiV1.vrm' },
-            { name: 'Roccia',         file: './Wuwa/RocciaV3.vrm' },
-            { name: 'Rover',          file: './Wuwa/rover.vrm' },
-            { name: 'Sanhua',         file: './Wuwa/SanhuaV2.vrm' },
-            { name: 'Shorekeeper',    file: './Wuwa/ShorekeeperV3.vrm' },
-            { name: 'Verina',         file: './Wuwa/verina.vrm' },
-            { name: 'Yangyang',       file: './Wuwa/yangyang.vrm' },
-            { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
+            { name: 'Changli',        file: `${CDN}/changli.fixed.vrm` },
+            { name: 'Camellya',       file: `${CDN}/CamellyaV1.vrm` },
+            { name: 'Carlotta',       file: `${CDN}/CarlottaV1.vrm` },
+            { name: 'Chixia',         file: `${CDN}/chixia.vrm` },
+            { name: 'Jinshi',         file: `${CDN}/jinshi.vrm` },
+            { name: 'Kid Changli',    file: `${CDN}/Kid.changli.vrm` },
+            { name: 'Pinkshi',        file: `${CDN}/PinkshiV1.vrm` },
+            { name: 'Roccia',         file: `${CDN}/RocciaV3.vrm` },
+            { name: 'Rover',          file: `${CDN}/rover.vrm` },
+            { name: 'Sanhua',         file: `${CDN}/SanhuaV2.vrm` },
+            { name: 'Shorekeeper',    file: `${CDN}/ShorekeeperV3.vrm` },
+            { name: 'Verina',         file: `${CDN}/verina.vrm` },
+            { name: 'Yangyang',       file: `${CDN}/yangyang.vrm` },
+            { name: 'Yinlin',         file: `${CDN}/yinlin.vrm` },
         ];
 
         // Load user's saved avatar, defaulting to Changli
-        let activeAvatar = localStorage.getItem('selectedAvatar') || './Wuwa/changli(fixed).vrm';
+        let activeAvatar = localStorage.getItem('selectedAvatar');
+        // Clear local storage paths so Vercel does not 404
+        if (!activeAvatar || activeAvatar.includes('./Wuwa/')) {
+            activeAvatar = `${CDN}/changli.fixed.vrm`;
+            localStorage.setItem('selectedAvatar', activeAvatar);
+        }
         window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
 
         const panel      = document.getElementById('avatar-panel');
