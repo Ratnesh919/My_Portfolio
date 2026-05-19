@@ -355,8 +355,8 @@
 
         // Load user's saved avatar, defaulting to Changli
         let activeAvatar = localStorage.getItem('selectedAvatar');
-        // Clear local storage paths so Vercel does not 404
-        if (!activeAvatar || activeAvatar.includes('./Wuwa/')) {
+        // Reset any stale/external URL (e.g. old github.com release URLs) to local path
+        if (!activeAvatar || !activeAvatar.startsWith('./Wuwa/')) {
             activeAvatar = `${CDN}/changli.fixed.vrm`;
             localStorage.setItem('selectedAvatar', activeAvatar);
         }

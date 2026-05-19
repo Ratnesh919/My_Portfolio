@@ -439,14 +439,18 @@ class AvatarChatBot {
                 e.preventDefault();
                 if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
                 if (_isHolding) {
+                    // Hold-to-speak released: stop listening
                     _isHolding = false;
-                    this._micTooltipEl.textContent = 'Tap to talk - hold for continuous';
+                    this._micTooltipEl.textContent = 'Tap to talk · hold for continuous';
                     setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2000);
                     this.userStoppedMic = true;
                     this.recognition?.stop();
                 } else {
+                    // Tap: read state BEFORE handleMicClick changes it
+                    const wasListening = this.isListening;
                     this.handleMicClick();
-                    this._micTooltipEl.textContent = this.isListening ? 'Listening - tap to stop' : 'Tap to talk';
+                    // Show correct tooltip based on what state we're transitioning TO
+                    this._micTooltipEl.textContent = wasListening ? 'Tap to talk · hold for continuous' : 'Listening · tap to stop';
                     this._micTooltipEl.style.opacity = '1';
                     setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2500);
                 }
@@ -679,7 +683,10 @@ class AvatarChatBot {
             
             if (this.userStoppedMic) { return; }
 
-            // Restart passive mic unless user explicitly stopped it
+            // On mobile: NEVER auto-restart — user must tap or hold to listen again
+            if (this.isMobile) { return; }
+
+            // Desktop only: restart passive mic unless user explicitly stopped it
             if (!this.userStoppedMic) {
                 const restartWhenReady = () => {
                     if (this.isListening) return; // already running
