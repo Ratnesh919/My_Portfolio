@@ -131,8 +131,8 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,  // always on for best avatar quality
     powerPreference: 'high-performance' 
 });
-// Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 2 : 2));
+// Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS), and decrease quality by 15% as requested
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2) * 0.85);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -588,17 +588,15 @@ vrmLoader.load(initialFile, async gltf => {
                     requestAnimationFrame(() => { mist.style.transform = `translate(${tx}px,${ty}px) scale(0)`; });
                     setTimeout(() => mist.remove(), 550);
                 }
-
+                // Hide screen immediately to fix tap lag
+                bubbleScreen.classList.add('hidden');
                 setTimeout(() => {
-                    bubbleScreen.classList.add('hidden');
-                    setTimeout(() => {
-                        bubbleScreen.remove();
-                        window.playWaveAnimation();
-                        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-                            window.chatBot.introduceHerself();
-                        }
-                    }, 400);
-                }, 280);
+                    bubbleScreen.remove();
+                    window.playWaveAnimation();
+                    if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                        window.chatBot.introduceHerself();
+                    }
+                }, 300);
             });
             bubbleContainer.appendChild(b);
             // Remove bubbles that float off screen to prevent DOM buildup
