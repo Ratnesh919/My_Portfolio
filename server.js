@@ -564,8 +564,8 @@ app.get('/api/health', checkAdmin, async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Only start the server locally. Vercel will import the app directly.
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+// Only start the server locally or on platforms like Render. Vercel will import the app directly.
+if (!process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log('\n======================================================');
         console.log(`🚀 Server running at http://localhost:${PORT}`);
