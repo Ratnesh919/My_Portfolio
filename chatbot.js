@@ -102,25 +102,24 @@ class AvatarChatBot {
             document.addEventListener(ev, markGesture, { once: true, passive: true })
         );
 
-        // Auto-start passive listening when user makes their FIRST gesture
-        const startPassiveOnGesture = () => {
-            // Request mic permission silently in background
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        stream.getTracks().forEach(t => t.stop());
-                        this.micGranted = true;
-                        this.startPassiveListening();
-                    })
-                    .catch(() => {
-                        // Permission denied — passive mode not available, that's fine
-                        this.micGranted = false;
-                    });
-            }
-        };
-        ['click','touchstart','keydown','pointerdown'].forEach(ev =>
-            document.addEventListener(ev, () => setTimeout(startPassiveOnGesture, 800), { once: true, passive: true })
-        );
+        // Auto-start passive listening on DESKTOP only when user first gestures.
+        // On mobile, mic ONLY starts when user taps the mic button.
+        if (!this.isMobile) {
+            const startPassiveOnGesture = () => {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            stream.getTracks().forEach(t => t.stop());
+                            this.micGranted = true;
+                            this.startPassiveListening();
+                        })
+                        .catch(() => { this.micGranted = false; });
+                }
+            };
+            ['click','touchstart','keydown','pointerdown'].forEach(ev =>
+                document.addEventListener(ev, () => setTimeout(startPassiveOnGesture, 800), { once: true, passive: true })
+            );
+        }
 
         this.awaitingChoice  = false;
         this._ytPreWin       = null; // pre-opened window for popup-blocker bypass
@@ -549,13 +548,17 @@ class AvatarChatBot {
         if (!SR) { console.warn('[Raya] No SpeechRecognition support.'); return; }
 
         this.recognition = new SR();
-        this.recognition.continuous     = true;
+        // On mobile: single-utterance mode (continuous=false) — stops after one sentence.
+        // This prevents re-processing loops and reduces memory pressure.
+        // On desktop: continuous=true for always-on passive wake-word listening.
+        this.recognition.continuous     = !this.isMobile;
         this.recognition.interimResults = true;
         this.recognition.lang           = 'en-IN';
         this.userStoppedMic             = false;
         this._wakeWordCooldown          = false; // prevents mic picking up Raya's own TTS
         this._passiveModeActive         = false; // mic started by user gesture (not button click)
         this._awaitingCommand           = false; // true if user said "Raya" and we are waiting for a command
+        this._mobileTapActive           = false; // mobile: true when user actively tapped mic button
 
         this.recognition.onstart = () => {
             this.isListening = true;
@@ -593,6 +596,14 @@ class AvatarChatBot {
 
                 // -- Wake word detection --------------------------------------
                 const lowerFinal = final.toLowerCase().trim();
+
+                // On mobile with tap-to-talk active: skip wake word — user deliberately pressed button
+                if (this.isMobile && this._mobileTapActive) {
+                    this._mobileTapActive = false; // consume the active flag
+                    this.showUserBubble(lowerFinal);
+                    this.handleUserInput(lowerFinal);
+                    return;
+                }
                 
                 // Find matching variant (prioritize exact word match, fallback to includes)
                 let matchedVariant = WAKE_WORD_VARIANTS.find(w => new RegExp(`\\b${w}\\b`, 'i').test(lowerFinal));
@@ -755,6 +766,8 @@ class AvatarChatBot {
                 return;
             }
         }
+        // On mobile, flag that this was a deliberate tap so we skip wake-word check
+        if (this.isMobile) this._mobileTapActive = true;
         this.startListening();
     }
 

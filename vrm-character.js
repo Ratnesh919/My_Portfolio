@@ -128,11 +128,12 @@ const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(na
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: true,  // always on for best avatar quality
-    powerPreference: 'high-performance' 
+    antialias: !isMobile,  // disable antialiasing on mobile to save GPU memory
+    powerPreference: isMobile ? 'low-power' : 'high-performance'
 });
-// Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS), and decrease quality by 15% as requested
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2) * 0.85);
+// Mobile: cap to pixelRatio 1.0 to prevent Aw-Snap OOM crashes.
+// Desktop: allow up to 2x, reduced by 15% as requested.
+renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.0) : Math.min(window.devicePixelRatio, 2) * 0.85);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -549,7 +550,9 @@ vrmLoader.load(initialFile, async gltf => {
         let spawnInterval = setInterval(() => {
             const b = document.createElement('div');
             b.className = 'bubble-item';
-            const size = 30 + Math.random() * 70;
+            // On mobile: smaller bubbles only (30-60px) to reduce paint cost
+            const maxSize = isMobile ? 60 : 100;
+            const size = 30 + Math.random() * maxSize;
             b.style.width = size + 'px';
             b.style.height = size + 'px';
             b.style.left = (5 + Math.random() * 85) + 'vw';
@@ -601,7 +604,8 @@ vrmLoader.load(initialFile, async gltf => {
             bubbleContainer.appendChild(b);
             // Remove bubbles that float off screen to prevent DOM buildup
             setTimeout(() => { if (b.parentNode) b.remove(); }, 9000);
-        }, 800);
+        // Spawn bubbles: slower on mobile to reduce DOM/paint pressure
+        }, isMobile ? 1400 : 800);
     } else {
         // Fallback if no bubble screen exists
         setTimeout(async () => {
