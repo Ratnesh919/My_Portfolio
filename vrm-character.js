@@ -131,10 +131,19 @@ const renderer = new THREE.WebGLRenderer({
     antialias: !isMobile,  // disable antialiasing on mobile to save GPU memory
     powerPreference: isMobile ? 'low-power' : 'high-performance'
 });
-// Mobile: cap to pixelRatio 1.0 to prevent Aw-Snap OOM crashes.
+// Mobile: render at HALF resolution then scale up via CSS — halves GPU framebuffer memory.
 // Desktop: allow up to 2x, reduced by 15% as requested.
-renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.0) : Math.min(window.devicePixelRatio, 2) * 0.85);
-renderer.setSize(window.innerWidth, window.innerHeight);
+if (isMobile) {
+    const mobileW = Math.floor(window.innerWidth * 0.5);
+    const mobileH = Math.floor(window.innerHeight * 0.5);
+    renderer.setPixelRatio(1);
+    renderer.setSize(mobileW, mobileH, false); // false = don't set CSS size
+    canvas.style.width  = window.innerWidth  + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+} else {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * 0.85);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene  = new THREE.Scene();
@@ -146,8 +155,11 @@ ambientLight.userData.baseIntensity = 0.8;
 scene.add(ambientLight);
 
 const dirLights = [];
-[[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
-    .forEach(([x,y,z,c,i]) => { 
+// On mobile: only 2 lights to reduce per-pixel shader cost. On desktop: 5 lights.
+const lightDefs = isMobile
+    ? [[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.5]]  // 2 lights on mobile
+    : [[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]];
+lightDefs.forEach(([x,y,z,c,i]) => { 
         const l = new THREE.DirectionalLight(c,i); 
         l.position.set(x,y,z); 
         l.userData.baseIntensity = i;
@@ -173,7 +185,15 @@ function updateCharPos() {
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (isMobile) {
+        const mobileW = Math.floor(window.innerWidth * 0.5);
+        const mobileH = Math.floor(window.innerHeight * 0.5);
+        renderer.setSize(mobileW, mobileH, false);
+        canvas.style.width  = window.innerWidth  + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+    } else {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
     updateCharPos();
 });
 
@@ -1034,8 +1054,29 @@ function applyFingerPose(t, dt) {
 let wasTalking  = false;
 let wasThinking = false;
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
-function animate() {
+// ─── Page Visibility: pause rendering when tab is hidden to save memory ───────
+let _pageVisible = true;
+document.addEventListener('visibilitychange', () => {
+    _pageVisible = !document.hidden;
+});
+
+// ─── Mobile framerate cap: 24fps to reduce CPU/GPU load ───────────────────────
+const MOBILE_FPS = 24;
+const MOBILE_FRAME_INTERVAL = 1000 / MOBILE_FPS;
+let _lastFrameTime = 0;
+
+function animate(now = 0) {
     requestAnimationFrame(animate);
+
+    // Pause entirely when tab not visible
+    if (!_pageVisible) return;
+
+    // On mobile: throttle to 24fps
+    if (isMobile) {
+        if (now - _lastFrameTime < MOBILE_FRAME_INTERVAL) return;
+        _lastFrameTime = now;
+    }
+
     const dt = Math.min(clock.getDelta(), 0.05);
     const t  = clock.elapsedTime;
     renderer.render(scene, camera);
