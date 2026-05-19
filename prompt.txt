@@ -2,3 +2,4 @@
 node server.js
 taskkill /F /IM node.exe 2>$null; Start-Sleep 1; node server.js
 
+remove the auto use of microphone for phone only (not for desktop) and also remove wake word. also make the avatar responsive for mobile phone (reduce size of of the avatar for mobile phone), also i am not able to drag and change position of avatar on my phone. the chatbot ui and youtube mini player is not responsive for phone.

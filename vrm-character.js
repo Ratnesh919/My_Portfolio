@@ -60,8 +60,18 @@ const ANIM = {
     reaching:  PFX + 'ImageToStl.com_changli(fixed).vrm@Reaching%20Out.fbx'
 };
 
-// Walk is loaded separately so it doesn't block main animation loading
+// Desktop: load all animations. Mobile: only load the essential subset to prevent OOM
 const ALL_ANIM_FILES = Object.values(ANIM).filter(f => f !== ANIM.walk);
+
+// Mobile only needs idle, wave, happy, yawn — skip heavy/rare ones to save ~60MB RAM
+const MOBILE_ANIM_FILES = [
+    ANIM.idle,
+    ANIM.happyIdle,
+    ANIM.wave1,
+    ANIM.happy,
+    ANIM.yawn,
+    ANIM.no,
+];
 
 // ─── AUTO-CYCLE POOLS ────────────────────────────────────────────────────────
 // maxDuration: null = play full clip, number = max seconds before returning to idle
@@ -73,6 +83,16 @@ const ANIM_POOL = [
     { key: 'sad1',        loop: true,  maxDuration: 8,    fingerPose: 'sad',         expr: 'sad',       exprVal: 0.85 },
     { key: 'sad2',        loop: true,  maxDuration: 8,    fingerPose: 'sad',         expr: 'sad',       exprVal: 0.85 }
 ];
+
+// Mobile: only cycle animations that are actually loaded in MOBILE_ANIM_FILES
+const MOBILE_ANIM_POOL = [
+    { key: 'happy',  loop: false, maxDuration: null, fingerPose: 'happy', expr: 'happy', exprVal: 0.85 },
+    { key: 'yawn',   loop: false, maxDuration: null, fingerPose: 'yawn',  expr: 'yawn',  exprVal: 0.85 },
+];
+
+// Use correct pool at runtime
+const ACTIVE_ANIM_POOL = isMobile ? MOBILE_ANIM_POOL : ANIM_POOL;
+
 
 const SITTING_POOL = [
     { key: 'sit1',     loop: true,  maxDuration: 10, fingerPose: 'happyIdle', expr: 'happy',   exprVal: 0.60 },
@@ -661,21 +681,60 @@ vrmLoader.load(initialFile, async gltf => {
 
 const fbxLoader = new FBXLoader();
 async function loadAllAnimations(vrm) {
-    await Promise.all(ALL_ANIM_FILES.map(async file => {
-        try {
-            const fbx  = await new Promise((res,rej) => fbxLoader.load(file, res, undefined, rej));
-            const clip = retargetMixamoToVRM(fbx, vrm, file);
-            if (clip) {
-                clips[file]   = clip;
-                actions[file] = mixer.clipAction(clip);
-                console.log('[VRM] ✓ Loaded:', file, '| tracks:', clip.tracks.length);
-            } else {
-                console.error('[VRM] ✗ retarget returned null for:', file);
+    // Mobile: load only essential animations sequentially to avoid RAM spike
+    // Desktop: load all animations in parallel
+    const filesToLoad = isMobile ? MOBILE_ANIM_FILES : ALL_ANIM_FILES;
+
+    if (isMobile) {
+        // Sequential loading on mobile — prevents simultaneous FBX decode RAM spike
+        for (const file of filesToLoad) {
+            try {
+                const fbx  = await new Promise((res,rej) => fbxLoader.load(file, res, undefined, rej));
+                const clip = retargetMixamoToVRM(fbx, vrm, file);
+                if (clip) {
+                    clips[file]   = clip;
+                    actions[file] = mixer.clipAction(clip);
+                    console.log('[VRM] ✓ Loaded:', file, '| tracks:', clip.tracks.length);
+                } else {
+                    console.error('[VRM] ✗ retarget returned null for:', file);
+                }
+                // Dispose raw FBX geometry/skeleton immediately — not needed after retarget
+                fbx.traverse(obj => {
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                        mats.forEach(m => m.dispose());
+                    }
+                });
+            } catch(e) {
+                console.error('[VRM] ✗ FBX load failed:', file, e.message || e);
             }
-        } catch(e) {
-            console.error('[VRM] ✗ FBX load failed:', file, e.message || e);
         }
-    }));
+    } else {
+        await Promise.all(filesToLoad.map(async file => {
+            try {
+                const fbx  = await new Promise((res,rej) => fbxLoader.load(file, res, undefined, rej));
+                const clip = retargetMixamoToVRM(fbx, vrm, file);
+                if (clip) {
+                    clips[file]   = clip;
+                    actions[file] = mixer.clipAction(clip);
+                    console.log('[VRM] ✓ Loaded:', file, '| tracks:', clip.tracks.length);
+                } else {
+                    console.error('[VRM] ✗ retarget returned null for:', file);
+                }
+                // Dispose raw FBX geometry/skeleton — not needed after retarget
+                fbx.traverse(obj => {
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                        mats.forEach(m => m.dispose());
+                    }
+                });
+            } catch(e) {
+                console.error('[VRM] ✗ FBX load failed:', file, e.message || e);
+            }
+        }));
+    }
     console.log('[VRM] loadAllAnimations complete. Loaded keys:', Object.keys(actions));
 }
 
@@ -773,7 +832,7 @@ function tryPlaySmile() {
 let lastAnimKey = null;
 
 function pickRandom() {
-    const pool = isSittingOnChatbox ? SITTING_POOL : ANIM_POOL;
+    const pool = isSittingOnChatbox ? SITTING_POOL : ACTIVE_ANIM_POOL;
     let pick;
     let attempts = 0;
     do { 
@@ -1094,15 +1153,9 @@ function animate(now = 0) {
             // wave1 + intro speech run simultaneously; wave1 finishes → idle naturally.
             if (currentKey === ANIM.wave1) {
                 // do nothing — let wave1 play to completion
-            } else if (isSittingOnChatbox) {
-                if (currentKey !== ANIM.sit2) {
-                    clearAutoTimer();
-                    applyState('happyIdle', 'happy', 0.85);
-                    playAnim(ANIM.sit2, true, 0.5);
-                }
             } else {
-                // Stay in current idle during talking — just update expression
-                // (No animation change needed; lip-sync & expr are driven in the expr block)
+                // While talking: ALWAYS stay in idle animation regardless of sitting state.
+                // This ensures the avatar looks natural and doesn't switch animations.
                 applyState('idle', 'happy', 0.75);
                 if (currentKey !== ANIM.idle) {
                     clearAutoTimer();
@@ -1114,7 +1167,7 @@ function animate(now = 0) {
         }
     }
 
-    // Idle look-around animation
+    // Idle look-around animation / talking look-at-user
     if (vrm.lookAt) {
         if (!window.lookAtTargetObj) {
             window.lookAtTargetObj = new THREE.Object3D();
@@ -1122,9 +1175,20 @@ function animate(now = 0) {
             vrm.lookAt.target = window.lookAtTargetObj;
         }
         
-        // Randomly look around the viewport when idle
-        if (currentKey && currentKey.includes('Idle') && !window.chatbotTalking) {
-            // Use combination of sine waves for pseudo-random smooth wandering
+        if (window.chatbotTalking) {
+            // While talking: look directly at the camera (user's eye level)
+            window.lookAtTargetObj.position.set(camera.position.x, camera.position.y, camera.position.z);
+            // Manual head/neck override to look at user
+            const neck = vrm.humanoid?.getNormalizedBoneNode('neck');
+            const head = vrm.humanoid?.getNormalizedBoneNode('head');
+            if (neck && head) {
+                neck.rotation.y *= 0.85; // soften any residual wander rotation
+                head.rotation.y *= 0.85;
+                neck.rotation.x *= 0.85;
+                head.rotation.x *= 0.85;
+            }
+        } else if (currentKey && currentKey.includes('Idle')) {
+            // Randomly look around the viewport when idle (not talking)
             const lookX = Math.sin(t * 0.6) * 3.0 + Math.sin(t * 1.3) * 1.5;
             const lookY = Math.sin(t * 0.4) * 2.0 + Math.cos(t * 1.1) * 1.0 + 1.2;
             window.lookAtTargetObj.position.set(lookX, lookY, 15);
