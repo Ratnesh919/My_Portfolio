@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Encode+Sans+Condensed:wght@400;700;900&family=Forum&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Abraham Outline';
+  src: url('./fonts/abraham/3 Abraham Outline Demo.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Fat Wandals';
+  src: url('./fonts/fat_wandals/FatWandals_PERSONAL.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Mostwasted';
+  src: url('./fonts/mostwasted/Mostwasted.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Next Ups';
+  src: url('./fonts/next_ups/Next Ups.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Vanchrome Outline';
+  src: url('./fonts/vanchrome/vanchrome outline.otf') format('opentype');
+}
+
+:root {
+  --primary: #3400f1;
+  --secondary: #9d00ff;
+  --bg-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+body {
+  @apply m-0 text-black;
+  font-family: "Encode Sans Condensed", sans-serif;
+  background: #dcdcdc;
+}
+
+.glass-panel {
+  @apply backdrop-blur-md bg-white/30 border border-white/20 shadow-xl;
+}
+
+.hero-text-outline {
+  font-family: 'Abraham Outline', sans-serif;
+  -webkit-text-stroke: 1px black;
+  color: transparent;
+}
+
+.graffiti-text {
+  font-family: 'Fat Wandals', cursive;
+}
+
+.signature-text {
+  font-family: 'Mostwasted', cursive;
+}

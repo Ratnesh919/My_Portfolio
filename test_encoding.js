@@ -1,0 +1,1 @@
+const fs = require('fs'); const code = fs.readFileSync('chatbot.js', 'utf8'); const lines = code.split('\n'); for (let i = 0; i < lines.length; i++) { if (/[^\x00-\x7F]/.test(lines[i])) { console.log('Line ' + (i+1) + ': ' + lines[i].trim()); } }

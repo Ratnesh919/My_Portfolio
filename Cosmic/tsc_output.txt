@@ -1,0 +1,2 @@
+﻿src/App.tsx(1,16): error TS2305: Module '"lucide-react"' has no exported member 'Twitter'.
+src/App.tsx(1,25): error TS2305: Module '"lucide-react"' has no exported member 'Github'.
