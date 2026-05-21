@@ -344,14 +344,7 @@
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:') {
                 return localPath;
             }
-            let filename = localPath.substring(localPath.lastIndexOf('/') + 1);
-            // Map local filenames to your existing GitHub Release asset filenames
-            if (filename === 'changli(fixed).vrm') {
-                filename = 'changli.fixed.vrm';
-            } else if (filename === 'Kid changli.vrm') {
-                filename = 'Kid.changli.vrm';
-            }
-            return `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${filename}`;
+            return `/api/avatar-proxy?file=${encodeURIComponent(localPath)}`;
         };
 
         const AVATARS = [

@@ -562,6 +562,44 @@ app.get('/api/health', checkAdmin, async (req, res) => {
     });
 });
 
+app.get('/api/avatar-proxy', async (req, res) => {
+    const { file } = req.query;
+    if (!file) return res.status(400).send('Missing file parameter');
+    
+    let filename = file.substring(file.lastIndexOf('/') + 1);
+    // Map local filenames to your existing GitHub Release asset filenames
+    if (filename === 'changli(fixed).vrm') {
+        filename = 'changli.fixed.vrm';
+    } else if (filename === 'Kid changli.vrm') {
+        filename = 'Kid.changli.vrm';
+    }
+
+    const targetUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${filename}`;
+    
+    try {
+        const response = await axios({
+            method: 'get',
+            url: targetUrl,
+            responseType: 'stream',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+            }
+        });
+        
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        res.setHeader('Content-Type', 'application/octet-stream');
+        if (response.headers['content-length']) {
+            res.setHeader('Content-Length', response.headers['content-length']);
+        }
+        
+        response.data.pipe(res);
+    } catch (error) {
+        console.error('[Avatar Proxy Error]', error.message);
+        res.status(500).send(`Failed to fetch avatar asset: ${error.message}`);
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Only start the server locally. Vercel will import the app directly.
