@@ -697,14 +697,23 @@ async function loadBackgroundAnimations(vrmInstance) {
     // 1 second delay to prioritize main thread rendering
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    console.log('[VRM] Loading background animations asynchronously...');
-    await Promise.all(BACKGROUND_ANIMS.map(async (file) => {
+    console.log('[VRM] Loading background animations asynchronously (sequential for mobile stability)...');
+    for (const file of BACKGROUND_ANIMS) {
         try {
-            const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
+            // Check if model changed before each load
             if (vrm !== vrmInstance) {
-                console.warn('[VRM] Model changed during background animation load:', file);
+                console.warn('[VRM] Model changed, stopping background animation load:', file);
                 return;
             }
+            
+            const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
+            
+            // Check again after load completes
+            if (vrm !== vrmInstance) {
+                console.warn('[VRM] Model changed after loading file, discarding:', file);
+                return;
+            }
+            
             const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
             if (clip) {
                 clips[file] = clip;
@@ -713,10 +722,13 @@ async function loadBackgroundAnimations(vrmInstance) {
             } else {
                 console.error('[VRM] ✗ retarget returned null for:', file);
             }
+            
+            // 150ms delay between loading animations to yield the main thread and keep mobile memory stable
+            await new Promise(resolve => setTimeout(resolve, 150));
         } catch (e) {
             console.error('[VRM] ✗ Background FBX load failed:', file, e.message || e);
         }
-    }));
+    }
     console.log('[VRM] Background animations loaded. Total keys:', Object.keys(actions));
 }
 
