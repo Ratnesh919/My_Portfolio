@@ -336,6 +336,8 @@
     </div>
 
     <script>
+        const isMobileDevice = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
         window.getAvatarUrl = function(localPath) {
             if (!localPath) return '';
             if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
@@ -364,8 +366,8 @@
             { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
         ];
 
-        // Load user's saved avatar, defaulting to Changli
-        let activeAvatar = localStorage.getItem('selectedAvatar') || './Wuwa/changli(fixed).vrm';
+        // Load user's saved avatar, defaulting to Kid Changli on mobile and Changli on desktop
+        let activeAvatar = localStorage.getItem('selectedAvatar') || (isMobileDevice ? './Wuwa/Kid changli.vrm' : './Wuwa/changli(fixed).vrm');
         window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
 
         const panel      = document.getElementById('avatar-panel');
@@ -406,7 +408,7 @@
         // Setup size slider
         const sizeSlider = document.getElementById('avatar-size-slider');
         const sizePct = document.getElementById('avatar-size-pct');
-        const isMobileDevice = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // isMobileDevice is declared at the top of script
         if (isMobileDevice) {
             sizeSlider.value = '0.70';
             sizePct.innerText = '70%';

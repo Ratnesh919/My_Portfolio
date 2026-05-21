@@ -13,6 +13,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader }  from 'three/addons/loaders/FBXLoader.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 
+// ─── DEVICE DETECTION ────────────────────────────────────────────────────────
+const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
 // ─── BONE MAP ────────────────────────────────────────────────────────────────
 const mixamoVRMRigMap = {
     // Core spine chain
@@ -65,7 +68,7 @@ const ALL_ANIM_FILES = Object.values(ANIM).filter(f => f !== ANIM.walk);
 
 // Split animations into Essential (for instant rendering/welcome) and Background pools
 const ESSENTIAL_ANIMS = [ANIM.idle, ANIM.wave1, ANIM.wave2, ANIM.no];
-const BACKGROUND_ANIMS = ALL_ANIM_FILES.filter(f => !ESSENTIAL_ANIMS.includes(f));
+const BACKGROUND_ANIMS = isMobile ? [] : ALL_ANIM_FILES.filter(f => !ESSENTIAL_ANIMS.includes(f));
 
 // ─── AUTO-CYCLE POOLS ────────────────────────────────────────────────────────
 // maxDuration: null = play full clip, number = max seconds before returning to idle
@@ -146,7 +149,7 @@ const AVATAR_SIZES = {
 
 // ─── THREE.JS SETUP ───────────────────────────────────────────────────────────
 const canvas   = document.getElementById('vrm-canvas');
-const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+// isMobile is defined at the top
 
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
@@ -456,7 +459,7 @@ function fixVRMHitbox(vrmObj) {
     });
 }
 
-const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
+const initialFile = window.initialAvatarFile || (isMobile ? './Wuwa/Kid changli.vrm' : './Wuwa/changli(fixed).vrm');
 vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile, async gltf => {
     vrm = gltf.userData.vrm;
     if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
@@ -694,6 +697,10 @@ async function loadEssentialAnimations(vrmInstance) {
 }
 
 async function loadBackgroundAnimations(vrmInstance) {
+    if (isMobile) {
+        console.log('[VRM] Skipping background animation loading on mobile to save bandwidth and memory.');
+        return;
+    }
     // 1 second delay to prioritize main thread rendering
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -1112,13 +1119,50 @@ function applyFingerPose(t, dt) {
 
 let wasTalking  = false;
 let wasThinking = false;
+
+// ─── VISIBILITY AND RENDERING PAUSE ──────────────────────────────────────────
+let loopPaused = false;
+function handleVisibilityChange() {
+    if (document.hidden) {
+        loopPaused = true;
+        console.log('[VRM] Page hidden, rendering paused.');
+    } else {
+        loopPaused = false;
+        clock.getDelta(); // Reset timer delta so the animation doesn't jump
+        console.log('[VRM] Page visible, rendering resumed.');
+        animate();
+    }
+}
+document.addEventListener('visibilitychange', handleVisibilityChange);
+
+// ─── OPTIMIZED EXPRESSION HELPER ──────────────────────────────────────────────
+let activeExpressions = {};
+function setVRMExpression(name, value) {
+    if (!vrm) return;
+    const manager = vrm.expressionManager || vrm.blendShapeProxy;
+    if (!manager) return;
+    try {
+        manager.setValue(name, value);
+        if (value > 0) {
+            activeExpressions[name] = true;
+        }
+    } catch (_) {}
+}
+
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
 function animate() {
+    if (loopPaused) return;
     requestAnimationFrame(animate);
     const dt = Math.min(clock.getDelta(), 0.05);
     const t  = clock.elapsedTime;
     renderer.render(scene, camera);
     if (!vrm) return;
+
+    // Reset humanoid bones to a clean slate before updating the mixer
+    // to prevent rotation drift, NaN mathematical overhead, and memory crashes.
+    if (vrm.humanoid) {
+        vrm.humanoid.reset();
+    }
 
     if (mixer) mixer.update(dt);
     applyFingerPose(t, dt);
@@ -1166,16 +1210,6 @@ function animate() {
             const lookX = Math.sin(t * 0.6) * 3.0 + Math.sin(t * 1.3) * 1.5;
             const lookY = Math.sin(t * 0.4) * 2.0 + Math.cos(t * 1.1) * 1.0 + 1.2;
             window.lookAtTargetObj.position.set(lookX, lookY, 15);
-
-            // Manual fallback for models that don't have proper lookAt configured
-            const neck = vrm.humanoid?.getNormalizedBoneNode('neck');
-            const head = vrm.humanoid?.getNormalizedBoneNode('head');
-            if (neck && head) {
-                neck.rotation.y += (lookX * 0.05);
-                neck.rotation.x -= ((lookY - 1.2) * 0.05);
-                head.rotation.y += (lookX * 0.05);
-                head.rotation.x -= ((lookY - 1.2) * 0.05);
-            }
         } else {
             // Look straight ahead when doing other animations
             window.lookAtTargetObj.position.set(0, 1.2, 15);
@@ -1219,15 +1253,19 @@ function animate() {
         'thinking':  ['neutral', 'Neutral'],
     };
     
-    // reset ALL known expressions FIRST!
-    const allKnown = ['happy','joy','Joy','angry','Angry','surprised','relaxed','fun','Fun','sad','sorrow','Sorrow','neutral','Neutral','aa','ih','ou','ee','oh','blink','Blink','close','blink_l','blink_r','blinkLeft','blinkRight'];
-    allKnown.forEach(e => {
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue(e, 0); } catch(_){}
-    });
-    // set target
+    // Reset only active expressions from the previous frame to avoid 26 redundant calls/sec
+    const manager = vrm.expressionManager || vrm.blendShapeProxy;
+    if (manager) {
+        for (const e in activeExpressions) {
+            try { manager.setValue(e, 0); } catch (_) {}
+        }
+    }
+    activeExpressions = {};
+
+    // Set target expression
     const targetExprs = EXPR_MAP[expr] || [expr];
     targetExprs.forEach(e => {
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue(e, exprSmooth); } catch(_){}
+        setVRMExpression(e, exprSmooth);
     });
 
     // Overlay smile on top of base expression when active
@@ -1235,9 +1273,9 @@ function animate() {
         // Blend happy/joy additively — clamp to 1
         const currentHappy = exprSmooth * (expr === 'happy' ? 1 : 0.3);
         const blendedSmile = Math.min(1, currentHappy + smileIntensity * 0.7);
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('happy', blendedSmile); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('joy',   blendedSmile); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('Joy',   blendedSmile); } catch(_){}
+        setVRMExpression('happy', blendedSmile);
+        setVRMExpression('joy', blendedSmile);
+        setVRMExpression('Joy', blendedSmile);
     }
 
     // Auto-blink: blink during all animations except when yawning
@@ -1247,26 +1285,26 @@ function animate() {
         // Smile squint: eyes naturally narrow. We add blink_l/blink_r offset.
         const squintAmt = smileSquintSmooth;
         const blinkFinal = Math.min(1, blinkBase + squintAmt);
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blink',      blinkFinal); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('Blink',      blinkFinal); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blink_l',    blinkFinal); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blink_r',    blinkFinal); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blinkLeft',  blinkFinal); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blinkRight', blinkFinal); } catch(_){}
+        setVRMExpression('blink',      blinkFinal);
+        setVRMExpression('Blink',      blinkFinal);
+        setVRMExpression('blink_l',    blinkFinal);
+        setVRMExpression('blink_r',    blinkFinal);
+        setVRMExpression('blinkLeft',  blinkFinal);
+        setVRMExpression('blinkRight', blinkFinal);
     } else {
         // Yawn: rising open-mouth (aa) + progressive squint (blink)
         // exprSmooth drives the yawn progress (0 → 1 as animation starts)
         const yawnMouth  = exprSmooth * 0.90;          // wide open
         const yawnSquint = exprSmooth * 0.65;          // half-closed eyes
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('aa',         yawnMouth);  } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('a',          yawnMouth);  } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('A',          yawnMouth);  } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blink',      yawnSquint); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('Blink',      yawnSquint); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blink_l',    yawnSquint); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blink_r',    yawnSquint); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blinkLeft',  yawnSquint); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('blinkRight', yawnSquint); } catch(_){}
+        setVRMExpression('aa',         yawnMouth);
+        setVRMExpression('a',          yawnMouth);
+        setVRMExpression('A',          yawnMouth);
+        setVRMExpression('blink',      yawnSquint);
+        setVRMExpression('Blink',      yawnSquint);
+        setVRMExpression('blink_l',    yawnSquint);
+        setVRMExpression('blink_r',    yawnSquint);
+        setVRMExpression('blinkLeft',  yawnSquint);
+        setVRMExpression('blinkRight', yawnSquint);
     }
 
     // Chatbot Lipsync (fake talking) — tuned to ~165 WPM / rate 1.10
@@ -1275,11 +1313,11 @@ function animate() {
         const talkMouth = Math.abs(Math.sin(t * 8.5)) * 0.75;
         // Secondary vowel for realism: offset phase, lower amplitude
         const talkIh    = Math.abs(Math.sin(t * 8.5 + 1.8)) * 0.35;
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('aa', talkMouth); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('a',  talkMouth); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('A',  talkMouth); } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('ih', talkIh);    } catch(_){}
-        try { (vrm.expressionManager||vrm.blendShapeProxy)?.setValue('i',  talkIh);    } catch(_){}
+        setVRMExpression('aa', talkMouth);
+        setVRMExpression('a',  talkMouth);
+        setVRMExpression('A',  talkMouth);
+        setVRMExpression('ih', talkIh);
+        setVRMExpression('i',  talkIh);
     }
 
     // Dist from cursor to the character on screen
@@ -1293,25 +1331,32 @@ function animate() {
     const isHovering = (dist < 0.8 && !isDragging) || window.chatbotTalking;
     hoverBlend = lerp(hoverBlend, isHovering ? 1 : 0, dt * 6);
 
-    // Head tracking adjustment (only track cursor when hovering)
-    // headRotOffset = 0 because CHAR_ROT now faces viewer directly
-    const headRotOffset = 0;
-    const targetHY = lerp(headRotOffset, cursor.nx * 0.18, hoverBlend);
-    const targetHX = lerp(0, cursor.ny * 0.12, hoverBlend);
-    const targetNY = lerp(0, cursor.nx * 0.08, hoverBlend);
-    const targetNX = lerp(0, cursor.ny * 0.08, hoverBlend);
+    // Combined head/neck tracking and wander looking around
+    // Wander sways (pseudo-random looking around when idle and not talking)
+    let wanderX = 0;
+    let wanderY = 0;
+    if (currentKey && currentKey.includes('Idle') && !window.chatbotTalking) {
+        wanderX = Math.sin(t * 0.6) * 0.15 + Math.sin(t * 1.3) * 0.05;
+        wanderY = Math.sin(t * 0.4) * 0.10 + Math.cos(t * 1.1) * 0.05;
+    }
 
-    sHY = lerp(sHY, targetHY, dt*4);
-    sHX = lerp(sHX, targetHX, dt*4);
-    sNY = lerp(sNY, targetNY, dt*3.5);
-    sNX = lerp(sNX, targetNX, dt*3.5);
+    const headRotOffset = 0;
+    const targetHY = lerp(wanderX, cursor.nx * 0.18, hoverBlend);
+    const targetHX = lerp(-wanderY, cursor.ny * 0.12, hoverBlend);
+    const targetNY = lerp(wanderX * 0.6, cursor.nx * 0.08, hoverBlend);
+    const targetNX = lerp(-wanderY * 0.6, cursor.ny * 0.08, hoverBlend);
+
+    sHY = lerp(sHY, targetHY, dt * 4);
+    sHX = lerp(sHX, targetHX, dt * 4);
+    sNY = lerp(sNY, targetNY, dt * 3.5);
+    sNX = lerp(sNX, targetNX, dt * 3.5);
 
     // Override head/neck rotation for "No" animation to look straight at user
     if (currentKey === ANIM.no) {
-        const headNode = vrm.humanoid?.getNormalizedBoneNode('head');
-        if (headNode) headNode.rotation.set(0, 0, 0);
-        const neckNode = vrm.humanoid?.getNormalizedBoneNode('neck');
-        if (neckNode) neckNode.rotation.set(0, 0, 0);
+        sHX = 0;
+        sHY = 0;
+        sNX = 0;
+        sNY = 0;
     }
 
     addNorm(vrm, 'head', sHX, sHY, 0);
@@ -1365,7 +1410,7 @@ animate();
 function addNorm(vrm, name, dx, dy, dz) {
     const b = vrm.humanoid?.getNormalizedBoneNode(name);
     if (!b) return;
-    b.rotation.x += dx; b.rotation.y += dy; b.rotation.z += dz;
+    b.rotation.set(dx, dy, dz);
 }
 function lerp(a, b, t) { return a + (b-a) * Math.min(1,t); }
 

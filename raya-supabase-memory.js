@@ -8,7 +8,37 @@ require('dotenv').config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+let supabase;
+
+if (supabaseUrl && supabaseKey) {
+    supabase = createClient(supabaseUrl, supabaseKey);
+} else {
+    console.warn('\n======================================================');
+    console.warn('⚠️ WARNING: SUPABASE_URL and SUPABASE_KEY are not set in .env.');
+    console.warn('⚠️ Running in mock mode. Cloud persistence will not be saved.');
+    console.warn('======================================================\n');
+    
+    const makeMock = () => {
+        const mock = {
+            then: (onFulfilled) => Promise.resolve({ data: [], error: null }).then(onFulfilled),
+            catch: (onRejected) => Promise.resolve({ data: [], error: null }).catch(onRejected),
+        };
+        const handler = {
+            get(target, prop) {
+                if (prop === 'then' || prop === 'catch') {
+                    return target[prop];
+                }
+                return () => new Proxy(mock, handler);
+            }
+        };
+        return new Proxy(mock, handler);
+    };
+
+    supabase = {
+        from: () => makeMock()
+    };
+}
+
 
 async function initUser(userId, isNewUser, ipAddress) {
     // Upsert User
