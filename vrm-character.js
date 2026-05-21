@@ -310,13 +310,16 @@ function retargetMixamoToVRM(asset, vrm, fileUrl = '') {
             rigNode.getWorldQuaternion(rRI).invert();
             rigNode.parent.getWorldQuaternion(pRWR);
             if (track instanceof THREE.QuaternionKeyframeTrack) {
-                for (let i=0;i<track.values.length;i+=4){
-                    const fq=track.values.slice(i,i+4);
+                const values = track.values.slice();
+                for (let i=0;i<values.length;i+=4){
+                    const fq=values.slice(i,i+4);
                     _qA.fromArray(fq).premultiply(pRWR).multiply(rRI); _qA.toArray(fq);
-                    fq.forEach((v,j)=>{track.values[j+i]=v;});
+                    for (let j=0; j<4; j++) {
+                        values[i+j] = fq[j];
+                    }
                 }
                 tracks.push(new THREE.QuaternionKeyframeTrack(`${vrmNode}.${prop}`,track.times,
-                    track.values.map((v,i)=>(vrm.meta?.metaVersion==='0'&&i%2===0?-v:v))));
+                    values.map((v,i)=>(vrm.meta?.metaVersion==='0'&&i%2===0?-v:v))));
             } else if (track instanceof THREE.VectorKeyframeTrack) {
                 const isCatwalk = fileUrl.toLowerCase().includes('catwalk');
                 const isSitting = fileUrl.toLowerCase().includes('sitting');
