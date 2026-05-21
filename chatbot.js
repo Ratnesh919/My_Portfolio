@@ -102,25 +102,8 @@ class AvatarChatBot {
             document.addEventListener(ev, markGesture, { once: true, passive: true })
         );
 
-        // Auto-start passive listening when user makes their FIRST gesture
-        const startPassiveOnGesture = () => {
-            // Request mic permission silently in background
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        stream.getTracks().forEach(t => t.stop());
-                        this.micGranted = true;
-                        this.startPassiveListening();
-                    })
-                    .catch(() => {
-                        // Permission denied — passive mode not available, that's fine
-                        this.micGranted = false;
-                    });
-            }
-        };
-        ['click','touchstart','keydown','pointerdown'].forEach(ev =>
-            document.addEventListener(ev, () => setTimeout(startPassiveOnGesture, 800), { once: true, passive: true })
-        );
+        // Auto-start passive listening disabled per user request (only tapping the mic button will use it)
+
 
         this.awaitingChoice  = false;
         this._ytPreWin       = null; // pre-opened window for popup-blocker bypass
@@ -645,6 +628,8 @@ class AvatarChatBot {
                 if (this.awaitingChoice && this.pendingResults) {
                     const num = parseInt(commandWithoutWake, 10);
                     if (!isNaN(num) && num >= 1 && num <= this.pendingResults.length) {
+                        try { this.recognition?.stop(); } catch(e) {}
+                        this.userStoppedMic = true;
                         this.playVideoById(this.pendingResults[num - 1]);
                         return;
                     }
@@ -661,12 +646,16 @@ class AvatarChatBot {
                     ];
                     const ack = acks[Math.floor(Math.random() * acks.length)];
                     this._awaitingCommand = true; // Wait for the actual command in the next speech!
+                    try { this.recognition?.stop(); } catch(e) {}
+                    this.userStoppedMic = true;
                     this.speakAvatar(ack, false);
                     return;
                 }
 
                 this._awaitingCommand = false; // Reset since we are executing a command
                 // Send the command (without wake word) to AI
+                try { this.recognition?.stop(); } catch(e) {}
+                this.userStoppedMic = true;
                 this.handleUserInput(commandWithoutWake);
             }
         };
@@ -686,52 +675,13 @@ class AvatarChatBot {
         this.recognition.onend = () => {
             this.isListening = false;
             this.updateMicUI();
-            
-            if (this.userStoppedMic) { return; }
-
-            // Restart passive mic unless user explicitly stopped it
-            if (!this.userStoppedMic) {
-                const restartWhenReady = () => {
-                    if (this.isListening) return; // already running
-                    try { this.recognition.start(); }
-                    catch(e) { /* already started */ }
-                };
-                if (this.isThinking || this.isSpeaking) {
-                    // Wait until thinking/speaking ends, then restart
-                    if (this._micRestartPoll) clearInterval(this._micRestartPoll);
-                    let pollWaitTime = 0;
-                    this._micRestartPoll = setInterval(() => {
-                        pollWaitTime += 300;
-                        // Force restart if stuck for over 15 seconds waiting for speech to finish
-                        if ((!this.isThinking && !this.isSpeaking) || pollWaitTime > 15000) {
-                            if (pollWaitTime > 15000) {
-                                this.isSpeaking = false;
-                                this.isThinking = false;
-                            }
-                            clearInterval(this._micRestartPoll);
-                            this._micRestartPoll = null;
-                            setTimeout(restartWhenReady, 500);
-                        }
-                    }, 300);
-                } else {
-                    if (this._micRestartPoll) {
-                        clearInterval(this._micRestartPoll);
-                        this._micRestartPoll = null;
-                    }
-                    setTimeout(restartWhenReady, 400);
-                }
-            }
         };
     }
 
     // -- Passive (always-on) mic starter ---------------------------------------
-    // Called once after the user makes their first gesture (bubble pop / interaction).
-    // Starts mic in background without showing "Listening" UI.
+    // Completely disabled per user request to enforce strictly manual clicks
     startPassiveListening() {
-        if (!this.recognition || this.isListening || this.micGranted === false) return;
-        this._passiveModeActive = true;
-        this.userStoppedMic = false;
-        try { this.recognition.start(); } catch(e) {}
+        return;
     }
 
     // -- Mic Click --------------------------------------------------------------
@@ -1375,7 +1325,7 @@ class AvatarChatBot {
     }
 
     // -- TTS --------------------------------------------------------------------
-    speakAvatar(text, autoListen = true) {
+    speakAvatar(text, autoListen = false) {
         if (!text) return;
         if (!window.speechSynthesis) {
             console.warn('[Raya TTS] SpeechSynthesis not supported on this browser.');
@@ -1434,9 +1384,7 @@ class AvatarChatBot {
                 const ytIframe2 = document.querySelector('#raya-yt-wrapper iframe');
                 if (ytIframe2) ytIframe2.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [100]}), '*');
                 setTimeout(() => { this._wakeWordCooldown = false; }, 1500);
-                if (autoListen && this.micGranted) {
-                    setTimeout(() => this.startListening(), 500);
-                }
+                // Auto-listening on speech synthesis end is completely disabled per strict manual mic constraints
             };
 
             utterance.onstart = () => { this.setAvatarTalkingStatus(true); };

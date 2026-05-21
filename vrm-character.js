@@ -128,11 +128,11 @@ const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(na
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: true,  // always on for best avatar quality
+    antialias: !isMobile,  // disabled on mobile to prevent out-of-memory crashes, true on desktop for best quality
     powerPreference: 'high-performance' 
 });
-// Cap pixel ratio to 1 on mobile for performance (fixes lag on phones/iOS)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 2 : 2));
+// Cap pixel ratio to 1 on mobile for performance and memory (fixes lag and crashes on phones/iOS)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -319,6 +319,10 @@ vrmLoader.register(p => new VRMLoaderPlugin(p));
 
 function configureVRMPhysics(vrmModel, modelPath) {
     try {
+        if (isMobile) {
+            vrmModel.springBoneManager = null;
+            return;
+        }
         if (!vrmModel.springBoneManager) return;
         const joints = vrmModel.springBoneManager.joints || vrmModel.springBoneManager.springBoneGroupList || [];
         
@@ -438,14 +442,14 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     applyModelVisuals(vrm, initialFile);
     fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
 
-    window.currentVRMScale = window.currentVRMScale || 0.95;
+    window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.7 : 0.95);
     window.setVRMScale = (scale) => {
         window.currentVRMScale = scale;
         if (vrm) vrm.scene.scale.setScalar(scale);
     };
     // Relative scale: multiplier e.g. 1.2 = +20%, 0.8 = -20%
     window.adjustVRMScale = (multiplier) => {
-        const next = Math.min(1.8, Math.max(0.3, (window.currentVRMScale || 0.95) * multiplier));
+        const next = Math.min(1.8, Math.max(0.3, (window.currentVRMScale || (isMobile ? 0.7 : 0.95)) * multiplier));
         window.setVRMScale(next);
         return next; // Return so UI can sync slider
     };
@@ -638,7 +642,7 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
 const fbxLoader = new FBXLoader();
 async function loadAllAnimations(vrm) {
-    await Promise.all(ALL_ANIM_FILES.map(async file => {
+    for (const file of ALL_ANIM_FILES) {
         try {
             const fbx  = await new Promise((res,rej) => fbxLoader.load(file, res, undefined, rej));
             const clip = retargetMixamoToVRM(fbx, vrm, file);
@@ -652,7 +656,7 @@ async function loadAllAnimations(vrm) {
         } catch(e) {
             console.error('[VRM] ✗ FBX load failed:', file, e.message || e);
         }
-    }));
+    }
     console.log('[VRM] loadAllAnimations complete. Loaded keys:', Object.keys(actions));
 }
 
@@ -698,8 +702,8 @@ function returnToIdle() {
         applyState('happyIdle', 'relaxed', 0.55);
         playAnim(ANIM.sit2, true, 0.5);
         lastAnimKey = 'sit2';  // ensures pickRandom always picks sit1 next
-        // Short 8-12s cycle while sitting before next sit expression
-        const sitDelay = 8000 + Math.random() * 4000;
+        // Fixed 25s cycle while sitting before next sit expression
+        const sitDelay = 25000; // 25s
         autoTimerId = setTimeout(playRandomAnim, sitDelay);
         // Kick off smile scheduler for sitting mode (if not already running)
         if (!smileTimerId) scheduleNextSmile();
@@ -707,8 +711,8 @@ function returnToIdle() {
         applyState('idle', 'happy', 0.6);
         playAnim(ANIM.idle, true, 0.5);
         introComplete = true;
-        // Fixed 20s wait before the next random animation fires
-        const delay = 20000;   // 20s
+        // Fixed 25s wait before the next random animation fires
+        const delay = 25000;   // 25s
         autoTimerId = setTimeout(playRandomAnim, delay);
         // Kick off smile scheduler when entering idle (if not already running)
         if (!smileTimerId) scheduleNextSmile();
@@ -788,6 +792,7 @@ const raycaster         = new THREE.Raycaster();
 const mouse2d           = new THREE.Vector2();
 
 document.addEventListener('pointerdown', e => {
+    if (isMobile) return;
     if (!vrm || !introComplete) return;
     // Ignore right/middle buttons
     if (e.button !== 0) return;
@@ -804,25 +809,28 @@ document.addEventListener('pointerdown', e => {
         downPos.x = e.clientX;
         downPos.y = e.clientY;
         clickMoved      = false;
-        isTryingToDrag  = true;
         isClickedOnAvatar = true;
         blocksNextClick   = true;
 
-        // Fix drag plane to avatar's Z so raycaster math is stable
-        dragPlane.set(new THREE.Vector3(0, 0, 1), -vrm.scene.position.z);
+        if (!isMobile) {
+            isTryingToDrag  = true;
 
-        // Pre-compute offset in world space from avatar centre to cursor
-        mouse2d.x = (e.clientX / window.innerWidth)  * 2 - 1;
-        mouse2d.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse2d, camera);
-        if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
-            dragOffset.copy(intersectionPoint).sub(vrm.scene.position);
+            // Fix drag plane to avatar's Z so raycaster math is stable
+            dragPlane.set(new THREE.Vector3(0, 0, 1), -vrm.scene.position.z);
+
+            // Pre-compute offset in world space from avatar centre to cursor
+            mouse2d.x = (e.clientX / window.innerWidth)  * 2 - 1;
+            mouse2d.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse2d, camera);
+            if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
+                dragOffset.copy(intersectionPoint).sub(vrm.scene.position);
+            }
         }
     }
 }, { capture: true });
 
 document.addEventListener('pointermove', e => {
-    if (!isTryingToDrag) return;
+    if (isMobile || !isTryingToDrag) return;
 
     const dx = e.clientX - downPos.x;
     const dy = e.clientY - downPos.y;
@@ -857,6 +865,7 @@ document.addEventListener('pointermove', e => {
 }, { capture: true });
 
 window.addEventListener('pointerup', e => {
+    if (isMobile) return;
     const wasDragging = isDragging;
     isTryingToDrag  = false;
     isDragging      = false;
@@ -910,8 +919,8 @@ window.addEventListener('pointerup', e => {
                 applyState('happyIdle', 'relaxed', 0.55);  // sit2 expression
                 playAnim(ANIM.sit2, true, 0.5);            // sit2 FIRST
                 lastAnimKey = 'sit2';                      // so pickRandom picks sit1 next
-                // Cycle to sit1 after ~10s, then sit2 again, etc.
-                autoTimerId = setTimeout(() => playRandomAnim(), 10000);
+                // Cycle to sit1 after exactly 25s, then sit2 again, etc.
+                autoTimerId = setTimeout(() => playRandomAnim(), 25000);
                 return;
             }
         }
@@ -923,6 +932,7 @@ window.addEventListener('pointerup', e => {
 });
 
 window.addEventListener('pointercancel', e => {
+    if (isMobile) return;
     isTryingToDrag = false;
     isClickedOnAvatar = false;
     
@@ -1338,11 +1348,11 @@ window.switchVRM = function(modelPath) {
         configureVRMPhysics(vrm, modelPath);
         applyModelVisuals(vrm, modelPath);
         fixVRMHitbox(vrm);  // always expand hitboxes so drag works in any pose
-        vrm.scene.scale.setScalar(window.currentVRMScale || 0.95);
+        vrm.scene.scale.setScalar(window.currentVRMScale || (isMobile ? 0.7 : 0.95));
         
         if (savedPosition) {
             vrm.scene.position.copy(savedPosition);
-            isSittingOnChatbox = savedSitting;
+            isSittingOnChatbox = isMobile ? false : savedSitting;
         } else {
             vrm.scene.position.set(0, -0.97, 0);
             updateCharPos();
@@ -1366,7 +1376,7 @@ window.switchVRM = function(modelPath) {
         }
 
         // Restore animation state after switch
-        if (savedSitting) {
+        if (savedSitting && !isMobile) {
             // Restore sitting state — re-enter sit2 at the saved Y position
             applyState('happyIdle', 'relaxed', 0.55);
             playAnim(ANIM.sit2, true, 0);

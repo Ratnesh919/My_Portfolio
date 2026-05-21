@@ -406,6 +406,11 @@
         // Setup size slider
         const sizeSlider = document.getElementById('avatar-size-slider');
         const sizePct = document.getElementById('avatar-size-pct');
+        const isMobileDevice = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobileDevice) {
+            sizeSlider.value = '0.70';
+            sizePct.innerText = '70%';
+        }
         sizeSlider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             sizePct.innerText = Math.round(val * 100) + '%';
