@@ -1161,7 +1161,11 @@ function animate() {
     // Reset humanoid bones to a clean slate before updating the mixer
     // to prevent rotation drift, NaN mathematical overhead, and memory crashes.
     if (vrm.humanoid) {
-        vrm.humanoid.reset();
+        if (typeof vrm.humanoid.resetNormalizedPose === 'function') {
+            vrm.humanoid.resetNormalizedPose();
+        } else if (typeof vrm.humanoid.reset === 'function') {
+            vrm.humanoid.reset();
+        }
     }
 
     if (mixer) mixer.update(dt);
@@ -1410,7 +1414,7 @@ animate();
 function addNorm(vrm, name, dx, dy, dz) {
     const b = vrm.humanoid?.getNormalizedBoneNode(name);
     if (!b) return;
-    b.rotation.set(dx, dy, dz);
+    b.rotation.x += dx; b.rotation.y += dy; b.rotation.z += dz;
 }
 function lerp(a, b, t) { return a + (b-a) * Math.min(1,t); }
 
