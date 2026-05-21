@@ -3,6 +3,22 @@ import { DRACOLoader, GLTF, GLTFLoader } from "three-stdlib";
 import { setCharTimeline, setAllTimeline } from "../../utils/GsapScroll";
 import { decryptFile } from "./decrypt";
 
+// Helper to get the correct absolute base path of the running application
+const getBasePath = () => {
+  const path = window.location.pathname;
+  if (path.endsWith("/")) {
+    return path;
+  }
+  if (path.endsWith(".html")) {
+    return path.substring(0, path.lastIndexOf("/") + 1);
+  }
+  const lastSegment = path.substring(path.lastIndexOf("/") + 1);
+  if (lastSegment.includes(".")) {
+    return path.substring(0, path.lastIndexOf("/") + 1);
+  }
+  return path + "/";
+};
+
 const setCharacter = (
   renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -10,14 +26,16 @@ const setCharacter = (
 ) => {
   const loader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath("./draco/");
+  
+  const basePath = getBasePath();
+  dracoLoader.setDecoderPath(basePath + "draco/");
   loader.setDRACOLoader(dracoLoader);
 
   const loadCharacter = () => {
     return new Promise<GLTF | null>(async (resolve, reject) => {
       try {
         const encryptedBlob = await decryptFile(
-          "./models/character.enc?v=2",
+          basePath + "models/character.enc?v=2",
           "MyCharacter12"
         );
         const blobUrl = URL.createObjectURL(new Blob([encryptedBlob]));
