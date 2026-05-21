@@ -63,6 +63,10 @@ const ANIM = {
 // Walk is loaded separately so it doesn't block main animation loading
 const ALL_ANIM_FILES = Object.values(ANIM).filter(f => f !== ANIM.walk);
 
+// Split animations into Essential (for instant rendering/welcome) and Background pools
+const ESSENTIAL_ANIMS = [ANIM.idle, ANIM.wave1, ANIM.wave2, ANIM.no];
+const BACKGROUND_ANIMS = ALL_ANIM_FILES.filter(f => !ESSENTIAL_ANIMS.includes(f));
+
 // ─── AUTO-CYCLE POOLS ────────────────────────────────────────────────────────
 // maxDuration: null = play full clip, number = max seconds before returning to idle
 const ANIM_POOL = [
@@ -121,6 +125,25 @@ const RIPPLE_FREQ     = 1.60;   // faster secondary ripple for lively feel
 // Use -0.97 to plant feet exactly at bottom edge, scale 0.95
 const CHAR_POS = new THREE.Vector3(-3.2, -0.97, 0);
 // Removed CHAR_ROT, we dynamically look at camera now
+
+// ─── AVATAR FILE SIZES IN BYTES FOR ACCURATE PROGRESS ──────────────────────────
+const AVATAR_SIZES = {
+    './Wuwa/changli(fixed).vrm': 31422968,
+    './Wuwa/CamellyaV1.vrm': 39573340,
+    './Wuwa/CarlottaV1.vrm': 40383072,
+    './Wuwa/chixia.vrm': 23768488,
+    './Wuwa/jinshi.vrm': 19281344,
+    './Wuwa/Kid changli.vrm': 11833580,
+    './Wuwa/PinkshiV1.vrm': 44240136,
+    './Wuwa/RocciaV3.vrm': 94406600,
+    './Wuwa/rover.vrm': 32315592,
+    './Wuwa/SanhuaV2.vrm': 30099208,
+    './Wuwa/ShorekeeperV3.vrm': 128085348,
+    './Wuwa/verina.vrm': 21222868,
+    './Wuwa/yangyang.vrm': 28400012,
+    './Wuwa/yinlin.vrm': 41901060
+};
+
 // ─── THREE.JS SETUP ───────────────────────────────────────────────────────────
 const canvas   = document.getElementById('vrm-canvas');
 const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -515,16 +538,19 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         if (textEl) textEl.textContent = 'Decrypting Animations...';
     }
 
-    await loadAllAnimations(vrm);
+    await loadEssentialAnimations(vrm);
     
     if (siteLoaderEl) { 
         siteLoaderEl.classList.add('hidden');
         setTimeout(() => siteLoaderEl?.remove(), 800); 
     }
-
+ 
     // Step 1: Start idle immediately
     applyState('idle', 'happy', 0.6);
     playAnim(ANIM.idle, true, 0);
+
+    // Step 2: Load the remaining animations in the background
+    loadBackgroundAnimations(vrm);
 
     // Global helper so chatbot can trigger wave if needed
     window.playWaveAnimation = () => {
@@ -622,7 +648,8 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 }, xhr => {
     const siteLoaderEl = document.getElementById('site-loader');
     if (siteLoaderEl) {
-        const pct = xhr.total ? Math.round((xhr.loaded / xhr.total) * 100) : Math.min(99, Math.round((xhr.loaded / (15 * 1024 * 1024)) * 100));
+        const totalSize = xhr.total || AVATAR_SIZES[initialFile] || 31422968;
+        const pct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
         const pctEl = document.getElementById('site-loader-pct');
         const barEl = document.getElementById('site-loader-bar');
         const textEl = document.getElementById('site-loader-text');
@@ -641,23 +668,56 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 });
 
 const fbxLoader = new FBXLoader();
-async function loadAllAnimations(vrm) {
-    for (const file of ALL_ANIM_FILES) {
+
+async function loadEssentialAnimations(vrmInstance) {
+    console.log('[VRM] Loading essential animations in parallel...');
+    await Promise.all(ESSENTIAL_ANIMS.map(async (file) => {
         try {
-            const fbx  = await new Promise((res,rej) => fbxLoader.load(file, res, undefined, rej));
-            const clip = retargetMixamoToVRM(fbx, vrm, file);
+            const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
+            if (vrm !== vrmInstance) {
+                console.warn('[VRM] Model changed during essential animation load:', file);
+                return;
+            }
+            const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
             if (clip) {
-                clips[file]   = clip;
+                clips[file] = clip;
                 actions[file] = mixer.clipAction(clip);
-                console.log('[VRM] ✓ Loaded:', file, '| tracks:', clip.tracks.length);
+                console.log('[VRM] ✓ Loaded Essential:', file);
             } else {
                 console.error('[VRM] ✗ retarget returned null for:', file);
             }
-        } catch(e) {
-            console.error('[VRM] ✗ FBX load failed:', file, e.message || e);
+        } catch (e) {
+            console.error('[VRM] ✗ Essential FBX load failed:', file, e.message || e);
         }
-    }
-    console.log('[VRM] loadAllAnimations complete. Loaded keys:', Object.keys(actions));
+    }));
+    console.log('[VRM] Essential animations loaded.');
+}
+
+async function loadBackgroundAnimations(vrmInstance) {
+    // 1 second delay to prioritize main thread rendering
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log('[VRM] Loading background animations asynchronously...');
+    await Promise.all(BACKGROUND_ANIMS.map(async (file) => {
+        try {
+            const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
+            if (vrm !== vrmInstance) {
+                console.warn('[VRM] Model changed during background animation load:', file);
+                return;
+            }
+            const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
+            if (clip) {
+                clips[file] = clip;
+                actions[file] = mixer.clipAction(clip);
+                console.log('[VRM] ✓ Loaded Background:', file);
+            } else {
+                console.error('[VRM] ✗ retarget returned null for:', file);
+            }
+        } catch (e) {
+            console.error('[VRM] ✗ Background FBX load failed:', file, e.message || e);
+        }
+    }));
+    console.log('[VRM] Background animations loaded. Total keys:', Object.keys(actions));
 }
 
 // ─── PLAY ANIMATION ───────────────────────────────────────────────────────────
@@ -1245,9 +1305,9 @@ function animate() {
     addNorm(vrm, 'head', sHX, sHY, 0);
     addNorm(vrm, 'neck', sNX, sNY, 0);
     
-    // Drag "dangling" physics override — skip when fly animation is active (it has its own pose)
+    // Drag "dangling" physics override
     dragBlend = lerp(dragBlend, isDragging ? 1 : 0, dt * 8);
-    if (dragBlend > 0.01 && currentKey !== ANIM.fly) {
+    if (dragBlend > 0.01) {
         const override = (boneName, rx, ry, rz) => {
             const b = vrm.humanoid?.getNormalizedBoneNode(boneName);
             if (!b) return;
@@ -1369,7 +1429,7 @@ window.switchVRM = function(modelPath) {
             const pctEl = document.getElementById('vrm-loading-pct');
             if (pctEl) pctEl.textContent = 'ANIMATIONS...';
         }
-        await loadAllAnimations(vrm);
+        await loadEssentialAnimations(vrm);
         if (loadingEl) {
             loadingEl.style.opacity = '0';
             setTimeout(() => { if (loadingEl.parentNode) loadingEl.style.display = 'none'; }, 700);
@@ -1387,20 +1447,14 @@ window.switchVRM = function(modelPath) {
         }
         introComplete = true;  // unlock drag immediately — no wave on switch
 
-        // Reload fly clip for new model
-        fbxLoader.load(ANIM.fly, fbx => {
-            const clip = retargetMixamoToVRM(fbx, vrm);
-            if (clip) {
-                clip.tracks = clip.tracks.filter(t => !t.name.endsWith('.position'));
-                clips[ANIM.fly] = clip;
-                actions[ANIM.fly] = mixer.clipAction(clip);
-            }
-        }, undefined, () => {});
+        // Load background animations
+        loadBackgroundAnimations(vrm);
     }, xhr => {
         if (loadingEl) {
             loadingEl.style.display = 'flex';
             loadingEl.style.opacity = '1';
-            const pct = xhr.total ? Math.round((xhr.loaded / xhr.total) * 100) : Math.min(99, Math.round((xhr.loaded / (15 * 1024 * 1024)) * 100));
+            const totalSize = AVATAR_SIZES[modelPath] || 31422968;
+            const pct = xhr.total ? Math.round((xhr.loaded / xhr.total) * 100) : Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
             const pctEl = document.getElementById('vrm-loading-pct');
             const barEl = document.getElementById('vrm-loading-bar');
             if (pctEl) pctEl.textContent = `${pct}%`;
