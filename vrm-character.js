@@ -151,14 +151,51 @@ const AVATAR_SIZES = {
 const canvas   = document.getElementById('vrm-canvas');
 // isMobile is defined at the top
 
+// Detect device capabilities dynamically to prevent WebGL context crashes (Aw, Snap!)
+// on mid-range devices like iQOO Z7s (6GB RAM, Snapdragon 695 / Adreno 619) while 
+// running high-quality settings on premium devices (OnePlus, iPhone, etc.)
+let enableAntialias = true;
+let maxPixelRatio = 2.0;
+let mobileRatioMultiplier = 0.7;
+
+if (isMobile) {
+    const memory = navigator.deviceMemory || 4; // approximate RAM in GB
+    let isMidRangeGPU = false;
+    try {
+        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
+                // Adreno 6xx (Adreno 619 on iQOO Z7s) and Mali-Gxx/Mali-Txx are mid-range/budget GPUs prone to MSAA OOMs
+                if (/adreno\s*(tm)?\s*6/i.test(rendererName) || /mali-g[0-9]{2}/i.test(rendererName) || /mali-t/i.test(rendererName)) {
+                    isMidRangeGPU = true;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('[VRM] Failed to query WebGL debug info:', e);
+    }
+
+    // If device has less than 8GB physical RAM or a mid-range GPU, load the safe profile
+    if (memory < 8 || isMidRangeGPU) {
+        console.log(`[VRM] Mid-range device profile applied (Memory: ${memory}GB, Mid-range GPU: ${isMidRangeGPU})`);
+        enableAntialias = false; // Disable hardware MSAA to prevent memory exhaustion crashes
+        maxPixelRatio = 1.3;
+        mobileRatioMultiplier = 0.6;
+    } else {
+        console.log(`[VRM] High-end device profile applied (Memory: ${memory}GB)`);
+    }
+}
+
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
+    antialias: enableAntialias,
     powerPreference: 'high-performance' 
 });
-// Set pixel ratio: on mobile use 70% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
-renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * 0.7), 2.0) : Math.min(window.devicePixelRatio, 2));
+// Set pixel ratio dynamically
+renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * mobileRatioMultiplier), maxPixelRatio) : Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
