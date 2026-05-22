@@ -687,9 +687,11 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
 const fbxLoader = new FBXLoader();
 
-async function loadEssentialAnimations(vrmInstance) {
+async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
     console.log('[VRM] Loading essential animations in parallel...');
-    await Promise.all(ESSENTIAL_ANIMS.map(async (file) => {
+    const animsToLoad = [...ESSENTIAL_ANIMS, ...extraAnims];
+    const uniqueAnims = Array.from(new Set(animsToLoad));
+    await Promise.all(uniqueAnims.map(async (file) => {
         try {
             const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
             if (vrm !== vrmInstance) {
@@ -719,13 +721,19 @@ async function loadBackgroundAnimations(vrmInstance) {
     // 1 second delay to prioritize main thread rendering
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    console.log('[VRM] Loading background animations asynchronously (sequential for mobile stability)...');
+    console.log('[VRM] Loading background animations asynchronously...');
     for (const file of BACKGROUND_ANIMS) {
         try {
             // Check if model changed before each load
             if (vrm !== vrmInstance) {
                 console.warn('[VRM] Model changed, stopping background animation load:', file);
                 return;
+            }
+            
+            // Skip if already loaded (e.g. if loaded via extraAnims)
+            if (clips[file]) {
+                console.log('[VRM] Skipping background load for already loaded animation:', file);
+                continue;
             }
             
             const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
@@ -1526,7 +1534,11 @@ window.switchVRM = function(modelPath) {
             const pctEl = document.getElementById('vrm-loading-pct');
             if (pctEl) pctEl.textContent = 'ANIMATIONS...';
         }
-        await loadEssentialAnimations(vrm);
+        const extraToLoad = [];
+        if (savedSitting && !isMobile) {
+            extraToLoad.push(ANIM.sit2);
+        }
+        await loadEssentialAnimations(vrm, extraToLoad);
 
         // Restore animation state after switch
         if (savedSitting && !isMobile) {

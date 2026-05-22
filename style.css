@@ -304,6 +304,13 @@ body {
     pointer-events: none;
     opacity: 0;
 }
+@media (max-width: 768px) {
+    #vrm-loading {
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
 #vrm-loading .loading-text, #vrm-loading .loading-bar-container {
     width: 320px;
 }
