@@ -463,7 +463,7 @@ function fixVRMHitbox(vrmObj) {
     });
 }
 
-const initialFile = window.initialAvatarFile || (isMobile ? './Wuwa/Kid changli.vrm' : './Wuwa/changli(fixed).vrm');
+const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
 vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile, async gltf => {
     vrm = gltf.userData.vrm;
     if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);

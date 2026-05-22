@@ -329,3 +329,62 @@
     max-height: 250px;
   }
 }
+
+/* ── Text-Only Project Carousel Styles ── */
+.text-only-content {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.text-only-info {
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  max-width: 650px;
+  margin: 0 auto !important;
+  gap: 15px !important;
+}
+
+.text-only-details {
+  align-items: center !important;
+}
+
+.text-only-details h4 {
+  font-size: 42px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  letter-spacing: -0.5px !important;
+  margin-bottom: 5px !important;
+}
+
+.text-only-number h3 {
+  font-size: 80px !important;
+  opacity: 0.15 !important;
+  margin-bottom: -15px !important;
+  color: var(--accentColor) !important;
+}
+
+.text-only-details .carousel-category {
+  font-size: 18px !important;
+  color: #b3b3b3 !important;
+  font-weight: 300 !important;
+  margin-bottom: 5px !important;
+}
+
+.text-only-details .carousel-tools {
+  margin-top: 24px !important;
+}
+
+.text-only-details .carousel-tools .tools-label {
+  font-size: 11px !important;
+  opacity: 0.5 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase;
+}
+
+.text-only-details .carousel-tools p {
+  font-size: 20px !important;
+  color: var(--accentColor) !important;
+  font-weight: 400 !important;
+  margin-top: 8px !important;
+}

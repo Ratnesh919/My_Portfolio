@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import "./styles/Work.css";
-import WorkImage from "./WorkImage";
 import { MdArrowBack, MdArrowForward } from "react-icons/md";
 
 const projects = [
@@ -8,19 +7,16 @@ const projects = [
     title: "Smart Parking System",
     category: "Hardware Prototype",
     tools: "Arduino, Ultrasonic Sensors",
-    image: "./images/Solidx.png",
   },
   {
     title: "Text Humanizer",
     category: "Command-Line App",
     tools: "Python",
-    image: "./images/radix.png",
   },
   {
     title: "Simple AI Assistant",
     category: "Intelligent App",
     tools: "Python, API integrations, NLP",
-    image: "./images/bond.png",
   },
 ];
 
@@ -86,12 +82,12 @@ const Work = () => {
             >
               {projects.map((project, index) => (
                 <div className="carousel-slide" key={index}>
-                  <div className="carousel-content">
-                    <div className="carousel-info">
-                      <div className="carousel-number">
+                  <div className="carousel-content text-only-content">
+                    <div className="carousel-info text-only-info">
+                      <div className="carousel-number text-only-number">
                         <h3>0{index + 1}</h3>
                       </div>
-                      <div className="carousel-details">
+                      <div className="carousel-details text-only-details">
                         <h4>{project.title}</h4>
                         <p className="carousel-category">
                           {project.category}
@@ -101,9 +97,6 @@ const Work = () => {
                           <p>{project.tools}</p>
                         </div>
                       </div>
-                    </div>
-                    <div className="carousel-image-wrapper">
-                      <WorkImage image={project.image} alt={project.title} />
                     </div>
                   </div>
                 </div>
