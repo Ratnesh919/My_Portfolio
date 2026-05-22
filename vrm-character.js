@@ -151,51 +151,14 @@ const AVATAR_SIZES = {
 const canvas   = document.getElementById('vrm-canvas');
 // isMobile is defined at the top
 
-// Detect device capabilities dynamically to prevent WebGL context crashes (Aw, Snap!)
-// on mid-range devices like iQOO Z7s (6GB RAM, Snapdragon 695 / Adreno 619) while 
-// running high-quality settings on premium devices (OnePlus, iPhone, etc.)
-let enableAntialias = true;
-let maxPixelRatio = 2.0;
-let mobileRatioMultiplier = 0.7;
-
-if (isMobile) {
-    const memory = navigator.deviceMemory || 4; // approximate RAM in GB
-    let isMidRangeGPU = false;
-    try {
-        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        if (gl) {
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            if (debugInfo) {
-                const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || '';
-                // Adreno 6xx (Adreno 619 on iQOO Z7s) and Mali-Gxx/Mali-Txx are mid-range/budget GPUs prone to MSAA OOMs
-                if (/adreno\s*(tm)?\s*6/i.test(rendererName) || /mali-g[0-9]{2}/i.test(rendererName) || /mali-t/i.test(rendererName)) {
-                    isMidRangeGPU = true;
-                }
-            }
-        }
-    } catch (e) {
-        console.warn('[VRM] Failed to query WebGL debug info:', e);
-    }
-
-    // If device has less than 8GB physical RAM or a mid-range GPU, load the safe profile
-    if (memory < 8 || isMidRangeGPU) {
-        console.log(`[VRM] Mid-range device profile applied (Memory: ${memory}GB, Mid-range GPU: ${isMidRangeGPU})`);
-        enableAntialias = false; // Disable hardware MSAA to prevent memory exhaustion crashes
-        maxPixelRatio = 1.3;
-        mobileRatioMultiplier = 0.6;
-    } else {
-        console.log(`[VRM] High-end device profile applied (Memory: ${memory}GB)`);
-    }
-}
-
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: enableAntialias,
+    antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
     powerPreference: 'high-performance' 
 });
-// Set pixel ratio dynamically
-renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * mobileRatioMultiplier), maxPixelRatio) : Math.min(window.devicePixelRatio, 2));
+// Set pixel ratio: on mobile use 70% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
+renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * 0.7), 2.0) : Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -273,6 +236,7 @@ const clips       = {};
 const actions     = {};
 let currentAction = null;
 let currentKey    = '';
+let renderFramesAfterSwitch = -1;
 
 // Expression
 let expr       = 'happy';
@@ -587,6 +551,8 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
     // Force an update with 0 delta to pose bones immediately
     mixer.update(0);
+    vrm.scene.updateMatrixWorld(true);
+    vrm.update(0);
 
     // Add to scene only after mixer has posed the character
     scene.add(vrm.scene);
@@ -1200,6 +1166,23 @@ function animate() {
     const dt = Math.min(clock.getDelta(), 0.05);
     const t  = clock.elapsedTime;
     renderer.render(scene, camera);
+    
+    if (renderFramesAfterSwitch >= 0) {
+        renderFramesAfterSwitch++;
+        if (renderFramesAfterSwitch >= 10) {
+            renderFramesAfterSwitch = -1; // stop counting
+            const loadingEl = document.getElementById('vrm-loading');
+            if (loadingEl) {
+                loadingEl.style.opacity = '0';
+                setTimeout(() => { 
+                    if (loadingEl.parentNode && loadingEl.style.opacity === '0') {
+                        loadingEl.style.display = 'none'; 
+                    }
+                }, 700);
+            }
+        }
+    }
+
     if (!vrm) return;
 
     // Reset humanoid bones to a clean slate before updating the mixer
@@ -1479,12 +1462,14 @@ window.switchVRM = function(modelPath) {
 
     let savedPosition = null;
     let savedSitting = false;
+    let savedHasDragged = false;
 
     setTimeout(() => {
         // 1. Tear down current model
         if (vrm) {
             savedPosition = vrm.scene.position.clone();
             savedSitting = isSittingOnChatbox;
+            savedHasDragged = hasDragged;
             
             clearAutoTimer();
             if (mixer) { mixer.stopAllAction(); mixer.uncacheRoot(vrm.scene); }
@@ -1518,9 +1503,11 @@ window.switchVRM = function(modelPath) {
         if (savedPosition) {
             vrm.scene.position.copy(savedPosition);
             isSittingOnChatbox = isMobile ? false : savedSitting;
+            hasDragged = savedHasDragged;
         } else {
             vrm.scene.position.set(0, -0.97, 0);
             updateCharPos();
+            hasDragged = false;
         }
         
         // Base rotation initialized to facing camera (Math.PI) to match initial load
@@ -1547,19 +1534,16 @@ window.switchVRM = function(modelPath) {
             playAnim(ANIM.idle, true, 0);
         }
 
-        // Force a mixer update with delta=0 so bones are immediately in the correct animated pose
+        // Force update and matrix world calculation before adding to scene
         mixer.update(0);
+        vrm.scene.updateMatrixWorld(true);
+        vrm.update(0);
 
         // NOW add the model to the scene so it renders already in the correct pose
         scene.add(vrm.scene);
 
-        if (loadingEl) {
-            // Delay hiding the loading element slightly to guarantee at least one frame is rendered under the covers
-            setTimeout(() => {
-                loadingEl.style.opacity = '0';
-                setTimeout(() => { if (loadingEl.parentNode) loadingEl.style.display = 'none'; }, 700);
-            }, 100);
-        }
+        // Trigger frame-counting delay to hide the loading overlay
+        renderFramesAfterSwitch = 0;
         introComplete = true;  // unlock drag immediately — no wave on switch
 
         // Load background animations
