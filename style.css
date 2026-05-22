@@ -190,6 +190,9 @@ body {
     cursor: crosshair;
     pointer-events: auto;
     animation: floatUp linear infinite, wobble 3.5s ease-in-out infinite;
+    will-change: transform, translate, scale, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     /* Realistic soap bubble: transparent body, dual specular highlights, iridescent rim */
     background:
         /* Top-left specular highlight */

@@ -157,8 +157,8 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
     powerPreference: 'high-performance' 
 });
-// Set pixel ratio: on mobile use 70% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
-renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * 0.7), 2.0) : Math.min(window.devicePixelRatio, 2));
+// Set pixel ratio: on mobile use 60% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
+renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * 0.6), 2.0) : Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -588,6 +588,7 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     const bubbleContainer = document.getElementById('bubble-container');
     
     if (bubbleScreen && bubbleContainer) {
+        const bubbleInterval = isMobile ? 1800 : 800;
         let spawnInterval = setInterval(() => {
             const b = document.createElement('div');
             b.className = 'bubble-item';
@@ -595,7 +596,10 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
             b.style.width = size + 'px';
             b.style.height = size + 'px';
             b.style.left = (5 + Math.random() * 85) + 'vw';
-            b.style.animationDuration = (4 + Math.random() * 4) + 's';
+            
+            const minDur = isMobile ? 8 : 4;
+            const extraDur = isMobile ? 6 : 4;
+            b.style.animationDuration = (minDur + Math.random() * extraDur) + 's';
             
             b.addEventListener('pointerdown', (e) => {
                 clearInterval(spawnInterval);
@@ -644,8 +648,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
             });
             bubbleContainer.appendChild(b);
             // Remove bubbles that float off screen to prevent DOM buildup
-            setTimeout(() => { if (b.parentNode) b.remove(); }, 9000);
-        }, 800);
+            const removeDelay = isMobile ? 16000 : 9000;
+            setTimeout(() => { if (b.parentNode) b.remove(); }, removeDelay);
+        }, bubbleInterval);
     } else {
         // Fallback if no bubble screen exists
         setTimeout(async () => {
