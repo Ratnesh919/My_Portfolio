@@ -154,11 +154,11 @@ const canvas   = document.getElementById('vrm-canvas');
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: !isMobile,  // disabled on mobile to prevent out-of-memory crashes, true on desktop for best quality
+    antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
     powerPreference: 'high-performance' 
 });
-// Cap pixel ratio to 1 on mobile for performance and memory (fixes lag and crashes on phones/iOS)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+// Set pixel ratio: on mobile use 70% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
+renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * 0.7), 2.0) : Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -528,8 +528,6 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     updateCharPos();
     vrm.scene.rotation.y = Math.PI; // default face-camera; animate() will smooth-track from here
 
-    scene.add(vrm.scene);
-
     mixer = new THREE.AnimationMixer(vrm.scene);
 
     // When a one-shot (LoopOnce) animation finishes naturally
@@ -545,15 +543,21 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     }
 
     await loadEssentialAnimations(vrm);
+
+    // Step 1: Start idle immediately
+    applyState('idle', 'happy', 0.6);
+    playAnim(ANIM.idle, true, 0);
+
+    // Force an update with 0 delta to pose bones immediately
+    mixer.update(0);
+
+    // Add to scene only after mixer has posed the character
+    scene.add(vrm.scene);
     
     if (siteLoaderEl) { 
         siteLoaderEl.classList.add('hidden');
         setTimeout(() => siteLoaderEl?.remove(), 800); 
     }
- 
-    // Step 1: Start idle immediately
-    applyState('idle', 'happy', 0.6);
-    playAnim(ANIM.idle, true, 0);
 
     // Step 2: Load the remaining animations in the background
     loadBackgroundAnimations(vrm);
@@ -1482,8 +1486,8 @@ window.switchVRM = function(modelPath) {
             updateCharPos();
         }
         
-        // Base rotation will be smoothly updated in animate()
-        scene.add(vrm.scene);
+        // Base rotation initialized to facing camera (Math.PI) to match initial load
+        vrm.scene.rotation.y = Math.PI;
 
         mixer = new THREE.AnimationMixer(vrm.scene);
         mixer.addEventListener('finished', () => { clearAutoTimer(); returnToIdle(); });
@@ -1494,10 +1498,6 @@ window.switchVRM = function(modelPath) {
             if (pctEl) pctEl.textContent = 'ANIMATIONS...';
         }
         await loadEssentialAnimations(vrm);
-        if (loadingEl) {
-            loadingEl.style.opacity = '0';
-            setTimeout(() => { if (loadingEl.parentNode) loadingEl.style.display = 'none'; }, 700);
-        }
 
         // Restore animation state after switch
         if (savedSitting && !isMobile) {
@@ -1508,6 +1508,20 @@ window.switchVRM = function(modelPath) {
         } else {
             applyState('idle', 'happy', 0.6);
             playAnim(ANIM.idle, true, 0);
+        }
+
+        // Force a mixer update with delta=0 so bones are immediately in the correct animated pose
+        mixer.update(0);
+
+        // NOW add the model to the scene so it renders already in the correct pose
+        scene.add(vrm.scene);
+
+        if (loadingEl) {
+            // Delay hiding the loading element slightly to guarantee at least one frame is rendered under the covers
+            setTimeout(() => {
+                loadingEl.style.opacity = '0';
+                setTimeout(() => { if (loadingEl.parentNode) loadingEl.style.display = 'none'; }, 700);
+            }, 100);
         }
         introComplete = true;  // unlock drag immediately — no wave on switch
 
