@@ -1,31 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Theme Selector / Landing Page -->
   <url>
-    <loc>https://my-portfolio-ratnesh919.vercel.app/</loc>
+    <loc>https://ratnesh-portfolio.vercel.app/</loc>
     <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+  
+  <!-- Immersive Theme (3D WebGL Interface) -->
   <url>
-    <loc>https://my-portfolio-ratnesh919.vercel.app/Immersive/dist/index.html</loc>
+    <loc>https://ratnesh-portfolio.vercel.app/Immersive/dist/index.html</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Cosmic Theme (Playful & Quirky 3D Interface) -->
+  <url>
+    <loc>https://ratnesh-portfolio.vercel.app/Cosmic/dist/index.html</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  
+  <!-- Urban Theme (Bold & Street Art Aesthetic) -->
   <url>
-    <loc>https://my-portfolio-ratnesh919.vercel.app/Cosmic/dist/index.html</loc>
+    <loc>https://ratnesh-portfolio.vercel.app/Urban/dist/index.html</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  
+  <!-- Essential Theme (Elegant & Minimalist Aesthetic) -->
   <url>
-    <loc>https://my-portfolio-ratnesh919.vercel.app/Urban/dist/index.html</loc>
+    <loc>https://ratnesh-portfolio.vercel.app/Essential/dist/index.html</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Lumen Theme (Neon Glow Aesthetic) -->
   <url>
-    <loc>https://my-portfolio-ratnesh919.vercel.app/Essential/dist/index.html</loc>
+    <loc>https://ratnesh-portfolio.vercel.app/Lumen/dist/index.html</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

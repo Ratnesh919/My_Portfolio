@@ -1,4 +1,13 @@
+# www.robotstxt.org/
+# Allow all search engines to crawl the website
 User-agent: *
 Allow: /
 
-Sitemap: https://my-portfolio-ratnesh919.vercel.app/sitemap.xml
+# Disallow sensitive database & configuration files (just in case)
+Disallow: /.env
+Disallow: /raya-memory.db*
+Disallow: /api/
+Disallow: /server.js
+
+# Link to sitemap
+Sitemap: https://ratnesh-portfolio.vercel.app/sitemap.xml
