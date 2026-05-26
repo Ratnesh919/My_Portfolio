@@ -1511,8 +1511,36 @@ window.switchVRM = function(modelPath) {
             clearAutoTimer();
             if (mixer) { mixer.stopAllAction(); mixer.uncacheRoot(vrm.scene); }
             scene.remove(vrm.scene);
+            
+            // Manual deep disposal of Three.js textures, materials, and geometries
+            vrm.scene.traverse((ob) => {
+                if (ob.isMesh) {
+                    if (ob.geometry) ob.geometry.dispose();
+                    if (ob.material) {
+                        if (Array.isArray(ob.material)) {
+                            ob.material.forEach(m => {
+                                m.dispose();
+                                Object.keys(m).forEach(k => {
+                                    if (m[k] && typeof m[k].dispose === 'function') m[k].dispose();
+                                });
+                            });
+                        } else {
+                            ob.material.dispose();
+                            Object.keys(ob.material).forEach(k => {
+                                if (ob.material[k] && typeof ob.material[k].dispose === 'function') ob.material[k].dispose();
+                            });
+                        }
+                    }
+                }
+            });
+            
             VRMUtils.deepDispose(vrm.scene);
             vrm = null; mixer = null;
+            
+            // Force immediate GPU context clean and command flush to prevent mobile crashes
+            if (typeof renderer !== 'undefined' && renderer) {
+                try { renderer.render(scene, camera); } catch(e) {}
+            }
         }
 
         // Reset state

@@ -1065,7 +1065,8 @@ class AvatarChatBot {
             { keys: ['project','projects','work','portfolio'],                     target: 'projects' },
             { keys: ['contact','email','instagram','linkedin','github','social'],  target: 'contact' },
         ];
-        if (/scroll|go to|take me|show me|navigate to/.test(t)) {
+        const hasScrollTrigger = /scroll|go to|take me|take to|show me|show|navigate to|navigate|go/.test(t) || t.includes('section');
+        if (hasScrollTrigger) {
             for (const sec of SECTIONS) {
                 if (sec.keys.some(k => t.includes(k)))
                     return { speech: `Taking you to the ${sec.target} section!`, action: () => this.executeScroll(sec.target) };
