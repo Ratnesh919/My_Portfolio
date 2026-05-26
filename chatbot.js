@@ -60,14 +60,9 @@ class AvatarChatBot {
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         try {
-            const savedMsgs = localStorage.getItem('rayaMessages');
-            this.messages = savedMsgs ? JSON.parse(savedMsgs) : [{ role: 'system', content: SYSTEM_PROMPT }];
+            this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
             this.userName = localStorage.getItem('rayaUserName') || '';
-            if (this.messages.length > 1) {
-                this.hasIntroduced = true;
-                this.vrmIntroPlayed = true;
-                this._introDone = true;
-            }
+            localStorage.removeItem('rayaMessages'); // Start fresh chat session on page load
         } catch(e) {
             this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
             this.userName = '';
@@ -165,7 +160,7 @@ class AvatarChatBot {
         let introMessage;
         if (this.userName) {
             // Returning user — greet by name and go straight to theme/music
-            introMessage = `Welcome back! It's so nice to see you again. Would you like me to open a theme or play a song?`;
+            introMessage = `Welcome back ${this.userName}! It's so nice to see you again. Would you like me to open a theme or play a song?`;
             this._awaitingTheme = true;
         } else {
             // New user — ask name, set timeout
@@ -663,11 +658,9 @@ class AvatarChatBot {
                 if (!matchedVariant && !this._awaitingCommand) {
                     // In passive mode: silently ignore non-wake-word speech
                     if (this._passiveModeActive) return;
-                    // In active mic mode: show hint
-                    console.log('[Raya] Wake word not detected, ignoring:', final);
-                    this.showBubble('Say "Raya" to wake me up!');
-                    setTimeout(() => this.hideBubble(), 2000);
-                    return;
+                    
+                    // In active mic mode: since user tapped/held the mic directly,
+                    // we do NOT require any wake word! Treat the whole speech as the command.
                 }
 
                 // If Raya is currently speaking, stop her first
@@ -1530,9 +1523,9 @@ class AvatarChatBot {
             if (!this.femaleVoice) this.loadVoices();
             if (this.femaleVoice) {
                 utterance.voice = this.femaleVoice;
-                utterance.lang  = this.femaleVoice.lang || 'en-IN';
+                utterance.lang  = this.femaleVoice.lang || 'en-US';
             } else {
-                utterance.lang  = 'en-IN';
+                utterance.lang  = 'en-US';
             }
             utterance.rate   = 1.10; // ~165 WPM
             utterance.pitch  = 1.35;
@@ -1606,9 +1599,14 @@ class AvatarChatBot {
             }
         };
 
-        // Cancel any stale utterance, then wait 150ms before speaking to clear the queue
-        try { this.synth.cancel(); } catch(e) {}
-        setTimeout(doSpeak, 150);
+        // Cancel any stale utterance. On mobile/Safari, asynchronous SpeechSynthesis calls
+        // can lose the user gesture context, so speak synchronously if nothing is active.
+        if (this.synth.speaking) {
+            try { this.synth.cancel(); } catch(e) {}
+            setTimeout(doSpeak, 150);
+        } else {
+            doSpeak();
+        }
     }
 
 
