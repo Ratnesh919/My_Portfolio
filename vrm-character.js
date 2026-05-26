@@ -154,7 +154,8 @@ const canvas   = document.getElementById('vrm-canvas');
 const renderer = new THREE.WebGLRenderer({ 
     canvas, 
     alpha: true, 
-    antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
+    antialias: !isMobile || window.devicePixelRatio < 2,  // Disable expensive antialiasing on high density mobile screens where it is visually imperceptible
+    precision: isMobile ? 'mediump' : 'highp',            // mediump shader precision cuts fragment rendering overhead on phone GPUs
     powerPreference: 'high-performance' 
 });
 // Set pixel ratio: on mobile use 60% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
@@ -1469,7 +1470,18 @@ function animate() {
     }
 
     // Update VRM SpringBones — dt * 0.18 for stiffer, less floppy cloth
-    vrm.update(dt * 0.18);
+    // Throttled physics on mobile to run spring solvers at 30fps (every 2nd frame) to cut CPU physics load by 50%
+    if (isMobile) {
+        if (!window._physicsFrameCount) window._physicsFrameCount = 0;
+        window._physicsFrameCount++;
+        if (window._physicsFrameCount % 2 === 0) {
+            vrm.update(dt * 0.18 * 2);
+        } else {
+            if (mixer) mixer.update(0);
+        }
+    } else {
+        vrm.update(dt * 0.18);
+    }
 }
 animate();
 
@@ -1511,8 +1523,33 @@ window.switchVRM = function(modelPath) {
             clearAutoTimer();
             if (mixer) { mixer.stopAllAction(); mixer.uncacheRoot(vrm.scene); }
             scene.remove(vrm.scene);
+            
+            // Manual recursive deep GPU memory and texture disposal to prevent Chrome OutOfMemory crashes on phone
+            vrm.scene.traverse((ob) => {
+                if (ob.isMesh) {
+                    if (ob.geometry) { try { ob.geometry.dispose(); } catch(e) {} }
+                    if (ob.material) {
+                        const mats = Array.isArray(ob.material) ? ob.material : [ob.material];
+                        mats.forEach(m => {
+                            for (const key in m) {
+                                const prop = m[key];
+                                if (prop && typeof prop.dispose === 'function') {
+                                    try { prop.dispose(); } catch(e) {}
+                                }
+                            }
+                            try { m.dispose(); } catch(e) {}
+                        });
+                    }
+                }
+            });
+            
             VRMUtils.deepDispose(vrm.scene);
             vrm = null; mixer = null;
+            
+            // Force immediate GPU contexts command flush to prevent concurrent model swap lag
+            if (typeof renderer !== 'undefined' && renderer) {
+                try { renderer.clear(); renderer.render(scene, camera); } catch(e) {}
+            }
         }
 
         // Reset state
