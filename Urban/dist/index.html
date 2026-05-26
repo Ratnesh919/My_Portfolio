@@ -29,6 +29,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script type="module" crossorigin src="./assets/index-C-7pMscA.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-GKqOdNkx.css">
+    <script>
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.addEventListener('keydown', function(e) {
+        if (e.key === "F12" || e.keyCode === 123) {
+          e.preventDefault();
+          return false;
+        }
+        if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
+          e.preventDefault();
+          return false;
+        }
+        if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+          e.preventDefault();
+          return false;
+        }
+      });
+    </script>
   </head>
   <body class="noise-overlay">
     <div id="root"></div>
