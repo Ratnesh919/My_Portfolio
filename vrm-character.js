@@ -572,6 +572,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         // Prevent restarting the wave if it's already playing, avoiding Three.js crossFade issues
         if (currentKey === wave1Key || currentKey === ANIM.wave2) return; 
         
+        // Clear any stale auto-timer to prevent ghost playRandomAnim calls
+        clearAutoTimer();
+
         let wave1Action = actions[wave1Key];
         currentKey = null;
         applyState('wave', 'happy', 0.85);
@@ -700,9 +703,14 @@ async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
             }
             const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
             if (clip) {
+                // Guard: discard clips with near-zero duration (retarget failure)
+                if (clip.duration < 0.1) {
+                    console.warn('[VRM] Discarding clip with near-zero duration:', file, clip.duration);
+                    return;
+                }
                 clips[file] = clip;
                 actions[file] = mixer.clipAction(clip);
-                console.log('[VRM] ✓ Loaded Essential:', file);
+                console.log('[VRM] ✓ Loaded Essential:', file, '| Duration:', clip.duration.toFixed(2) + 's');
             } else {
                 console.error('[VRM] ✗ retarget returned null for:', file);
             }
@@ -746,9 +754,14 @@ async function loadBackgroundAnimations(vrmInstance) {
             
             const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
             if (clip) {
-                clips[file] = clip;
-                actions[file] = mixer.clipAction(clip);
-                console.log('[VRM] ✓ Loaded Background:', file);
+                // Guard: discard clips with near-zero duration (retarget failure)
+                if (clip.duration < 0.1) {
+                    console.warn('[VRM] Discarding background clip with near-zero duration:', file, clip.duration);
+                } else {
+                    clips[file] = clip;
+                    actions[file] = mixer.clipAction(clip);
+                    console.log('[VRM] ✓ Loaded Background:', file, '| Duration:', clip.duration.toFixed(2) + 's');
+                }
             } else {
                 console.error('[VRM] ✗ retarget returned null for:', file);
             }
@@ -873,6 +886,17 @@ function playRandomAnim() {
     clearAutoTimer();  // cancel any pending timer (important when called from click too)
 
     const pick = pickRandom();
+
+    // Safety guard: skip animations whose clip hasn't loaded or has near-zero duration
+    const clipKey = ANIM[pick.key];
+    const clip = clips[clipKey];
+    if (!clip || clip.duration < 0.3) {
+        console.warn('[VRM] Skipping animation with missing/short clip:', pick.key);
+        // Just return to idle if no valid clip
+        returnToIdle();
+        return;
+    }
+
     applyState(pick.fingerPose, pick.expr, pick.exprVal);
     playAnim(ANIM[pick.key], pick.loop, 0.4);
 

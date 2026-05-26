@@ -195,11 +195,15 @@
         const changeThemeBtn = document.getElementById('change-theme-btn');
         const iframeContainer = document.getElementById('iframe-container');
 
-                document.querySelectorAll('.card').forEach(card => {
+        document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetUrl = card.getAttribute('href');
                 localStorage.setItem('selectedTheme', targetUrl);
+
+                // Determine theme name for Raya's navigation hints
+                const themeNames = { 'card-1': 'Immersive', 'card-2': 'Cosmic', 'card-3': 'Urban', 'card-4': 'Essential', 'card-5': 'Lumen' };
+                const themeName = themeNames[card.id] || '';
                 
                 // Animate cards out
                 document.querySelectorAll('.card').forEach((c, idx) => {
@@ -235,6 +239,11 @@
                     if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
                     const avatarPanel = document.getElementById('avatar-panel');
                     if (avatarPanel) { avatarPanel.classList.remove('open'); }
+
+                    // Notify Raya that a theme was opened (for navigation hints)
+                    if (themeName && window.chatbot && typeof window.chatbot.onThemeOpened === 'function') {
+                        window.chatbot.onThemeOpened(themeName);
+                    }
                 }, 600); // Wait for card exit and fade out
             });
         });
@@ -249,6 +258,11 @@
             // Restore avatar button
             const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
             if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '1'; avatarToggleBtn.style.pointerEvents = 'auto'; }
+
+            // Notify Raya that user returned to theme selector
+            if (window.chatbot && typeof window.chatbot.onThemeClosed === 'function') {
+                window.chatbot.onThemeClosed();
+            }
             
             setTimeout(() => {
                 iframeContainer.innerHTML = ''; // clear iframe memory

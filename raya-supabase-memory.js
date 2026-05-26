@@ -246,8 +246,25 @@ async function extractLearnings(userId, sessionId, userMsg, assistantReply) {
 }
 
 async function getAllUsers() {
-    const { data } = await supabase.from('users').select('cookie_id, last_active_at').order('last_active_at', { ascending: false }).limit(50);
-    return data || [];
+    const { data: users } = await supabase.from('users').select('cookie_id, last_active_at').order('last_active_at', { ascending: false }).limit(50);
+    if (!users || !users.length) return [];
+
+    // Enrich with stored user names from preferences table
+    const userIds = users.map(u => u.cookie_id);
+    const { data: namePref } = await supabase
+        .from('preferences')
+        .select('user_id, value')
+        .eq('key', 'user_name')
+        .in('user_id', userIds);
+
+    const nameMap = {};
+    (namePref || []).forEach(p => { nameMap[p.user_id] = p.value; });
+
+    return users.map(u => ({
+        cookie_id: u.cookie_id,
+        name: nameMap[u.cookie_id] || '(anonymous)',
+        last_active_at: u.last_active_at
+    }));
 }
 
 async function getAllVerifiedLearnings() {

@@ -38,7 +38,9 @@ CRITICAL: You are a self-learning AI. If the user corrects a mistake, apologize 
 REMEMBER: NEVER exceed 200 words in any reply.`;
 
 
-const INTRO_TEXT = "Hi! I am Raya, your AI guide for this portfolio. I can navigate you through portfolio themes, play any song on YouTube, tell you all about Ratnesh, his skills and projects, or just have a friendly chat. What is your name?";
+const INTRO_TEXT = "Hi! I am Raya, your AI guide for this portfolio. What is your name?";
+const THEME_PROMPT = "No worries! We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open? You can say the name or the number.";
+const MUSIC_PROMPT = "Would you like me to play a song while you explore? Just say yes and tell me what you want to hear!";
 
 // -- Wake word variants (declared here so passive+active handlers share the same list) --
 // All variants map to a single display name: "Raya"
@@ -70,6 +72,14 @@ class AvatarChatBot {
             this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
             this.userName = '';
         }
+
+        // Onboarding flow state
+        this._awaitingName         = false; // true when Raya asked for name and waiting
+        this._nameTimeoutId        = null;  // timer to skip name → ask theme
+        this._awaitingTheme        = false; // true when Raya asked which theme
+        this._awaitingMusicPrompt  = false; // true when Raya just opened a theme
+        this._inPortfolio          = false; // true when iframe is showing a theme
+        this._portfolioNavHinted   = false; // true when we already gave nav hint
 
         this.isListening = false;
         this.isSpeaking  = false;
@@ -152,21 +162,33 @@ class AvatarChatBot {
 
         console.log('[Raya Intro] introduceHerself called. _userHasGestured:', this._userHasGestured);
 
-        let introMessage = INTRO_TEXT;
-        let isReturningUser = false;
+        let introMessage;
         if (this.userName) {
-            introMessage = `Welcome back, ${this.userName}. It's nice to have you back. How can I help you? Would you like to play a song?`;
-            isReturningUser = true;
+            // Returning user — greet by name and go straight to theme/music
+            introMessage = `Welcome back! It's so nice to see you again. Would you like me to open a theme or play a song?`;
+            this._awaitingTheme = true;
+        } else {
+            // New user — ask name, set timeout
+            introMessage = INTRO_TEXT;
+            this._awaitingName    = true;
+            this._awaitingCommand = true;
+            // If user doesn't respond in 7 seconds, skip to theme prompt
+            this._nameTimeoutId = setTimeout(() => {
+                if (this._awaitingName) {
+                    this._awaitingName    = false;
+                    this._awaitingTheme   = true;
+                    this._awaitingCommand = true;
+                    this.messages.push({ role: 'assistant', content: THEME_PROMPT });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(THEME_PROMPT, false);
+                }
+            }, 7000);
         }
 
         // 1. Always show text bubble — no gesture required
         this.messages.push({ role: 'assistant', content: introMessage });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(introMessage);
-
-        // After intro, allow user to reply with their name WITHOUT saying the wake word.
-        // For new users Raya asks "What is your name?" — their reply should just work.
-        // For returning users she asks "How can I help?" — same applies.
         this._awaitingCommand = true;
 
         // 2. Speak if user already interacted with the page
@@ -188,6 +210,28 @@ class AvatarChatBot {
             this.speakAvatar(introMessage, false);
         };
         EVTS.forEach(ev => document.addEventListener(ev, onGesture, { once: true, passive: true }));
+    }
+
+    // Called externally when a theme iframe opens so Raya can give navigation hints
+    onThemeOpened(themeName) {
+        this._inPortfolio      = true;
+        this._portfolioNavHinted = false;
+        // After a short delay, give the user a navigation hint
+        setTimeout(() => {
+            if (!this._portfolioNavHinted && this._inPortfolio) {
+                this._portfolioNavHinted = true;
+                const hint = `You are now in the ${themeName} portfolio! I can scroll you to the About section, Education, Skills, Projects, or Contact. Just ask me anytime!`;
+                this.messages.push({ role: 'assistant', content: hint });
+                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                this.speakAvatar(hint, false);
+            }
+        }, 3500);
+    }
+
+    // Called when user returns to theme selector screen
+    onThemeClosed() {
+        this._inPortfolio        = false;
+        this._portfolioNavHinted = false;
     }
 
     // Show a glowing animated button near the avatar; fires callback on click
@@ -249,11 +293,28 @@ class AvatarChatBot {
     showIntro(autoListen = false) {
         if (this.hasIntroduced) return;
         this.hasIntroduced = true;
-        this.messages.push({ role: 'assistant', content: INTRO_TEXT });
+        const introMsg = this.userName ? `Welcome back! Would you like me to open a theme or play a song?` : INTRO_TEXT;
+        this.messages.push({ role: 'assistant', content: introMsg });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-        this.showBubble(INTRO_TEXT);
+        this.showBubble(introMsg);
+        this._awaitingCommand = true;
+        if (!this.userName) {
+            this._awaitingName = true;
+            // 7-second timeout before skipping name prompt
+            this._nameTimeoutId = setTimeout(() => {
+                if (this._awaitingName) {
+                    this._awaitingName  = false;
+                    this._awaitingTheme = true;
+                    this.messages.push({ role: 'assistant', content: THEME_PROMPT });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(THEME_PROMPT, false);
+                }
+            }, 7000);
+        } else {
+            this._awaitingTheme = true;
+        }
         // Queue speech for first real gesture (click / keydown)
-        this._queueSpeechOnGesture(INTRO_TEXT, autoListen);
+        this._queueSpeechOnGesture(introMsg, autoListen);
     }
 
     // Queue speech/callback to fire on the very next user interaction gesture.
@@ -456,6 +517,18 @@ class AvatarChatBot {
         }
         // NOTE: Do NOT auto-start mic here — browsers block getUserMedia without a
         // direct user gesture. The mic will start when the user clicks the mic button.
+
+        // Hook the "Change Theme" button to reset portfolio navigation state
+        setTimeout(() => {
+            const changeThemeBtn = document.getElementById('change-theme-btn');
+            if (changeThemeBtn && !this._changeThemeBtnHooked) {
+                this._changeThemeBtnHooked = true;
+                changeThemeBtn.addEventListener('click', () => {
+                    this.onThemeClosed();
+                    this._awaitingTheme = true; // ask theme again after returning to menu
+                });
+            }
+        }, 500); // wait for DOM to be ready
     }
 
     // -- Text Send --------------------------------------------------------------
@@ -719,6 +792,89 @@ class AvatarChatBot {
     // -- Main Input Handler -----------------------------------------------------
     async handleUserInput(text) {
         if (!text) return;
+
+        // ── Onboarding: name collection ────────────────────────────────────────
+        if (this._awaitingName) {
+            // Clear the name timeout since user responded
+            if (this._nameTimeoutId) { clearTimeout(this._nameTimeoutId); this._nameTimeoutId = null; }
+            this._awaitingName = false;
+
+            // Try to extract the name from the response
+            const nameCandidates = text.match(/(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i);
+            const extractedName = nameCandidates ? nameCandidates[1] : (text.trim().split(/\s+/)[0]);
+            const name = extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
+
+            if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name)) {
+                this.userName = name;
+                localStorage.setItem('rayaUserName', name);
+                // Save to backend preferences
+                fetch('/api/learn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'preference', content: `User's name is ${name}`, sessionId: this.sessionId })
+                }).catch(()=>{});
+                // Greet by name and ask for theme
+                const greeting = `Nice to meet you! We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which would you like to open?`;
+                this._awaitingTheme   = true;
+                this._awaitingCommand = true;
+                this.showUserBubble(text);
+                this.messages.push({ role: 'user', content: text });
+                this.messages.push({ role: 'assistant', content: greeting });
+                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                this.speakAvatar(greeting, false);
+                return;
+            } else {
+                // Couldn't parse a name — still proceed to theme prompt
+                this._awaitingTheme   = true;
+                this._awaitingCommand = true;
+                this.showUserBubble(text);
+                this.messages.push({ role: 'user', content: text });
+                const tp = THEME_PROMPT;
+                this.messages.push({ role: 'assistant', content: tp });
+                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                this.speakAvatar(tp, false);
+                return;
+            }
+        }
+
+        // ── Onboarding: theme selection ────────────────────────────────────────
+        if (this._awaitingTheme) {
+            const t = text.toLowerCase().trim();
+            const THEME_MAP = [
+                { keys: ['1','immersive','3d','three d'], target: 'immersive',  reply: 'Opening the Immersive theme for you!' },
+                { keys: ['2','cosmic','alien'],           target: 'cosmic',     reply: 'Switching to the Cosmic theme!' },
+                { keys: ['3','urban','graffiti','street'],target: 'urban',      reply: 'Loading the Urban theme!' },
+                { keys: ['4','essential','minimalist'],   target: 'essential',  reply: 'Essential mode, activated!' },
+                { keys: ['5','lumen','light'],            target: 'lumen',      reply: 'Opening the Lumen theme!' },
+            ];
+            let matched = null;
+            for (const th of THEME_MAP) {
+                if (th.keys.some(k => t === k || t.includes(k))) { matched = th; break; }
+            }
+            if (matched) {
+                this._awaitingTheme = false;
+                this.showUserBubble(text);
+                this.messages.push({ role: 'user', content: text });
+                this.messages.push({ role: 'assistant', content: matched.reply });
+                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                this.speakAvatar(matched.reply, false);
+                this.executeNavigation(matched.target);
+                // After opening theme, ask about music
+                this._awaitingMusicPrompt = true;
+                setTimeout(() => {
+                    if (this._awaitingMusicPrompt) {
+                        this._awaitingMusicPrompt = false;
+                        this._awaitingCommand = true;
+                        this.messages.push({ role: 'assistant', content: MUSIC_PROMPT });
+                        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                        this.speakAvatar(MUSIC_PROMPT, false);
+                    }
+                }, 4000);
+                return;
+            }
+            // Didn't match a theme — fall through to AI
+            this._awaitingTheme = false;
+        }
 
         // Admin Mode Execution
         if (this.isAdminMode) {
@@ -1041,11 +1197,12 @@ class AvatarChatBot {
         const targetClean = target.toLowerCase().replace(/card\s*/, '');
         
         let id = null;
-        if (targetClean.includes('immersive') || targetClean.includes('3d model') || targetClean === '1' || targetClean.includes('1st')) id = '#card-1';
-        else if (targetClean.includes('cosmic') || targetClean.includes('cute alien') || targetClean === '2' || targetClean.includes('2nd')) id = '#card-2';
-        else if (targetClean.includes('urban') || targetClean.includes('graffiti') || targetClean === '3' || targetClean.includes('3rd')) id = '#card-3';
-        else if (targetClean.includes('essential') || targetClean.includes('minimalist') || targetClean === '4' || targetClean.includes('4th')) id = '#card-4';
-        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th')) id = '#card-5';
+        let themeName = '';
+        if (targetClean.includes('immersive') || targetClean.includes('3d model') || targetClean === '1' || targetClean.includes('1st')) { id = '#card-1'; themeName = 'Immersive'; }
+        else if (targetClean.includes('cosmic') || targetClean.includes('cute alien') || targetClean === '2' || targetClean.includes('2nd')) { id = '#card-2'; themeName = 'Cosmic'; }
+        else if (targetClean.includes('urban') || targetClean.includes('graffiti') || targetClean === '3' || targetClean.includes('3rd')) { id = '#card-3'; themeName = 'Urban'; }
+        else if (targetClean.includes('essential') || targetClean.includes('minimalist') || targetClean === '4' || targetClean.includes('4th')) { id = '#card-4'; themeName = 'Essential'; }
+        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th')) { id = '#card-5'; themeName = 'Lumen'; }
 
         if (id) {
             const card = document.querySelector(id);
@@ -1060,14 +1217,29 @@ class AvatarChatBot {
                 }
             }
 
-            if (card) card.click();
+            if (card) {
+                card.click();
+                // onThemeOpened is triggered by index.html's card click listener
+            }
         } else {
             // If the user wants to go back to home/main menu
             if (targetClean === 'home') {
                 const changeThemeBtn = document.getElementById('change-theme-btn');
                 if (changeThemeBtn && changeThemeBtn.style.opacity === '1') {
                     changeThemeBtn.click();
+                    this.onThemeClosed();
                 }
+            }
+        }
+
+        // Also hook the change-theme-btn to notify Raya when user closes the iframe
+        if (!this._changeThemeBtnHooked) {
+            this._changeThemeBtnHooked = true;
+            const btn = document.getElementById('change-theme-btn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    this.onThemeClosed();
+                });
             }
         }
     }
@@ -1486,5 +1658,6 @@ class AvatarChatBot {
 
 window.addEventListener('DOMContentLoaded', () => {
     window.chatBot = new AvatarChatBot();
+    window.chatbot = window.chatBot; // alias for index.html hooks
 });
 
