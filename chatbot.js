@@ -71,6 +71,7 @@ class AvatarChatBot {
         // Onboarding flow state
         this._awaitingName         = false; // true when Raya asked for name and waiting
         this._nameTimeoutId        = null;  // timer to skip name → ask theme
+        this._cooldownTimeoutId    = null;  // timer to clear voice cooldown safely
         this._awaitingTheme        = false; // true when Raya asked which theme
         this._awaitingMusicPrompt  = false; // true when Raya just opened a theme
         this._inPortfolio          = false; // true when iframe is showing a theme
@@ -622,8 +623,8 @@ class AvatarChatBot {
         };
 
         this.recognition.onresult = (event) => {
-            // Ignore mic input while Raya's TTS is playing or cooldown is active
-            if (this._wakeWordCooldown) return;
+            // Ignore mic input while Raya's TTS is playing, active speaking is true, or cooldown is active
+            if (this._wakeWordCooldown || this.isSpeaking || (window.speechSynthesis && window.speechSynthesis.speaking)) return;
 
             let interim = '', final = '';
             for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -1011,16 +1012,31 @@ class AvatarChatBot {
 
         // THEMES
         const THEMES = [
-            { keys: ['immersive','3d','three d','3d model'],    target: 'immersive',  reply: 'Opening the Immersive theme!' },
-            { keys: ['cosmic','alien','cute alien'],            target: 'cosmic',     reply: 'Switching to Cosmic theme!' },
-            { keys: ['urban','graffiti','grafitti','street'],   target: 'urban',      reply: 'Loading the Urban theme!' },
-            { keys: ['essential','minimalist','minimal'],       target: 'essential',  reply: 'Essential mode, activated!' },
-            { keys: ['lumen','light theme'],                    target: 'lumen',      reply: 'Switching to Lumen theme!' },
+            { keys: ['immersive','3d','three d','3d model','1st','first','1','one','theme 1','theme one','first theme'],    target: 'immersive',  reply: 'Opening the Immersive theme!' },
+            { keys: ['cosmic','alien','cute alien','2nd','second','2','two','theme 2','theme two','second theme'],            target: 'cosmic',     reply: 'Switching to Cosmic theme!' },
+            { keys: ['urban','graffiti','grafitti','street','3rd','third','3','three','theme 3','theme three','third theme'],   target: 'urban',      reply: 'Loading the Urban theme!' },
+            { keys: ['essential','minimalist','minimal','4th','fourth','4','four','theme 4','theme four','fourth theme'],       target: 'essential',  reply: 'Essential mode, activated!' },
+            { keys: ['lumen','light theme','5th','fifth','5','five','theme 5','theme five','fifth theme','last','last theme','lst','lst theme'],        target: 'lumen',      reply: 'Switching to Lumen theme!' },
         ];
-        if (/open|go to|navigate|switch|load|show|select|choose|theme/.test(t)) {
+
+        const iframeContainer = document.getElementById('iframe-container');
+        const isThemeSelectionScreen = !iframeContainer || iframeContainer.style.opacity === '0' || iframeContainer.style.opacity === '';
+
+        // If on theme selection screen, match numbers/ordinals directly.
+        // Otherwise, only match if a theme-switching keyword is present.
+        const hasThemeTrigger = /open|go to|navigate|switch|load|show|select|choose|theme/.test(t);
+        if (isThemeSelectionScreen || hasThemeTrigger) {
             for (const theme of THEMES) {
-                if (theme.keys.some(k => t.includes(k)))
+                if (theme.keys.some(k => {
+                    // For single digit numbers/words like '1'-'5', 'one'-'five', check exact word match
+                    if (/^\d+$/.test(k) || k === 'one' || k === 'two' || k === 'three' || k === 'four' || k === 'five') {
+                        const regex = new RegExp('\\b' + k + '\\b');
+                        return regex.test(t);
+                    }
+                    return t.includes(k);
+                })) {
                     return { speech: theme.reply, action: () => this.executeNavigation(theme.target) };
+                }
             }
             if (/change theme|switch theme|new theme|different theme/.test(t)) {
                 return { speech: 'Taking you to the theme selector! Which one would you like?', action: () => {
@@ -1195,7 +1211,7 @@ class AvatarChatBot {
         else if (targetClean.includes('cosmic') || targetClean.includes('cute alien') || targetClean === '2' || targetClean.includes('2nd')) { id = '#card-2'; themeName = 'Cosmic'; }
         else if (targetClean.includes('urban') || targetClean.includes('graffiti') || targetClean === '3' || targetClean.includes('3rd')) { id = '#card-3'; themeName = 'Urban'; }
         else if (targetClean.includes('essential') || targetClean.includes('minimalist') || targetClean === '4' || targetClean.includes('4th')) { id = '#card-4'; themeName = 'Essential'; }
-        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th')) { id = '#card-5'; themeName = 'Lumen'; }
+        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th') || targetClean.includes('last') || targetClean.includes('lst')) { id = '#card-5'; themeName = 'Lumen'; }
 
         if (id) {
             const card = document.querySelector(id);
@@ -1258,7 +1274,28 @@ class AvatarChatBot {
             win.scrollBy({ top: 600, behavior: 'smooth' });
         } else {
             if (doc) {
-                // First try to click a nav link that contains the target word (this handles React smooth scroll best)
+                const safeTarget = target.split(' ')[0]; // Extract first word (e.g. "education")
+                
+                // Map logical targets to their actual element IDs / classes
+                let elementId = safeTarget;
+                if (safeTarget === 'home') elementId = 'home';
+                else if (safeTarget === 'about') elementId = 'about';
+                else if (safeTarget === 'education' || safeTarget === 'college' || safeTarget === 'university') elementId = 'education';
+                else if (safeTarget === 'skill' || safeTarget === 'skills') elementId = 'skills';
+                else if (safeTarget === 'project' || safeTarget === 'projects') elementId = 'projects';
+                else if (safeTarget === 'contact' || safeTarget === 'email') elementId = 'contact';
+                
+                // Direct scrolling is much safer and avoids click event bubbling side-effects
+                const section = doc.getElementById(elementId) || 
+                                doc.querySelector(`.${elementId}-section`) || 
+                                doc.querySelector(`[id*="${elementId}" i]`);
+                                
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+
+                // Fallback to clicking navigation links if direct element scrolling fails
                 const navLinks = Array.from(doc.querySelectorAll('nav a, header a, nav button, header button, .nav-link'));
                 const matchedLink = navLinks.find(link => link.innerText && link.innerText.toLowerCase().includes(target));
                 
@@ -1266,11 +1303,6 @@ class AvatarChatBot {
                     matchedLink.click();
                     return;
                 }
-
-                // Fallback to scrolling the section directly
-                const safeTarget = target.split(' ')[0]; // Extract first word (e.g. "education")
-                const section = doc.querySelector(`#${safeTarget}, .${safeTarget}-section, [id*="${safeTarget}" i]`);
-                if (section) section.scrollIntoView({ behavior: 'smooth' });
             }
         }
     }
@@ -1503,6 +1535,10 @@ class AvatarChatBot {
         this.synth.cancel();
 
         // Activate cooldown: mic ignores input while Raya is speaking
+        if (this._cooldownTimeoutId) {
+            clearTimeout(this._cooldownTimeoutId);
+            this._cooldownTimeoutId = null;
+        }
         this._wakeWordCooldown = true;
 
         // iOS Safari requires a resume() call before speak() if synthesis was paused
@@ -1548,7 +1584,13 @@ class AvatarChatBot {
                 this.updateMicUI();
                 const ytIframe2 = document.querySelector('#raya-yt-wrapper iframe');
                 if (ytIframe2) ytIframe2.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [100]}), '*');
-                setTimeout(() => { this._wakeWordCooldown = false; }, 1500);
+                 if (this._cooldownTimeoutId) {
+                     clearTimeout(this._cooldownTimeoutId);
+                 }
+                 this._cooldownTimeoutId = setTimeout(() => {
+                     this._wakeWordCooldown = false;
+                     this._cooldownTimeoutId = null;
+                 }, 1500);
                 // Auto-listening on speech synthesis end is completely disabled per strict manual mic constraints
             };
 
