@@ -76,7 +76,6 @@ class AvatarChatBot {
         this._awaitingMusicPrompt  = false; // true when Raya just opened a theme
         this._inPortfolio          = false; // true when iframe is showing a theme
         this._portfolioNavHinted   = false; // true when we already gave nav hint
-        this.hasVisited            = localStorage.getItem('rayaHasVisited') === 'true';
 
         this.isListening = false;
         this.isSpeaking  = false;
@@ -160,10 +159,9 @@ class AvatarChatBot {
         console.log('[Raya Intro] introduceHerself called. _userHasGestured:', this._userHasGestured);
 
         let introMessage;
-        const isReturning = this.userName || this.hasVisited;
-        if (isReturning) {
-            const nameGreet = this.userName ? ` ${this.userName}` : '';
-            introMessage = `Welcome back${nameGreet}! It's so nice to see you again. Would you like me to open a theme or play a song?`;
+        if (this.userName) {
+            // Returning user — greet by name and go straight to theme/music
+            introMessage = `Welcome back ${this.userName}! It's so nice to see you again. Would you like me to open a theme or play a song?`;
             this._awaitingTheme = true;
         } else {
             // New user — ask name, set timeout
@@ -176,8 +174,6 @@ class AvatarChatBot {
                     this._awaitingName    = false;
                     this._awaitingTheme   = true;
                     this._awaitingCommand = true;
-                    try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
-                    this.hasVisited = true;
                     this.messages.push({ role: 'assistant', content: THEME_PROMPT });
                     localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
                     this.speakAvatar(THEME_PROMPT, false);
@@ -293,22 +289,18 @@ class AvatarChatBot {
     showIntro(autoListen = false) {
         if (this.hasIntroduced) return;
         this.hasIntroduced = true;
-        const isReturning = this.userName || this.hasVisited;
-        const nameGreet = this.userName ? ` ${this.userName}` : '';
-        const introMsg = isReturning ? `Welcome back${nameGreet}! Would you like me to open a theme or play a song?` : INTRO_TEXT;
+        const introMsg = this.userName ? `Welcome back! Would you like me to open a theme or play a song?` : INTRO_TEXT;
         this.messages.push({ role: 'assistant', content: introMsg });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(introMsg);
         this._awaitingCommand = true;
-        if (!isReturning) {
+        if (!this.userName) {
             this._awaitingName = true;
             // 7-second timeout before skipping name prompt
             this._nameTimeoutId = setTimeout(() => {
                 if (this._awaitingName) {
                     this._awaitingName  = false;
                     this._awaitingTheme = true;
-                    try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
-                    this.hasVisited = true;
                     this.messages.push({ role: 'assistant', content: THEME_PROMPT });
                     localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
                     this.speakAvatar(THEME_PROMPT, false);
@@ -808,11 +800,7 @@ class AvatarChatBot {
 
             if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name)) {
                 this.userName = name;
-                try {
-                    localStorage.setItem('rayaUserName', name);
-                    localStorage.setItem('rayaHasVisited', 'true');
-                } catch(e) {}
-                this.hasVisited = true;
+                localStorage.setItem('rayaUserName', name);
                 // Save to backend preferences
                 fetch('/api/learn', {
                     method: 'POST',
@@ -831,8 +819,6 @@ class AvatarChatBot {
                 return;
             } else {
                 // Couldn't parse a name — still proceed to theme prompt
-                try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
-                this.hasVisited = true;
                 this._awaitingTheme   = true;
                 this._awaitingCommand = true;
                 this.showUserBubble(text);
@@ -1656,9 +1642,13 @@ class AvatarChatBot {
         };
 
         // Cancel any stale utterance. On mobile/Safari, asynchronous SpeechSynthesis calls
-        // can lose the user gesture context, so speak synchronously after a small queue delay to avoid silent block.
-        try { this.synth.cancel(); } catch(e) {}
-        setTimeout(doSpeak, 80);
+        // can lose the user gesture context, so speak synchronously if nothing is active.
+        if (this.synth.speaking) {
+            try { this.synth.cancel(); } catch(e) {}
+            setTimeout(doSpeak, 150);
+        } else {
+            doSpeak();
+        }
     }
 
 
