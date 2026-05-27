@@ -9,7 +9,8 @@ Do NOT use markdown, asterisks, hashtags, or emojis in your speech as it will be
 
 - Avoid sounding overly formal or robotic. Sound like a smart, friendly assistant chatting.
 
-You can control the website based on user commands! 
+You can control the website based on user commands!
+CRITICAL MULTI-ACTION RULE: If the user asks for TWO things at once (e.g. open a theme AND play a song, or any combination), output BOTH JSON blocks at the end of your reply, one after the other. Never drop one of the requested actions.
 - If the user asks you to navigate to a theme or open a card (e.g. Immersive, Cosmic, Urban, Essential, Lumen), append this JSON at the END of your reply:
 {"action":"navigate", "target":"<theme name>"}
 Example: "Opening the Essential theme for you! {"action":"navigate","target":"essential"}"
@@ -31,6 +32,7 @@ MUSIC RULES - READ CAREFULLY:
 {"action":"play_song","query":"<specific song name or genre query>"}
 Example: "Playing Cinnamon Girl for you! {"action":"play_song","query":"Cinnamon Girl Lana Del Rey"}"
 CRITICAL: DO NOT include the play_song JSON for general questions. Only when they want to PLAY a specific song or genre.
+DUAL ACTION EXAMPLE: If user says "open urban and play shape of you" respond: "Loading the Urban theme and playing Shape of You for you! {"action":"navigate","target":"urban"}{"action":"play_song","query":"Shape of You Ed Sheeran"}"
 
 IMPORTANT: You will often greet the user. When the user tells you their name for the first time, respond warmly.
 GATHER INFO: Proactively ask the user questions about themselves one at a time at the end of your responses.
@@ -779,6 +781,17 @@ class AvatarChatBot {
             const extractedName = nameCandidates ? nameCandidates[1] : (text.trim().split(/\s+/)[0]);
             const name = extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
 
+            // Also check if a theme was mentioned in the same message
+            const THEME_MAP_QUICK = [
+                { keys: ['immersive','3d','1st','first','1','one','theme 1','theme one'],    target: 'immersive',  label: 'Immersive' },
+                { keys: ['cosmic','alien','2nd','second','2','two','theme 2','theme two'],    target: 'cosmic',     label: 'Cosmic' },
+                { keys: ['urban','graffiti','street','3rd','third','3','three','theme 3'],    target: 'urban',      label: 'Urban' },
+                { keys: ['essential','minimalist','4th','fourth','4','four','theme 4'],       target: 'essential',  label: 'Essential' },
+                { keys: ['lumen','light','5th','fifth','5','five','theme 5','last','lst'],    target: 'lumen',      label: 'Lumen' },
+            ];
+            const tLower = text.toLowerCase();
+            const inlineTheme = THEME_MAP_QUICK.find(th => th.keys.some(k => tLower.includes(k)));
+
             if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name)) {
                 this.userName = name;
                 localStorage.setItem('rayaUserName', name);
@@ -788,26 +801,53 @@ class AvatarChatBot {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type: 'preference', content: `User's name is ${name}`, sessionId: this.sessionId })
                 }).catch(()=>{});
-                // Greet by name and ask for theme
-                const greeting = `Nice to meet you! We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which would you like to open?`;
-                this._awaitingTheme   = true;
-                this._awaitingCommand = true;
+
                 this.showUserBubble(text);
                 this.messages.push({ role: 'user', content: text });
-                this.messages.push({ role: 'assistant', content: greeting });
-                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                this.speakAvatar(greeting, false);
+
+                if (inlineTheme) {
+                    // User gave name AND theme in one go — handle both!
+                    const greeting = `Nice to meet you, ${name}! Opening the ${inlineTheme.label} theme for you right now!`;
+                    this._awaitingTheme   = false;
+                    this._awaitingCommand = true;
+                    this.messages.push({ role: 'assistant', content: greeting });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(greeting, false);
+                    this.executeNavigation(inlineTheme.target);
+                } else {
+                    // Just the name — ask for theme
+                    const greeting = `Nice to meet you, ${name}! We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which would you like to open?`;
+                    this._awaitingTheme   = true;
+                    this._awaitingCommand = true;
+                    this.messages.push({ role: 'assistant', content: greeting });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(greeting, false);
+                }
                 return;
             } else {
-                // Couldn't parse a name — still proceed to theme prompt
-                this._awaitingTheme   = true;
-                this._awaitingCommand = true;
-                this.showUserBubble(text);
-                this.messages.push({ role: 'user', content: text });
-                const tp = THEME_PROMPT;
-                this.messages.push({ role: 'assistant', content: tp });
-                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                this.speakAvatar(tp, false);
+                // Couldn't parse a name
+                if (inlineTheme) {
+                    // But they did mention a theme — open it
+                    this._awaitingTheme   = false;
+                    this._awaitingCommand = true;
+                    this.showUserBubble(text);
+                    this.messages.push({ role: 'user', content: text });
+                    const msg = `Opening the ${inlineTheme.label} theme!`;
+                    this.messages.push({ role: 'assistant', content: msg });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(msg, false);
+                    this.executeNavigation(inlineTheme.target);
+                } else {
+                    // Couldn't parse anything useful — ask for theme
+                    this._awaitingTheme   = true;
+                    this._awaitingCommand = true;
+                    this.showUserBubble(text);
+                    this.messages.push({ role: 'user', content: text });
+                    const tp = THEME_PROMPT;
+                    this.messages.push({ role: 'assistant', content: tp });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(tp, false);
+                }
                 return;
             }
         }
@@ -910,6 +950,7 @@ class AvatarChatBot {
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
         // LOCAL COMMAND ROUTING - handles simple commands with zero API calls
+        // Also handles dual-commands (e.g. open theme + play music simultaneously)
         const localResult = this._tryLocalCommand(text);
         if (localResult) {
             this.isThinking = false;
@@ -917,9 +958,9 @@ class AvatarChatBot {
             this.updateMicUI();
             this.messages.push({ role: 'assistant', content: localResult.speech });
             localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-            // For song actions: run the action FIRST (opens tab synchronously
-            // while user-gesture context is still alive), then speak.
-            if (localResult.action) localResult.action();
+            // Execute all actions (supports multi-action combos)
+            const actions = localResult.actions || (localResult.action ? [localResult.action] : []);
+            actions.forEach(fn => { try { fn(); } catch(e) { console.warn('[Raya] Action error:', e); } });
             this.speakAvatar(localResult.speech, true);
             return;
         }
@@ -977,53 +1018,64 @@ class AvatarChatBot {
         }
     }
 
-    // LOCAL COMMAND MATCHER - returns {speech, action} or null
+    // LOCAL COMMAND MATCHER
+    // Returns { speech, actions: [fn, ...] } for multi-action support, or null.
+    // Legacy callers that used { speech, action } still work because the call site
+    // now normalises both shapes.
     _tryLocalCommand(text) {
         // Strip punctuation and convert to lower case for strict matching
         const t = text.toLowerCase().replace(/[.,!?]/g, '').trim();
 
         // WAKE WORD ONLY Check
-        // If the user *only* says the wake word without any trailing commands
         const wakeWords = ['raya', 'hey raya', 'hi raya', 'listen raya', 'hello raya'];
         if (wakeWords.includes(t)) {
             const replies = ["Yes?", "Yep!", "What?", "Yes! How can I help you?", "I'm listening!", "Yes, what can I help you with?"];
-            const randomReply = replies[Math.floor(Math.random() * replies.length)];
-            return { speech: randomReply, action: null };
+            return { speech: replies[Math.floor(Math.random() * replies.length)], actions: [] };
         }
 
         // THEMES
         const THEMES = [
-            { keys: ['immersive','3d','three d','3d model','1st','first','1','one','theme 1','theme one','first theme'],    target: 'immersive',  reply: 'Opening the Immersive theme!' },
-            { keys: ['cosmic','alien','cute alien','2nd','second','2','two','theme 2','theme two','second theme'],            target: 'cosmic',     reply: 'Switching to Cosmic theme!' },
-            { keys: ['urban','graffiti','grafitti','street','3rd','third','3','three','theme 3','theme three','third theme'],   target: 'urban',      reply: 'Loading the Urban theme!' },
-            { keys: ['essential','minimalist','minimal','4th','fourth','4','four','theme 4','theme four','fourth theme'],       target: 'essential',  reply: 'Essential mode, activated!' },
-            { keys: ['lumen','light theme','5th','fifth','5','five','theme 5','theme five','fifth theme','last','last theme','lst','lst theme'],        target: 'lumen',      reply: 'Switching to Lumen theme!' },
+            { keys: ['immersive','3d','three d','3d model','1st','first','1','one','theme 1','theme one','first theme'],      target: 'immersive',  reply: 'Opening the Immersive theme!' },
+            { keys: ['cosmic','alien','cute alien','2nd','second','2','two','theme 2','theme two','second theme'],             target: 'cosmic',     reply: 'Switching to Cosmic theme!' },
+            { keys: ['urban','graffiti','grafitti','street','3rd','third','3','three','theme 3','theme three','third theme'],  target: 'urban',      reply: 'Loading the Urban theme!' },
+            { keys: ['essential','minimalist','minimal','4th','fourth','4','four','theme 4','theme four','fourth theme'],      target: 'essential',  reply: 'Essential mode, activated!' },
+            { keys: ['lumen','light theme','5th','fifth','5','five','theme 5','theme five','fifth theme','last','last theme','lst','lst theme'], target: 'lumen', reply: 'Switching to Lumen theme!' },
         ];
 
         const iframeContainer = document.getElementById('iframe-container');
         const isThemeSelectionScreen = !iframeContainer || iframeContainer.style.opacity === '0' || iframeContainer.style.opacity === '';
-
-        // If on theme selection screen, match numbers/ordinals directly.
-        // Otherwise, only match if a theme-switching keyword is present.
         const hasThemeTrigger = /open|go to|navigate|switch|load|show|select|choose|theme/.test(t);
+
+        // MUSIC detection helper (used for dual-command)
+        const musicMatch = t.match(/(?:play|put on|play me|can you play|i want to listen to|also play|and play)\s+(.+)/);
+        const hasMusicCmd = musicMatch && musicMatch[1].trim().length > 1;
+
+        // THEME + optional MUSIC dual-command
         if (isThemeSelectionScreen || hasThemeTrigger) {
+            let matchedTheme = null;
             for (const theme of THEMES) {
                 if (theme.keys.some(k => {
-                    // For single digit numbers/words like '1'-'5', 'one'-'five', check exact word match
-                    if (/^\d+$/.test(k) || k === 'one' || k === 'two' || k === 'three' || k === 'four' || k === 'five') {
-                        const regex = new RegExp('\\b' + k + '\\b');
-                        return regex.test(t);
+                    if (/^\d+$/.test(k) || ['one','two','three','four','five'].includes(k)) {
+                        return new RegExp('\\b' + k + '\\b').test(t);
                     }
                     return t.includes(k);
-                })) {
-                    return { speech: theme.reply, action: () => this.executeNavigation(theme.target) };
+                })) { matchedTheme = theme; break; }
+            }
+            if (matchedTheme) {
+                const actions = [() => this.executeNavigation(matchedTheme.target)];
+                let speech = matchedTheme.reply;
+                if (hasMusicCmd) {
+                    const query = musicMatch[1].trim();
+                    speech += ` And playing ${query} for you!`;
+                    actions.push(() => this.searchAndPlay(query));
                 }
+                return { speech, actions };
             }
             if (/change theme|switch theme|new theme|different theme/.test(t)) {
-                return { speech: 'Taking you to the theme selector! Which one would you like?', action: () => {
+                return { speech: 'Taking you to the theme selector! Which one would you like?', actions: [() => {
                     const btn = document.getElementById('change-theme-btn');
                     if (btn) btn.click();
-                } };
+                }] };
             }
         }
 
@@ -1032,9 +1084,9 @@ class AvatarChatBot {
                               'roccia','rover','sanhua','shorekeeper','verina','yangyang','yinlin'];
         if (/change|switch|swap|show|use|load|model|avatar|character|vrm/.test(t)) {
             const matched = AVATAR_NAMES.find(name => t.includes(name));
-            if (matched) return { speech: `Switching to ${matched} right away!`, action: () => this.executeChangeAvatar(matched) };
+            if (matched) return { speech: `Switching to ${matched} right away!`, actions: [() => this.executeChangeAvatar(matched)] };
             if (/change avatar|switch avatar|change model|switch model|change character|new avatar|different avatar|random avatar|another avatar/.test(t))
-                return { speech: 'Switching to a random avatar!', action: () => this.executeChangeAvatar('') };
+                return { speech: 'Switching to a random avatar!', actions: [() => this.executeChangeAvatar('')] };
         }
 
         // SCROLL SECTIONS
@@ -1049,52 +1101,28 @@ class AvatarChatBot {
         if (/scroll|go to|take me|show me|navigate to/.test(t)) {
             for (const sec of SECTIONS) {
                 if (sec.keys.some(k => t.includes(k)))
-                    return { speech: `Taking you to the ${sec.target} section!`, action: () => this.executeScroll(sec.target) };
+                    return { speech: `Taking you to the ${sec.target} section!`, actions: [() => this.executeScroll(sec.target)] };
             }
         }
-        if (/scroll down|go down/.test(t))         return { speech: 'Scrolling down!',    action: () => this.executeScroll('down') };
-        if (/scroll up|go up|back to top/.test(t)) return { speech: 'Scrolling back up!', action: () => this.executeScroll('up') };
+        if (/scroll down|go down/.test(t))         return { speech: 'Scrolling down!',    actions: [() => this.executeScroll('down')] };
+        if (/scroll up|go up|back to top/.test(t)) return { speech: 'Scrolling back up!', actions: [() => this.executeScroll('up')] };
 
-        // PLAY MUSIC
-        const pm = t.match(/(?:play|put on|play me|can you play|i want to listen to)\s+(.+)/);
-        if (pm && pm[1].trim().length > 1)
-            return { speech: `Searching for ${pm[1].trim()} on YouTube!`, action: () => this.searchAndPlay(pm[1].trim()) };
+        // PLAY MUSIC (standalone)
+        if (hasMusicCmd)
+            return { speech: `Searching for ${musicMatch[1].trim()} on YouTube!`, actions: [() => this.searchAndPlay(musicMatch[1].trim())] };
 
         // STOP MUSIC
-        const stopMusicCmd = /stop music|pause music|quiet|shut up|turn off music|stop playing/.test(t);
-        if (stopMusicCmd) {
-            return { 
-                speech: "Stopping the music.", 
-                action: () => {
-                    document.getElementById('raya-yt-wrapper')?.remove();
-                }
-            };
-        }
+        if (/stop music|pause music|quiet|shut up|turn off music|stop playing/.test(t))
+            return { speech: 'Stopping the music.', actions: [() => { document.getElementById('raya-yt-wrapper')?.remove(); }] };
 
-        // SIZE CONTROL (+20% / -20% / reset)
-        const isSizeCmd = /size|bigger|larger|grow|taller|smaller|shrink|tiny|huge|normal size|reset size|default size/.test(t);
-        if (isSizeCmd) {
-            // Bigger
-            if (/bigger|larger|grow|taller|increase size|make.*big|make.*large|more|up/.test(t)) {
-                return {
-                    speech: 'Making the avatar bigger!',
-                    action: () => this.adjustAvatarSize(1.20)
-                };
-            }
-            // Smaller
-            if (/smaller|shrink|tiny|decrease size|make.*small|make.*tiny|less|down/.test(t)) {
-                return {
-                    speech: 'Making the avatar smaller!',
-                    action: () => this.adjustAvatarSize(0.80)
-                };
-            }
-            // Reset / normal
-            if (/normal|reset|default|original/.test(t)) {
-                return {
-                    speech: 'Resetting avatar to default size!',
-                    action: () => this.setAvatarSize(0.95)
-                };
-            }
+        // SIZE CONTROL
+        if (/size|bigger|larger|grow|taller|smaller|shrink|tiny|huge|normal size|reset size|default size/.test(t)) {
+            if (/bigger|larger|grow|taller|increase size|make.*big|make.*large|more|up/.test(t))
+                return { speech: 'Making the avatar bigger!',           actions: [() => this.adjustAvatarSize(1.20)] };
+            if (/smaller|shrink|tiny|decrease size|make.*small|make.*tiny|less|down/.test(t))
+                return { speech: 'Making the avatar smaller!',          actions: [() => this.adjustAvatarSize(0.80)] };
+            if (/normal|reset|default|original/.test(t))
+                return { speech: 'Resetting avatar to default size!',   actions: [() => this.setAvatarSize(0.95)] };
         }
 
         return null; // Let Groq handle it
@@ -1125,59 +1153,59 @@ class AvatarChatBot {
         this.isThinking = false;
         this.updateMicUI();
 
-        const jsonPattern = /\{[^{}]*"action"\s*:\s*"(?:play_song|navigate|scroll|change_avatar)"[^{}]*\}/i;
-        const match = fullMsg.match(jsonPattern);
+        // Extract ALL JSON action blocks from the reply (supports dual/multi commands)
+        const jsonPattern = /\{[^{}]*"action"\s*:\s*"(?:play_song|navigate|scroll|change_avatar|open_link)"[^{}]*\}/gi;
+        const allMatches = [...fullMsg.matchAll(jsonPattern)];
+        const actionObjs = [];
         let spokenText = fullMsg;
-        let actionObj  = null;
 
-        if (match) {
+        for (const m of allMatches) {
             try {
-                actionObj  = JSON.parse(match[0]);
-                spokenText = fullMsg.replace(match[0], '').trim();
+                actionObjs.push(JSON.parse(m[0]));
+                spokenText = spokenText.replace(m[0], '');
             } catch (e) { console.warn('[Raya] JSON parse error:', e); }
         }
+        spokenText = spokenText.trim();
 
-        this.messages.push({ role: 'assistant', content: spokenText }); localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+        this.messages.push({ role: 'assistant', content: spokenText });
+        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
-        if (actionObj) {
-            // Record successful actions to the crowd-sourced cache to save future API calls
-            // Do NOT cache play_song actions to prevent hardcoding a specific song for general queries
-            if (!fromCache && originalQuery && actionObj.action !== 'play_song') {
-                fetch('/api/cmd/record', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: originalQuery, response: fullMsg })
-                }).catch(e => console.warn('[Raya Smart Cache] Record failed:', e));
-            }
+        if (actionObjs.length === 0) {
+            this.speakAvatar(spokenText, true);
+            return;
+        }
 
+        // Cache recording (for non-music non-cached responses)
+        if (!fromCache && originalQuery && !actionObjs.some(a => a.action === 'play_song')) {
+            fetch('/api/cmd/record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: originalQuery, response: fullMsg })
+            }).catch(e => console.warn('[Raya Smart Cache] Record failed:', e));
+        }
+
+        // Speak the text portion first
+        this.speakAvatar(spokenText, false);
+
+        // Execute every action that was found
+        for (const actionObj of actionObjs) {
             if (actionObj.action === 'play_song' && actionObj.query) {
-                // Speak first, then handle YouTube search
-                this.speakAvatar(spokenText, false);
                 await this.searchAndPlay(actionObj.query);
             } else if (actionObj.action === 'navigate') {
-                this.speakAvatar(spokenText, true);
                 this.executeNavigation(actionObj.target);
             } else if (actionObj.action === 'scroll') {
-                this.speakAvatar(spokenText, true);
                 this.executeScroll(actionObj.target);
             } else if (actionObj.action === 'open_link') {
-                this.speakAvatar(spokenText, true);
-                const t = (actionObj.target || '').toLowerCase();
+                const lnk = (actionObj.target || '').toLowerCase();
                 let url = '';
-                if (t.includes('email') || t.includes('mail')) url = 'mailto:kumarsinghratnesh3@gmail.com';
-                else if (t.includes('insta')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
-                else if (t.includes('face')) url = 'https://www.facebook.com/ratnesh';
-                else if (t.includes('link')) url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android';
-                
-                if (url) {
-                    setTimeout(() => window.open(url, '_blank'), 1500);
-                }
+                if (lnk.includes('email') || lnk.includes('mail')) url = 'mailto:kumarsinghratnesh3@gmail.com';
+                else if (lnk.includes('insta')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
+                else if (lnk.includes('face'))  url = 'https://www.facebook.com/ratnesh';
+                else if (lnk.includes('link'))  url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android';
+                if (url) setTimeout(() => window.open(url, '_blank'), 1500);
             } else if (actionObj.action === 'change_avatar') {
-                this.speakAvatar(spokenText, true);
                 this.executeChangeAvatar(actionObj.target);
             }
-        } else {
-            this.speakAvatar(spokenText, true);
         }
     }
 
