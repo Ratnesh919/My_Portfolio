@@ -38,8 +38,8 @@ CRITICAL: You are a self-learning AI. If the user corrects a mistake, apologize 
 REMEMBER: NEVER exceed 200 words in any reply.`;
 
 
-const INTRO_TEXT = "Hi! I am Raya, your AI guide for this portfolio. What is your name?";
-const THEME_PROMPT = "No worries! We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open? You can say the name or the number.";
+const INTRO_TEXT = "Hi! I am Raya, your AI guide for this portfolio. What is your name? And while you think about it, we have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. You can say a name or number to open one!";
+const THEME_PROMPT = "We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open? You can say the name or the number.";
 const MUSIC_PROMPT = "Would you like me to play a song while you explore? Just say yes and tell me what you want to hear!";
 
 // -- Wake word variants (declared here so passive+active handlers share the same list) --
@@ -161,24 +161,14 @@ class AvatarChatBot {
         let introMessage;
         if (this.userName) {
             // Returning user — greet by name and go straight to theme/music
-            introMessage = `Welcome back ${this.userName}! It's so nice to see you again. Would you like me to open a theme or play a song?`;
+            introMessage = `Welcome back ${this.userName}! It's so nice to see you again. We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
             this._awaitingTheme = true;
         } else {
-            // New user — ask name, set timeout
+            // New user — combined intro + theme list in one message
             introMessage = INTRO_TEXT;
             this._awaitingName    = true;
+            this._awaitingTheme   = true;
             this._awaitingCommand = true;
-            // If user doesn't respond in 7 seconds, skip to theme prompt
-            this._nameTimeoutId = setTimeout(() => {
-                if (this._awaitingName) {
-                    this._awaitingName    = false;
-                    this._awaitingTheme   = true;
-                    this._awaitingCommand = true;
-                    this.messages.push({ role: 'assistant', content: THEME_PROMPT });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(THEME_PROMPT, false);
-                }
-            }, 7000);
         }
 
         // 1. Always show text bubble — no gesture required
@@ -289,25 +279,16 @@ class AvatarChatBot {
     showIntro(autoListen = false) {
         if (this.hasIntroduced) return;
         this.hasIntroduced = true;
-        const introMsg = this.userName ? `Welcome back! Would you like me to open a theme or play a song?` : INTRO_TEXT;
+        const introMsg = this.userName
+            ? `Welcome back ${this.userName}! It's so nice to see you again. We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`
+            : INTRO_TEXT;
         this.messages.push({ role: 'assistant', content: introMsg });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(introMsg);
         this._awaitingCommand = true;
+        this._awaitingTheme   = true;
         if (!this.userName) {
             this._awaitingName = true;
-            // 7-second timeout before skipping name prompt
-            this._nameTimeoutId = setTimeout(() => {
-                if (this._awaitingName) {
-                    this._awaitingName  = false;
-                    this._awaitingTheme = true;
-                    this.messages.push({ role: 'assistant', content: THEME_PROMPT });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(THEME_PROMPT, false);
-                }
-            }, 7000);
-        } else {
-            this._awaitingTheme = true;
         }
         // Queue speech for first real gesture (click / keydown)
         this._queueSpeechOnGesture(introMsg, autoListen);
