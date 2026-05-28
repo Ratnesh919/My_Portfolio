@@ -15,6 +15,23 @@ app.use(cors({ origin: true, credentials: true })); // Allow cookies
 app.use(express.json());
 app.use(cookieParser());
 
+// ── Security Headers Middleware ──────────────────────────────────────────────
+// Applies to all responses served by the Express backend (Render).
+// Vercel static responses are covered separately in vercel.json headers.
+app.use((req, res, next) => {
+    res.setHeader('X-Frame-Options',          'SAMEORIGIN');
+    res.setHeader('X-Content-Type-Options',   'nosniff');
+    res.setHeader('Referrer-Policy',          'strict-origin-when-cross-origin');
+    res.setHeader('X-DNS-Prefetch-Control',   'off');
+    res.setHeader('X-Download-Options',       'noopen');
+    if (process.env.NODE_ENV === 'production') {
+        res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    }
+    // Remove fingerprinting headers
+    res.removeHeader('X-Powered-By');
+    next();
+});
+
 // ── Security Middleware to Prevent Path Traversal / Info Disclosure ───────
 // Blocks access to .env, .git, SQLite files (.db, .db-wal, .db-shm), etc.
 app.use(async (req, res, next) => {
@@ -142,8 +159,11 @@ const generalApiLimiter = rateLimit({
     message: { error: 'Rate limit exceeded.' }
 });
 
-// Admin Password from environment variables
-const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || 'Aditya@231';
+// Admin Password — MUST be set via environment variables, never hardcoded
+const ADMIN_TOKEN = process.env.ADMIN_PASSWORD;
+if (!ADMIN_TOKEN) {
+    console.error('[Security] CRITICAL: ADMIN_PASSWORD environment variable is not set! Admin endpoints are disabled.');
+}
 
 const checkAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'];

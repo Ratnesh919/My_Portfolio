@@ -1,8 +1,22 @@
 node_modules/
 .env
+.env.*
 raya-memory.db
 raya-memory.db-shm
 raya-memory.db-wal
 .DS_Store
 Wuwa/
 scratch/
+
+# Sensitive scripts that could reveal infrastructure details
+encrypt-keys.js
+raya-memory.js
+raya-supabase-memory.js
+raya_mysql_schema.sql
+raya_supabase_schema.sql
+prompt.txt
+creator-profile.txt
+
+# Test/debug images
+stitch-screen.png
+stitch-screen2.png
