@@ -455,6 +455,7 @@ app.post('/api/yt-search', ytLimiter, async (req, res) => {
     if (!query) return res.status(400).json({ error: 'No query provided' });
 
     try {
+        console.log(`[YT Search] Attempting InnerTube search for "${query}"`);
         const ytRes = await axios.post(
             'https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
             {
@@ -468,7 +469,16 @@ app.post('/api/yt-search', ytLimiter, async (req, res) => {
                 },
                 query: query + ' official audio'
             },
-            { headers: { 'Content-Type': 'application/json', 'Accept-Language': 'en' } }
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept-Language': 'en',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                    'Origin': 'https://www.youtube.com',
+                    'Referer': 'https://www.youtube.com/'
+                },
+                timeout: 5000
+            }
         );
 
         const sections =
@@ -497,10 +507,53 @@ app.post('/api/yt-search', ytLimiter, async (req, res) => {
             if (results.length >= 6) break;
         }
 
-        console.log(`[YT Search] "${query}" → ${results.length} results`);
-        res.json({ results });
+        if (results.length > 0) {
+            console.log(`[YT Search] "${query}" → ${results.length} results via InnerTube`);
+            return res.json({ results });
+        }
+        throw new Error('InnerTube search returned 0 results');
+        
     } catch (err) {
-        console.error('YT Search error:', err.message);
+        console.warn(`[YT Search] InnerTube search failed (${err.message}). Trying Invidious fallbacks...`);
+        
+        const INVIDIOUS_FALLBACKS = [
+            'https://yt.chocolatemoo53.com',
+            'https://inv.thepixora.com',
+            'https://invidious.flokinet.to'
+        ];
+
+        for (const instance of INVIDIOUS_FALLBACKS) {
+            try {
+                console.log(`[YT Search] Trying Invidious fallback instance: ${instance}`);
+                const invRes = await axios.get(`${instance}/api/v1/search`, {
+                    params: { q: query + ' official audio', type: 'video' },
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+                    },
+                    timeout: 5000
+                });
+
+                if (Array.isArray(invRes.data)) {
+                    const results = invRes.data
+                        .filter(item => item.type === 'video' && item.videoId)
+                        .map(item => ({
+                            videoId: item.videoId,
+                            title: item.title,
+                            artist: item.author || ''
+                        }))
+                        .slice(0, 6);
+
+                    if (results.length > 0) {
+                        console.log(`[YT Search] "${query}" → ${results.length} results via Invidious (${instance})`);
+                        return res.json({ results });
+                    }
+                }
+            } catch (fallbackErr) {
+                console.warn(`[YT Search] Invidious instance ${instance} failed:`, fallbackErr.message);
+            }
+        }
+
+        console.error('[YT Search] All search mechanisms failed.');
         res.status(500).json({ error: 'YouTube search failed' });
     }
 });
