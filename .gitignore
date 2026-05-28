@@ -11,10 +11,10 @@ scratch/
 # Sensitive scripts that could reveal infrastructure details
 encrypt-keys.js
 raya-memory.js
-raya-supabase-memory.js
 raya_mysql_schema.sql
 raya_supabase_schema.sql
 prompt.txt
+# Note: raya-supabase-memory.js is safe to track (uses env vars only, no hardcoded keys)
 creator-profile.txt
 
 # Test/debug images
