@@ -223,13 +223,18 @@ body::after {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10,10,20,0.85);
+  background: rgba(10,10,20,0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  height: 64px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  height: 72px; /* Increased height for breathing room */
   display: flex;
   align-items: center;
+  transition: all 0.3s ease;
+}
+#r-nav .container {
+  max-width: 1360px; /* Widened container for spacious layout */
+  width: 100%;
 }
 #r-nav .nav-inner {
   display: flex;
@@ -239,23 +244,69 @@ body::after {
 }
 #r-nav .nav-brand {
   font-family: 'Syne', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 1.15rem; /* Spacious brand size */
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 #r-nav .nav-brand span { color: var(--accent); }
 #r-nav .nav-links {
   display: flex;
-  gap: 28px;
+  gap: clamp(16px, 2.5vw, 36px); /* Responsive gap dynamically scales */
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 #r-nav .nav-links a {
   font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--text-2);
-  transition: color var(--dur-fast);
+  transition: color var(--dur-fast) ease, transform var(--dur-fast) ease;
 }
-#r-nav .nav-links a:hover { color: var(--text-1); }
-#r-nav .nav-actions { display: flex; align-items: center; gap: 10px; }
+#r-nav .nav-links a:hover { color: #fff; }
+#r-nav .nav-actions { 
+  display: flex; 
+  align-items: center; 
+  gap: 16px; /* Spaced actions */
+}
+
+/* Nav switch button shiny glassmorphism styling */
+#nav-switch-btn {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  padding: 8px 16px;
+  height: auto; /* Allow padding to govern height */
+}
+#nav-switch-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: 0.75s;
+}
+#nav-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
+  transform: translateY(-1px);
+  color: #fff;
+}
+#nav-switch-btn:hover::before {
+  left: 150%;
+}
 
 @media (max-width: 768px) {
   #r-nav .nav-links { display: none; }

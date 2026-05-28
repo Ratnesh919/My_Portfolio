@@ -42,7 +42,6 @@
         <li><a href="#r-contact">Contact</a></li>
       </ul>
       <div class="nav-actions">
-        <span class="pill pill-green" style="font-size:0.72rem">⚡ Recruiter Mode</span>
         <a href="/" class="btn btn-ghost" id="nav-switch-btn" title="Switch to full 3D experience">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
           Full Experience
@@ -77,10 +76,6 @@
       <div class="hero-stat reveal reveal-delay-2" role="listitem">
         <div class="hero-stat-num">2026</div>
         <div class="hero-stat-label">B.Tech Graduate</div>
-      </div>
-      <div class="hero-stat reveal reveal-delay-3" role="listitem">
-        <div class="hero-stat-num">∞</div>
-        <div class="hero-stat-label">Curiosity</div>
       </div>
     </div>
 
@@ -127,11 +122,6 @@
             I build AI-powered tools, embedded systems, and interactive web experiences — 
             like this very portfolio with a custom 3D AI avatar named Raya.
           </p>
-          <p class="about-bio">
-            My drive comes from wanting to build things that feel <strong>alive</strong> — 
-            whether that's a voice-controlled chatbot, a hardware sensor network, or a 
-            portfolio that remembers you.
-          </p>
           <div class="about-tags">
             <span class="pill pill-primary">AI / ML Enthusiast</span>
             <span class="pill pill-primary">Embedded Systems</span>
@@ -150,12 +140,7 @@
           <div class="info-label">Current Status</div>
           <div class="info-value">🎓 Final Year B.Tech ECE (2026)</div>
         </div>
-        <div class="glass about-info-card reveal reveal-delay-2">
-          <div class="info-label">Email</div>
-          <div class="info-value">
-            <a href="#" id="reveal-email-link" aria-label="Reveal email address" onclick="revealEmail(event)">Click to reveal email →</a>
-          </div>
-        </div>
+
         <div class="glass about-info-card reveal reveal-delay-3">
           <div class="info-label">Looking For</div>
           <div class="info-value">Internships · Entry-Level Roles · Projects</div>
@@ -237,7 +222,13 @@
           <span class="pill">Supabase</span>
           <span class="pill">SQLite</span>
           <span class="pill">VS Code</span>
-        <span class="pill pill-green">Fast Learner</span>
+        </div>
+      </div>
+      <div class="glass skill-card reveal reveal-delay-3">
+        <div class="skill-category-icon" aria-hidden="true">🧠</div>
+        <div class="skill-category-title">Soft Skills</div>
+        <div class="skill-pills">
+          <span class="pill pill-green">Fast Learner</span>
           <span class="pill pill-green">Problem Solving</span>
           <span class="pill pill-green">Collaborative</span>
           <span class="pill pill-green">Creative Thinking</span>
@@ -282,10 +273,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
             Live Demo
           </a>
-          <a href="https://github.com/Ratnesh919/My_Portfolio" target="_blank" rel="noopener" class="project-link" aria-label="GitHub">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            GitHub
-          </a>
         </div>
       </article>
 
@@ -318,8 +305,8 @@
           <div class="project-icon" aria-hidden="true">🔩</div>
           <span class="pill" style="font-size:0.68rem">Hardware</span>
         </div>
-        <h3 class="project-title">Arduino Sensor Network</h3>
-        <p class="project-desc">Embedded systems project involving sensor interfacing, data acquisition, and real-time monitoring. Applied knowledge from C programming, EV systems training, and BSNL industrial visit into practical hardware design.</p>
+        <h3 class="project-title">Smart Parking System</h3>
+        <p class="project-desc">Embedded systems project using ultrasonic sensors to detect vacant spaces in a parking area, featuring real-time space status monitoring.</p>
         <div class="project-stack">
           <span class="pill">Arduino</span>
           <span class="pill">Embedded C</span>
@@ -330,48 +317,6 @@
           <span class="project-link" style="color:var(--text-3); cursor:default">
             Academic Project
           </span>
-        </div>
-      </article>
-
-      <!-- Project 4 -->
-      <article class="glass project-card reveal reveal-delay-1">
-        <div class="project-card-top">
-          <div class="project-icon" aria-hidden="true">✍️</div>
-          <span class="pill pill-accent" style="font-size:0.68rem">Python</span>
-        </div>
-        <h3 class="project-title">Text Humanizer Tool</h3>
-        <p class="project-desc">A Python-based utility designed to analyze AI-generated text, adjust sentence structure, phrasing, and vocabulary to make it read more naturally like human writing.</p>
-        <div class="project-stack">
-          <span class="pill">Python</span>
-          <span class="pill">NLP Basics</span>
-          <span class="pill">Text Processing</span>
-        </div>
-        <div class="project-footer">
-          <span class="project-link" style="color:var(--text-3); cursor:default">
-            Utility Tool
-          </span>
-        </div>
-      </article>
-
-      <!-- Project 5 — This Portfolio -->
-      <article class="glass project-card reveal reveal-delay-2" style="border-color: rgba(99,102,241,0.35); background: rgba(99,102,241,0.06);">
-        <div class="project-card-top">
-          <div class="project-icon" aria-hidden="true">⚡</div>
-          <span class="pill pill-primary" style="font-size:0.68rem">You're Here</span>
-        </div>
-        <h3 class="project-title">Recruiter Portfolio Mode</h3>
-        <p class="project-desc">This very page — a performance-optimized, no-3D recruiter portfolio with Raya AI assistant. Loads instantly, fully responsive, with glassmorphism design, scroll animations, and end-of-page mode-switch suggestions.</p>
-        <div class="project-stack">
-          <span class="pill">HTML5</span>
-          <span class="pill">CSS3</span>
-          <span class="pill">Vanilla JS</span>
-          <span class="pill">Groq API</span>
-        </div>
-        <div class="project-footer">
-          <a href="/" class="project-link" aria-label="Switch to full 3D experience">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            Try Full 3D Version
-          </a>
         </div>
       </article>
 
@@ -534,13 +479,7 @@
             <div class="clink-value">Ratnesh Kumar Singh →</div>
           </div>
         </a>
-        <a class="glass contact-link-item" href="https://github.com/Ratnesh919" target="_blank" rel="noopener" aria-label="Visit GitHub profile">
-          <div class="clink-icon" aria-hidden="true">🐙</div>
-          <div>
-            <div class="clink-label">GitHub</div>
-            <div class="clink-value">github.com/Ratnesh919 →</div>
-          </div>
-        </a>
+
       </div>
     </div>
   </div>
