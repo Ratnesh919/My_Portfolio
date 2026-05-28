@@ -27,6 +27,52 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Recruiter Mode Button — inline so it shows BEFORE style.css parses -->
+    <style>
+        #recruiter-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.45);
+            color: #a5b4fc;
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+        #recruiter-mode-btn:hover {
+            background: rgba(99,102,241,0.28);
+            border-color: rgba(99,102,241,0.7);
+            color: #c7d2fe;
+            transform: translateY(-1px);
+        }
+        #recruiter-mode-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .loader-skip-row {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .loader-skip-hint {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.3);
+            font-family: 'Outfit', system-ui, sans-serif;
+            letter-spacing: 0.06em;
+        }
+    </style>
     <!-- ─── Importmap for Three.js and three-vrm ────────────────────────── -->
     <script type="importmap">
         {
@@ -86,6 +132,14 @@
                 <span id="site-loader-pct">0%</span>
             </div>
             <p class="site-loader-warning">Switch to desktop or rotate your phone for better experience</p>
+            <!-- ── Recruiter Mode Skip Button ── -->
+            <div class="loader-skip-row">
+                <a href="/recruiter.html" id="recruiter-mode-btn" aria-label="Skip 3D loading and open recruiter portfolio">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><bolt d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
+                    ⚡ Recruiter Mode — Fast Portfolio
+                </a>
+                <span class="loader-skip-hint">No 3D loading · Opens instantly</span>
+            </div>
         </div>
     </div>
 

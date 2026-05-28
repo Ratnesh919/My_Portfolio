@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ratnesh Kumar Singh — Recruiter Portfolio</title>
+  <meta name="description" content="Fast-loading recruiter portfolio of Ratnesh Kumar Singh — ECE Engineer, AI developer, hardware prototyper. With Raya AI assistant.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="recruiter.css">
+
+  <!-- Security: Disable right-click & DevTools shortcuts -->
+  <script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
+      if (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) { e.preventDefault(); return false; }
+      if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; }
+    });
+  </script>
+</head>
+<body>
+
+<!-- ═══ STICKY NAV ═══════════════════════════════════════ -->
+<nav id="r-nav" role="navigation" aria-label="Recruiter portfolio navigation">
+  <div class="container">
+    <div class="nav-inner">
+      <div class="nav-brand">RK<span>.</span>Singh</div>
+      <ul class="nav-links" role="list">
+        <li><a href="#r-about">About</a></li>
+        <li><a href="#r-skills">Skills</a></li>
+        <li><a href="#r-projects">Projects</a></li>
+        <li><a href="#r-education">Education</a></li>
+        <li><a href="#r-contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="pill pill-green" style="font-size:0.72rem">⚡ Recruiter Mode</span>
+        <a href="/" class="btn btn-ghost" id="nav-switch-btn" title="Switch to full 3D experience">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          Full Experience
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ══════════════════════════════════════════════ -->
+<section id="r-hero" aria-labelledby="hero-heading">
+  <div class="container">
+    <div class="hero-eyebrow">
+      <div class="hero-dot" aria-hidden="true"></div>
+      <span class="label">Available for opportunities</span>
+    </div>
+
+    <h1 id="hero-heading">
+      <span class="hero-name">Ratnesh Kumar Singh</span>
+    </h1>
+    <p class="hero-title">Electronics &amp; Communication Engineer · AI Developer · Hardware Prototyper</p>
+
+    <div class="hero-stats" role="list" aria-label="Key statistics">
+      <div class="hero-stat reveal" role="listitem">
+        <div class="hero-stat-num">5<span>+</span></div>
+        <div class="hero-stat-label">Projects Built</div>
+      </div>
+      <div class="hero-stat reveal reveal-delay-1" role="listitem">
+        <div class="hero-stat-num">3<span>+</span></div>
+        <div class="hero-stat-label">Languages</div>
+      </div>
+      <div class="hero-stat reveal reveal-delay-2" role="listitem">
+        <div class="hero-stat-num">2026</div>
+        <div class="hero-stat-label">B.Tech Graduate</div>
+      </div>
+      <div class="hero-stat reveal reveal-delay-3" role="listitem">
+        <div class="hero-stat-num">∞</div>
+        <div class="hero-stat-label">Curiosity</div>
+      </div>
+    </div>
+
+    <div class="hero-ctas reveal reveal-delay-2">
+      <a href="#r-contact" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Get in Touch
+      </a>
+      <button class="btn btn-ghost" id="hero-chat-btn" aria-label="Open Raya AI assistant">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        Talk to Raya AI
+      </button>
+      <a href="/" class="btn btn-ghost" aria-label="Open full 3D portfolio experience">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        View 3D Portfolio
+      </a>
+    </div>
+
+    <div class="hero-scroll-hint reveal reveal-delay-4" aria-hidden="true">
+      <div class="scroll-line"></div>
+      <span>Scroll to explore</span>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-divider">
+
+<!-- ═══ ABOUT ══════════════════════════════════════════════ -->
+<section id="r-about" class="r-section" aria-labelledby="about-heading">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-num">01 / About</span>
+        <h2 id="about-heading" class="section-title">Who I Am</h2>
+        <div class="section-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="about-grid">
+      <div class="about-main reveal">
+        <div class="glass">
+          <p class="about-bio">
+            I'm a <strong>B.Tech ECE student</strong> from Swami Vivekananda Institute (MAKAUT), Kolkata, 
+            passionate about bridging the gap between <strong>software intelligence and hardware systems</strong>. 
+            I build AI-powered tools, embedded systems, and interactive web experiences — 
+            like this very portfolio with a custom 3D AI avatar named Raya.
+          </p>
+          <p class="about-bio">
+            My drive comes from wanting to build things that feel <strong>alive</strong> — 
+            whether that's a voice-controlled chatbot, a hardware sensor network, or a 
+            portfolio that remembers you.
+          </p>
+          <div class="about-tags">
+            <span class="pill pill-primary">AI / ML Enthusiast</span>
+            <span class="pill pill-primary">Embedded Systems</span>
+            <span class="pill pill-primary">Full-Stack Web</span>
+            <span class="pill pill-accent">Hardware Prototyping</span>
+            <span class="pill pill-accent">3D Web (Three.js)</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-side">
+        <div class="glass about-info-card reveal reveal-delay-1">
+          <div class="info-label">Location</div>
+          <div class="info-value">📍 Kolkata, West Bengal, India</div>
+        </div>
+        <div class="glass about-info-card reveal reveal-delay-2">
+          <div class="info-label">Current Status</div>
+          <div class="info-value">🎓 Final Year B.Tech ECE (2026)</div>
+        </div>
+        <div class="glass about-info-card reveal reveal-delay-2">
+          <div class="info-label">Email</div>
+          <div class="info-value">
+            <a href="#" id="reveal-email-link" aria-label="Reveal email address" onclick="revealEmail(event)">Click to reveal email →</a>
+          </div>
+        </div>
+        <div class="glass about-info-card reveal reveal-delay-3">
+          <div class="info-label">Looking For</div>
+          <div class="info-value">Internships · Entry-Level Roles · Projects</div>
+        </div>
+        <div class="glass about-info-card reveal reveal-delay-3">
+          <div class="info-label">Languages</div>
+          <div class="info-value">English · Hindi · Bengali (basic)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-divider">
+
+<!-- ═══ SKILLS ══════════════════════════════════════════════ -->
+<section id="r-skills" class="r-section" aria-labelledby="skills-heading">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-num">02 / Skills</span>
+        <h2 id="skills-heading" class="section-title">Technical Skills</h2>
+        <div class="section-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="skills-grid">
+      <div class="glass skill-card reveal">
+        <div class="skill-category-icon" aria-hidden="true">💻</div>
+        <div class="skill-category-title">Programming Languages</div>
+        <div class="skill-pills">
+          <span class="pill pill-primary">C</span>
+          <span class="pill pill-primary">C++</span>
+          <span class="pill pill-primary">Python</span>
+          <span class="pill">JavaScript</span>
+          <span class="pill">Node.js</span>
+        </div>
+      </div>
+      <div class="glass skill-card reveal reveal-delay-1">
+        <div class="skill-category-icon" aria-hidden="true">🌐</div>
+        <div class="skill-category-title">Web Development</div>
+        <div class="skill-pills">
+          <span class="pill pill-primary">HTML5</span>
+          <span class="pill pill-primary">CSS3</span>
+          <span class="pill pill-primary">Express.js</span>
+          <span class="pill">Three.js</span>
+          <span class="pill">React (basics)</span>
+          <span class="pill">REST APIs</span>
+        </div>
+      </div>
+      <div class="glass skill-card reveal reveal-delay-2">
+        <div class="skill-category-icon" aria-hidden="true">🤖</div>
+        <div class="skill-category-title">AI &amp; Machine Learning</div>
+        <div class="skill-pills">
+          <span class="pill pill-accent">Groq API</span>
+          <span class="pill pill-accent">LLM Integration</span>
+          <span class="pill pill-accent">Prompt Engineering</span>
+          <span class="pill">Speech Recognition</span>
+          <span class="pill">TTS (Web Speech API)</span>
+        </div>
+      </div>
+      <div class="glass skill-card reveal reveal-delay-1">
+        <div class="skill-category-icon" aria-hidden="true">🔩</div>
+        <div class="skill-category-title">Hardware &amp; Embedded</div>
+        <div class="skill-pills">
+          <span class="pill">Arduino</span>
+          <span class="pill">Embedded C</span>
+          <span class="pill">Sensor Interfacing</span>
+          <span class="pill">GIS (basics)</span>
+          <span class="pill">EV Systems</span>
+        </div>
+      </div>
+      <div class="glass skill-card reveal reveal-delay-2">
+        <div class="skill-category-icon" aria-hidden="true">🛠️</div>
+        <div class="skill-category-title">Tools &amp; Platforms</div>
+        <div class="skill-pills">
+          <span class="pill">Git &amp; GitHub</span>
+          <span class="pill">Vercel</span>
+          <span class="pill">Render</span>
+          <span class="pill">Supabase</span>
+          <span class="pill">SQLite</span>
+          <span class="pill">VS Code</span>
+        </div>
+      </div>
+      <div class="glass skill-card reveal reveal-delay-3">
+        <div class="skill-category-icon" aria-hidden="true">🧠</div>
+        <div class="skill-category-title">Soft Skills</div>
+        <div class="skill-pills">
+          <span class="pill pill-green">Fast Learner</span>
+          <span class="pill pill-green">Problem Solving</span>
+          <span class="pill pill-green">Collaborative</span>
+          <span class="pill pill-green">Creative Thinking</span>
+          <span class="pill pill-green">Self-Motivated</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-divider">
+
+<!-- ═══ PROJECTS ═════════════════════════════════════════════ -->
+<section id="r-projects" class="r-section" aria-labelledby="projects-heading">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-num">03 / Projects</span>
+        <h2 id="projects-heading" class="section-title">Featured Projects</h2>
+        <div class="section-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="projects-grid">
+
+      <!-- Project 1 -->
+      <article class="glass project-card reveal">
+        <div class="project-card-top">
+          <div class="project-icon" aria-hidden="true">🌐</div>
+          <span class="pill pill-green" style="font-size:0.68rem">Live</span>
+        </div>
+        <h3 class="project-title">Multi-Theme 3D Portfolio</h3>
+        <p class="project-desc">An interactive portfolio with 5 unique themes (Immersive, Cosmic, Urban, Essential, Lumen), each with custom VRM avatars, Three.js 3D rendering, and Raya — an AI chatbot that navigates the site via voice commands.</p>
+        <div class="project-stack">
+          <span class="pill">Three.js</span>
+          <span class="pill">Node.js</span>
+          <span class="pill">Groq API</span>
+          <span class="pill">Supabase</span>
+          <span class="pill">Vercel</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://ratnesh-portfolio.vercel.app" target="_blank" rel="noopener" class="project-link" aria-label="View live portfolio">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+            Live Demo
+          </a>
+          <a href="https://github.com/Ratnesh919/My_Portfolio" target="_blank" rel="noopener" class="project-link" aria-label="View source code on GitHub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            GitHub
+          </a>
+        </div>
+      </article>
+
+      <!-- Project 2 -->
+      <article class="glass project-card reveal reveal-delay-1">
+        <div class="project-card-top">
+          <div class="project-icon" aria-hidden="true">🤖</div>
+          <span class="pill pill-accent" style="font-size:0.68rem">AI</span>
+        </div>
+        <h3 class="project-title">Raya — Self-Learning AI Assistant</h3>
+        <p class="project-desc">Contextual AI assistant integrated into the portfolio. Learns user names, preferences, and past conversations. Executes voice commands to navigate, play music, change avatars, and guide visitors through the site using Groq LLM.</p>
+        <div class="project-stack">
+          <span class="pill">Groq LLaMA</span>
+          <span class="pill">Web Speech API</span>
+          <span class="pill">Supabase</span>
+          <span class="pill">Express.js</span>
+          <span class="pill">Cookies</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://ratnesh-portfolio.vercel.app" target="_blank" rel="noopener" class="project-link" aria-label="Try Raya live">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+            Try Live
+          </a>
+        </div>
+      </article>
+
+      <!-- Project 3 -->
+      <article class="glass project-card reveal reveal-delay-2">
+        <div class="project-card-top">
+          <div class="project-icon" aria-hidden="true">🔩</div>
+          <span class="pill" style="font-size:0.68rem">Hardware</span>
+        </div>
+        <h3 class="project-title">Arduino Sensor Network</h3>
+        <p class="project-desc">Embedded systems project involving sensor interfacing, data acquisition, and real-time monitoring. Applied knowledge from C programming coursework, EV systems training, and BSNL industrial visit into practical hardware design.</p>
+        <div class="project-stack">
+          <span class="pill">Arduino</span>
+          <span class="pill">Embedded C</span>
+          <span class="pill">C++</span>
+          <span class="pill">Serial Comm</span>
+        </div>
+        <div class="project-footer">
+          <span class="project-link" style="color:var(--text-3); cursor:default">
+            Academic Project
+          </span>
+        </div>
+      </article>
+
+      <!-- Project 4 -->
+      <article class="glass project-card reveal reveal-delay-1">
+        <div class="project-card-top">
+          <div class="project-icon" aria-hidden="true">🗺️</div>
+          <span class="pill" style="font-size:0.68rem">GIS</span>
+        </div>
+        <h3 class="project-title">GIS Data Analysis Tool</h3>
+        <p class="project-desc">Geographic Information Systems analysis project completed during a 2-week GIS training program. Involved spatial data processing, map visualization, and geographic pattern recognition using Python scripting.</p>
+        <div class="project-stack">
+          <span class="pill">Python</span>
+          <span class="pill">GIS</span>
+          <span class="pill">Spatial Analysis</span>
+        </div>
+        <div class="project-footer">
+          <span class="project-link" style="color:var(--text-3); cursor:default">
+            Training Project
+          </span>
+        </div>
+      </article>
+
+      <!-- Project 5 -->
+      <article class="glass project-card reveal reveal-delay-2">
+        <div class="project-card-top">
+          <div class="project-icon" aria-hidden="true">📡</div>
+          <span class="pill" style="font-size:0.68rem">Telecom</span>
+        </div>
+        <h3 class="project-title">Ham Radio Innovation Study</h3>
+        <p class="project-desc">Workshop participation in HAM Radio Innovation &amp; Awareness, Cyber Security Awareness, and BSNL Telecom Industrial Visit. Gained real-world insight into telecommunication infrastructure and wireless communications.</p>
+        <div class="project-stack">
+          <span class="pill">RF Systems</span>
+          <span class="pill">Telecom</span>
+          <span class="pill">Cyber Security</span>
+        </div>
+        <div class="project-footer">
+          <span class="project-link" style="color:var(--text-3); cursor:default">
+            Workshop / Visit
+          </span>
+        </div>
+      </article>
+
+      <!-- Project 6 — This Portfolio -->
+      <article class="glass project-card reveal reveal-delay-3" style="border-color: rgba(99,102,241,0.35); background: rgba(99,102,241,0.06);">
+        <div class="project-card-top">
+          <div class="project-icon" aria-hidden="true">⚡</div>
+          <span class="pill pill-primary" style="font-size:0.68rem">You're Here</span>
+        </div>
+        <h3 class="project-title">Recruiter Portfolio Mode</h3>
+        <p class="project-desc">This very page — a performance-optimized, no-3D recruiter portfolio with Raya AI assistant. Loads instantly, fully responsive, with glassmorphism design, scroll animations, and end-of-page mode-switch suggestions.</p>
+        <div class="project-stack">
+          <span class="pill">HTML5</span>
+          <span class="pill">CSS3</span>
+          <span class="pill">Vanilla JS</span>
+          <span class="pill">Groq API</span>
+        </div>
+        <div class="project-footer">
+          <a href="/" class="project-link" aria-label="Switch to full 3D experience">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Try Full 3D Version
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-divider">
+
+<!-- ═══ EDUCATION ════════════════════════════════════════════ -->
+<section id="r-education" class="r-section" aria-labelledby="edu-heading">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-num">04 / Education</span>
+        <h2 id="edu-heading" class="section-title">Education &amp; Training</h2>
+        <div class="section-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="edu-timeline">
+      <div class="glass edu-item reveal">
+        <div class="edu-year">2022–2026</div>
+        <div>
+          <div class="edu-name">B.Tech — Electronics &amp; Communication Engineering</div>
+          <div class="edu-inst">Swami Vivekananda Institute of Science &amp; Technology (M.A.K.A.U.T.) · Kolkata</div>
+          <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
+            <span class="pill pill-primary">Embedded Systems</span>
+            <span class="pill pill-primary">Signal Processing</span>
+            <span class="pill pill-primary">Communication Networks</span>
+          </div>
+        </div>
+      </div>
+      <div class="glass edu-item reveal reveal-delay-1">
+        <div class="edu-year">2020</div>
+        <div>
+          <div class="edu-name">12th Standard — Science (P.C.M)</div>
+          <div class="edu-inst">P.B.S College · Bihar School Examination Board (B.S.E.B)</div>
+        </div>
+      </div>
+      <div class="glass edu-item reveal reveal-delay-2">
+        <div class="edu-year">2018</div>
+        <div>
+          <div class="edu-name">10th Standard — I.G.C.S.E</div>
+          <div class="edu-inst">Vidyanjali High School</div>
+        </div>
+      </div>
+
+      <!-- Training Row -->
+      <div class="glass edu-item reveal reveal-delay-1" style="background: rgba(34,211,238,0.04); border-color: rgba(34,211,238,0.15);">
+        <div class="edu-year" style="color: var(--accent)">Training</div>
+        <div>
+          <div class="edu-name">Certifications &amp; Courses</div>
+          <div class="edu-inst" style="margin-bottom:12px">Professional development alongside engineering degree</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px">
+            <span class="pill pill-accent">Python (1 Month)</span>
+            <span class="pill pill-accent">C Language (1 Month)</span>
+            <span class="pill pill-accent">EV Service Technician (1 Month)</span>
+            <span class="pill pill-accent">GIS Training (2 Weeks)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-divider">
+
+<!-- ═══ ACHIEVEMENTS ══════════════════════════════════════════ -->
+<section id="r-achievements" class="r-section" aria-labelledby="achieve-heading">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-num">05 / Highlights</span>
+        <h2 id="achieve-heading" class="section-title">Workshops &amp; Highlights</h2>
+        <div class="section-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="achieve-grid">
+      <div class="glass achieve-item reveal">
+        <div class="achieve-icon" aria-hidden="true">📡</div>
+        <div class="achieve-text"><strong>HAM Radio Innovation Workshop</strong> — Wireless communications and radio innovation awareness</div>
+      </div>
+      <div class="glass achieve-item reveal reveal-delay-1">
+        <div class="achieve-icon" aria-hidden="true">🔒</div>
+        <div class="achieve-text"><strong>Cyber Security Awareness Workshop</strong> — Ethical hacking, threat vectors, digital safety</div>
+      </div>
+      <div class="glass achieve-item reveal reveal-delay-2">
+        <div class="achieve-icon" aria-hidden="true">🏭</div>
+        <div class="achieve-text"><strong>BSNL Telecom Industrial Visit</strong> — Real-world telecom infrastructure and operations</div>
+      </div>
+      <div class="glass achieve-item reveal">
+        <div class="achieve-icon" aria-hidden="true">⚡</div>
+        <div class="achieve-text"><strong>EV Technician Certified</strong> — Electric vehicle service and maintenance training</div>
+      </div>
+      <div class="glass achieve-item reveal reveal-delay-1">
+        <div class="achieve-icon" aria-hidden="true">🌐</div>
+        <div class="achieve-text"><strong>Built full-stack 3D AI Portfolio</strong> — Multi-theme portfolio with VRM avatars, voice AI &amp; memory system</div>
+      </div>
+      <div class="glass achieve-item reveal reveal-delay-2">
+        <div class="achieve-icon" aria-hidden="true">🤖</div>
+        <div class="achieve-text"><strong>Deployed AI Chatbot to Production</strong> — Self-learning Raya AI with Groq API, Supabase memory &amp; dual commands</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gradient-divider">
+
+<!-- ═══ CONTACT ═══════════════════════════════════════════════ -->
+<section id="r-contact" class="r-section" aria-labelledby="contact-heading">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-num">06 / Contact</span>
+        <h2 id="contact-heading" class="section-title">Let's Connect</h2>
+        <div class="section-line" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="contact-grid">
+      <div class="glass contact-cta-card reveal">
+        <h3>Open to Opportunities</h3>
+        <p>Currently looking for internships, entry-level roles, and exciting projects in embedded systems, AI, or full-stack development. Let's build something great together.</p>
+        <button class="btn btn-accent" id="contact-raya-btn" aria-label="Ask Raya to help contact Ratnesh">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+          Ask Raya to Help
+        </button>
+      </div>
+      <div class="contact-links reveal reveal-delay-1">
+        <div class="glass contact-link-item" role="group" aria-label="Email contact">
+          <div class="clink-icon" aria-hidden="true">✉️</div>
+          <div>
+            <div class="clink-label">Email</div>
+            <div class="clink-value" id="contact-email-display">
+              <a href="#" id="contact-email-link" onclick="revealEmail(event)" aria-label="Reveal email address">Click to reveal →</a>
+            </div>
+          </div>
+        </div>
+        <a class="glass contact-link-item" href="https://www.linkedin.com/in/ratnesh-kumar-singh-b75aba2b8/" target="_blank" rel="noopener" aria-label="Visit LinkedIn profile">
+          <div class="clink-icon" aria-hidden="true">💼</div>
+          <div>
+            <div class="clink-label">LinkedIn</div>
+            <div class="clink-value">Ratnesh Kumar Singh →</div>
+          </div>
+        </a>
+        <a class="glass contact-link-item" href="https://github.com/Ratnesh919" target="_blank" rel="noopener" aria-label="Visit GitHub profile">
+          <div class="clink-icon" aria-hidden="true">🐙</div>
+          <div>
+            <div class="clink-label">GitHub</div>
+            <div class="clink-value">github.com/Ratnesh919 →</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MODE SWITCH BANNER ════════════════════════════════════ -->
+<div class="container">
+  <div id="r-mode-banner" class="reveal" role="complementary" aria-labelledby="banner-heading">
+    <div class="banner-sparkles" aria-hidden="true">✨</div>
+    <h2 id="banner-heading">Ready for the Full Experience?</h2>
+    <p>You've seen my work. Now experience it in a whole new dimension — 3D avatars, immersive themes, and Raya in her full form.</p>
+    <div class="banner-ctas">
+      <a href="/" class="btn btn-accent" aria-label="Open full 3D portfolio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Enter Full 3D Portfolio
+      </a>
+      <button class="btn btn-ghost" id="banner-chat-btn" aria-label="Open Raya chat">Ask Raya About It</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═════════════════════════════════════════════════ -->
+<footer id="r-footer" role="contentinfo">
+  <div class="container">
+    <p>Designed &amp; built by <span>Ratnesh Kumar Singh</span> · Powered by Raya AI · <a href="/" style="color:var(--accent)">View 3D Portfolio →</a></p>
+  </div>
+</footer>
+
+<!-- ═══ CHATBOT ════════════════════════════════════════════════ -->
+<button id="r-chat-btn" aria-label="Toggle Raya AI chat" aria-expanded="false" aria-controls="r-chat-window">
+  <!-- Open icon -->
+  <svg class="chat-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+  <!-- Close icon -->
+  <svg class="chat-close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+</button>
+
+<div id="r-chat-window" role="dialog" aria-label="Raya AI assistant" aria-modal="false">
+  <div class="chat-header">
+    <div class="chat-avatar" aria-hidden="true">✨</div>
+    <div class="chat-header-info">
+      <div class="chat-name">Raya</div>
+      <div class="chat-status">● Online</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="r-chat-messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
+  <div class="chat-footer">
+    <input type="text" id="r-chat-input" placeholder="Ask Raya anything..." autocomplete="off" aria-label="Message Raya" maxlength="300">
+    <button id="r-chat-send" aria-label="Send message">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Chatbot Logic -->
+<script src="recruiter-bot.js"></script>
+
+<script>
+// ── Email Obfuscation ──────────────────────────────────────
+function revealEmail(e) {
+  e.preventDefault();
+  const parts = ['kumarsinghratnesh', '9', '@gmail.com'];
+  const email = parts[0] + parts[1] + parts[2];
+  const link = document.getElementById('reveal-email-link');
+  const clink = document.getElementById('contact-email-link');
+  const display = document.getElementById('contact-email-display');
+  if (link) {
+    link.textContent = email;
+    link.href = 'mailto:' + email;
+    link.onclick = null;
+  }
+  if (display) {
+    display.innerHTML = '<a href="mailto:' + email + '">' + email + '</a>';
+  }
+}
+
+// ── Scroll Reveal ─────────────────────────────────────────
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+revealEls.forEach(el => observer.observe(el));
+
+// ── Chat Toggle ───────────────────────────────────────────
+const chatBtn = document.getElementById('r-chat-btn');
+const chatWin = document.getElementById('r-chat-window');
+function openChat() {
+  chatBtn.classList.add('open');
+  chatWin.classList.add('open');
+  chatBtn.setAttribute('aria-expanded', 'true');
+  document.getElementById('r-chat-input').focus();
+}
+function closeChat() {
+  chatBtn.classList.remove('open');
+  chatWin.classList.remove('open');
+  chatBtn.setAttribute('aria-expanded', 'false');
+}
+chatBtn.addEventListener('click', () => {
+  chatBtn.classList.contains('open') ? closeChat() : openChat();
+});
+document.getElementById('hero-chat-btn').addEventListener('click', openChat);
+document.getElementById('contact-raya-btn').addEventListener('click', openChat);
+document.getElementById('banner-chat-btn').addEventListener('click', openChat);
+
+// ── End-of-page Raya Prompt (via IntersectionObserver) ────
+const modeBanner = document.getElementById('r-mode-banner');
+let bannerTriggered = false;
+const bannerObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !bannerTriggered) {
+      bannerTriggered = true;
+      // Delay slightly for dramatic effect
+      setTimeout(() => {
+        if (window.recruitBot) {
+          window.recruitBot.showModeSwitchPrompt();
+        }
+      }, 1200);
+    }
+  });
+}, { threshold: 0.5 });
+bannerObs.observe(modeBanner);
+</script>
+</body>
+</html>
