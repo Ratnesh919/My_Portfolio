@@ -1,0 +1,3 @@
+const str = 'Loading the Urban theme and playing Shape of You for you! {"action":"navigate","target":"urban"}{"action":"play_song","query":"Shape of You Ed Sheeran"}';
+const re = /\{[^{}]*"action"\s*:\s*"(?:play_song|navigate|scroll|change_avatar|open_link)"[^{}]*\}/gi;
+console.log([...str.matchAll(re)].map(m => m[0]));

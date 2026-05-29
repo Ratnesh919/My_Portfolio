@@ -1263,13 +1263,13 @@ class AvatarChatBot {
         const targetClean = target.toLowerCase().replace(/card\s*/, '').trim();
         
         if (targetClean === 'recruiter' || targetClean === 'recruiter mode' || targetClean.includes('recruiter')) {
-            window.location.href = '/recruiter.html';
+            window.location.href = '/';
             return;
         }
 
         if (targetClean === 'visitor' || targetClean === 'visitor mode' || targetClean === 'main' || targetClean === 'main portfolio' || targetClean === 'home') {
-            if (window.location.pathname.includes('recruiter.html')) {
-                window.location.href = '/';
+            if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html') || window.location.pathname.includes('recruiter')) {
+                window.location.href = '/theme-picker.html';
                 return;
             } else {
                 const changeThemeBtn = document.getElementById('change-theme-btn');
@@ -1291,7 +1291,14 @@ class AvatarChatBot {
 
         if (id) {
             const card = document.querySelector(id);
-            const targetUrl = card ? card.getAttribute('href') : null;
+            
+            // If card isn't found, we're likely on the recruiter page (index.html), so redirect to theme picker
+            if (!card) {
+                window.location.href = '/theme-picker.html';
+                return;
+            }
+
+            const targetUrl = card.getAttribute('href');
             const iframe = document.querySelector('#iframe-container iframe');
             
             // Check if already in the requested theme
