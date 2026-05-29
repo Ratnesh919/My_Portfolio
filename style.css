@@ -278,7 +278,7 @@ body {
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 9000;         /* ABOVE everything (chatbot 200, cards 10, header 30) */
+    z-index: 99999 !important;         /* ABOVE everything (chatbot 200, cards 10, header 30) */
     pointer-events: none;  /* Transparent regions let clicks reach UI beneath */
     display: block;
     cursor: default;

@@ -1579,7 +1579,8 @@ class AvatarChatBot {
         const iframe = document.createElement('iframe');
         iframe.src = embedUrl;
         iframe.allow = 'autoplay; encrypted-media; clipboard-write; picture-in-picture';
-        iframe.style.cssText = 'position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;';
+        // Make iframe take full space behind the thumbnail to trick autoplay blockers
+        iframe.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; opacity:0.01; z-index:-1; border:none; pointer-events:none;';
 
         info.appendChild(titleEl);
         info.appendChild(artistEl);
