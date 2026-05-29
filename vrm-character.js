@@ -640,13 +640,12 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
                 setTimeout(() => {
                     bubbleScreen.classList.add('hidden');
+                    // After bubble pops, redirect to Recruiter Mode (index.html) — the default experience
+                    // Set a flag so index.html knows the user already interacted (enables autoplay)
                     setTimeout(() => {
-                        bubbleScreen.remove();
-                        window.playWaveAnimation();
-                        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-                            window.chatBot.introduceHerself();
-                        }
-                    }, 400);
+                        sessionStorage.setItem('raya_bubble_popped', '1');
+                        window.location.href = '/index.html';
+                    }, 350);
                 }, 280);
             });
             bubbleContainer.appendChild(b);

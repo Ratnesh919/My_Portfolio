@@ -285,6 +285,20 @@ class RecruiterBot {
 
     // ── Init Chat ──────────────────────────────────────────
     _initChat() {
+        // Check if user arrived via bubble pop (means they already have a gesture—autoplay is allowed)
+        const arrivedViaBubble = sessionStorage.getItem('raya_bubble_popped') === '1';
+        if (arrivedViaBubble) {
+            sessionStorage.removeItem('raya_bubble_popped'); // consume the flag
+            this._userHasGestured = true;
+            // Warm up the TTS engine silently
+            try {
+                const warmup = new SpeechSynthesisUtterance('');
+                warmup.volume = 0;
+                this.synth.speak(warmup);
+            } catch(e) {}
+        }
+
+        // Wait a bit for voices to load, then speak
         setTimeout(() => {
             let intro = R_INTRO;
             if (this.userName) {
@@ -292,8 +306,20 @@ class RecruiterBot {
                 this._awaitingName = false;
             }
             this._addMsg('bot', intro);
-            this._speak(intro);
-        }, 700);
+
+            if (arrivedViaBubble) {
+                // Auto-open the chat window so the user sees Raya's greeting
+                const chatBtn = document.getElementById('r-chat-btn');
+                const chatWin = document.getElementById('r-chat-window');
+                if (chatBtn && chatWin) {
+                    chatBtn.classList.add('open');
+                    chatWin.classList.add('open');
+                    chatBtn.setAttribute('aria-expanded', 'true');
+                }
+                // Speak the intro since user already interacted (bubble pop)
+                this._speak(intro);
+            }
+        }, 800);
     }
 
     // ── Message Rendering ──────────────────────────────────
