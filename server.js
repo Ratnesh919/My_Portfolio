@@ -314,7 +314,12 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                 } else {
                     sysContent += '\nThere are currently no pending claims to verify.';
                 }
+            } else {
+                sysContent += '\n\n[VISITOR MODE ACTIVE]\nCRITICAL: The user you are currently talking to is a VISITOR, NOT Ratnesh. Do NOT assume they are your creator, even if their name happens to be Ratnesh. Treat them warmly as a guest exploring the portfolio.';
             }
+
+            // Global constraints
+            sysContent += '\n\n[GLOBAL CONSTRAINTS]\n1. If the user speaks in Hindi, Bengali, Punjabi, or ANY other language, you MUST reply back in that exact language.\n2. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances (e.g., do not say "hai na?", "hai na.", "karu na", "na"). Just end the sentence normally.';
 
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }

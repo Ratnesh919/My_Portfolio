@@ -18,6 +18,10 @@ Example: "Opening the Essential theme for you! {"action":"navigate","target":"es
 - If the user asks you to switch to recruiter mode, fast mode, or visitor mode, append this JSON at the END of your reply:
 {"action":"navigate", "target":"recruiter"}
 Example: "Switching to Recruiter Mode! {"action":"navigate","target":"recruiter"}"
+
+To switch back to the main 3D portfolio / visitor mode:
+{"action":"navigate", "target":"visitor"}
+Example: "Taking you to the main portfolio! {"action":"navigate","target":"visitor"}"
 - If the user asks you to scroll down, scroll up, or navigate to sections like home, about, education, skills, projects, contact, append this JSON:
 {"action":"scroll", "target":"<section id or direction>"}
 IMPORTANT: If the user asks for external links (Instagram, LinkedIn, GitHub, etc.), NEVER say you cannot open links. Just say you are taking them to the contact section where the links are, and append the scroll JSON for "contact".
@@ -183,25 +187,21 @@ class AvatarChatBot {
         this.showBubble(introMessage);
         this._awaitingCommand = true;
 
-        // 2. Speak if user already interacted with the page
-        if (this._userHasGestured) {
-            console.log('[Raya Intro] Gesture detected — speaking immediately.');
-            this.speakAvatar(introMessage, false);
-            return;
+        // Always attempt to speak immediately (Autoplay)
+        console.log('[Raya Intro] Attempting auto-play immediately.');
+        this.speakAvatar(introMessage, false);
+
+        if (!this._userHasGestured) {
+            // Also attach a one-shot gesture listener as a silent fallback if auto-play fails
+            const EVTS = ['click', 'touchstart', 'keydown', 'pointerdown'];
+            const onGesture = () => {
+                EVTS.forEach(ev => document.removeEventListener(ev, onGesture));
+                if (this.synth && !this.synth.speaking && !this.hasIntroduced) {
+                    this.speakAvatar(introMessage, false);
+                }
+            };
+            EVTS.forEach(ev => document.addEventListener(ev, onGesture, { once: true, passive: true }));
         }
-
-        // 3. No gesture yet — show tap button AND also queue on next gesture
-        console.log('[Raya Intro] No gesture yet — showing tap button + gesture queue.');
-        this._showTapToHearButton(() => this.speakAvatar(introMessage, false));
-
-        // Also attach a one-shot gesture listener as a silent parallel fallback
-        const EVTS = ['click', 'touchstart', 'keydown', 'pointerdown'];
-        const onGesture = () => {
-            EVTS.forEach(ev => document.removeEventListener(ev, onGesture));
-            document.getElementById('raya-tap-btn')?.remove();
-            this.speakAvatar(introMessage, false);
-        };
-        EVTS.forEach(ev => document.addEventListener(ev, onGesture, { once: true, passive: true }));
     }
 
     // Called externally when a theme iframe opens so Raya can give navigation hints
@@ -948,8 +948,24 @@ class AvatarChatBot {
         this.hideChoices();
         this.isListening = false;
         this.isThinking  = true;
+        // Try to warm up TTS immediately to reduce delay later
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+        }
+
         this.updateMicUI();
-        this.showUserBubble(text);
+        this.startPeriodicLearningCheck();
+        
+        // Listen for early gestures to prime TTS context
+        const primeTTS = () => {
+            if (window.speechSynthesis) {
+                const dummy = new SpeechSynthesisUtterance('');
+                dummy.volume = 0;
+                window.speechSynthesis.speak(dummy);
+            }
+            ['click', 'touchstart', 'keydown'].forEach(ev => document.removeEventListener(ev, primeTTS));
+        };
+        ['click', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, primeTTS, { once: true }));
         this.messages.push({ role: 'user', content: text });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
@@ -1219,8 +1235,8 @@ class AvatarChatBot {
         // Speak the text portion first
         this.speakAvatar(spokenText, false);
 
-        // Execute every action that was found
-        for (const actionObj of actionObjs) {
+        // Execute every action that was found concurrently
+        actionObjs.forEach(async (actionObj) => {
             if (actionObj.action === 'play_song' && actionObj.query) {
                 await this.searchAndPlay(actionObj.query);
             } else if (actionObj.action === 'navigate') {
@@ -1238,7 +1254,7 @@ class AvatarChatBot {
             } else if (actionObj.action === 'change_avatar') {
                 this.executeChangeAvatar(actionObj.target);
             }
-        }
+        });
     }
 
     // -- Website Control Actions ------------------------------------------------
@@ -1249,6 +1265,20 @@ class AvatarChatBot {
         if (targetClean === 'recruiter' || targetClean === 'recruiter mode' || targetClean.includes('recruiter')) {
             window.location.href = '/recruiter.html';
             return;
+        }
+
+        if (targetClean === 'visitor' || targetClean === 'visitor mode' || targetClean === 'main' || targetClean === 'main portfolio' || targetClean === 'home') {
+            if (window.location.pathname.includes('recruiter.html')) {
+                window.location.href = '/';
+                return;
+            } else {
+                const changeThemeBtn = document.getElementById('change-theme-btn');
+                if (changeThemeBtn && changeThemeBtn.style.opacity === '1') {
+                    changeThemeBtn.click();
+                    this.onThemeClosed();
+                }
+                return;
+            }
         }
         
         let id = null;
@@ -1277,17 +1307,7 @@ class AvatarChatBot {
                 // onThemeOpened is triggered by index.html's card click listener
             }
         } else {
-            // If the user wants to go back to home/main menu
-            if (targetClean === 'home') {
-                const changeThemeBtn = document.getElementById('change-theme-btn');
-                if (changeThemeBtn && changeThemeBtn.style.opacity === '1') {
-                    changeThemeBtn.click();
-                    this.onThemeClosed();
-                }
-            }
-        }
-
-        // Also hook the change-theme-btn to notify Raya when user closes the iframe
+        // Hook the change-theme-btn to notify Raya when user closes the iframe
         if (!this._changeThemeBtnHooked) {
             this._changeThemeBtnHooked = true;
             const btn = document.getElementById('change-theme-btn');
@@ -1716,11 +1736,11 @@ class AvatarChatBot {
             }
         };
 
-        // Cancel any stale utterance. On mobile/Safari, asynchronous SpeechSynthesis calls
-        // can lose the user gesture context, so speak synchronously if nothing is active.
+        // Cancel any stale utterance.
         if (this.synth.speaking) {
             try { this.synth.cancel(); } catch(e) {}
-            setTimeout(doSpeak, 150);
+            // No delay, invoke immediately to fix latency
+            doSpeak();
         } else {
             doSpeak();
         }

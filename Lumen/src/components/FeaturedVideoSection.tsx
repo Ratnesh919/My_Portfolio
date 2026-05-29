@@ -30,7 +30,7 @@ export default function FeaturedVideoSection() {
             <div className="liquid-glass rounded-2xl p-6 md:p-8 max-w-md">
               <span className="text-white/50 text-xs tracking-widest uppercase mb-3 block">My Approach</span>
               <p className="text-white text-sm md:text-base leading-relaxed">
-                I believe in the power of curiosity-driven engineering. Whether writing code or soldering circuits, every project starts with a problem, and my designs open new doors to smart-technology solutions.
+                Whether writing code or soldering circuits, every project starts with a problem, and my designs open new doors to smart-technology solutions.
               </p>
             </div>
             
