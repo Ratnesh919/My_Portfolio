@@ -756,10 +756,10 @@ body::after {
 
 .chat-msg {
   max-width: 88%;
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 0.875rem;
-  line-height: 1.55;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 0.8rem;
+  line-height: 1.45;
   animation: msg-in var(--dur-mid) var(--ease-out);
 }
 @keyframes msg-in {
