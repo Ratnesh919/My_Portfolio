@@ -55,7 +55,7 @@ export default function Portfolio() {
         >
           {/* STITCH HERO IMAGE - Set to w-full h-auto to completely avoid cropping */}
           <img 
-            src="/stitch-screen2.png" 
+            src="./stitch-screen2.png" 
             alt="Ratnesh Portrait" 
             className="w-full h-auto object-contain pointer-events-none transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
           />
