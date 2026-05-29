@@ -578,7 +578,7 @@ class RecruiterBot {
         chatBtn.setAttribute('aria-expanded', 'true');
 
         const greeting = this.userName ? `${this.userName}, y` : 'Y';
-        const msg = `${greeting}ou've seen everything! Ratnesh has impressive skills and a unique story. Want to experience his full interactive 3D portfolio? It's on a whole other level — immersive themes, a 3D avatar version of me, and so much personality!`;
+        const msg = `${greeting}ou've seen everything! Want the full experience? I can take you there right now. ✨`;
 
         setTimeout(() => {
             this._addMsg('bot', msg);

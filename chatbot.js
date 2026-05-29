@@ -518,6 +518,7 @@ class AvatarChatBot {
     handleTextSend() {
         const text = this.textInput.value.trim();
         if (!text) return;
+        if (this.isThinking) return; // prevent double-submit while Raya is thinking
         this.textInput.value = '';
 
         // If awaiting a disambiguation choice
@@ -966,6 +967,7 @@ class AvatarChatBot {
             ['click', 'touchstart', 'keydown'].forEach(ev => document.removeEventListener(ev, primeTTS));
         };
         ['click', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, primeTTS, { once: true }));
+        this.showUserBubble(text); // Show user's message in the bubble immediately
         this.messages.push({ role: 'user', content: text });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
