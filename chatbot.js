@@ -1551,7 +1551,7 @@ class AvatarChatBot {
         // Embed iframe for direct on-page playback (no popups)
         const iframe = document.createElement('iframe');
         iframe.src = embedUrl;
-        iframe.allow = 'autoplay';
+        iframe.allow = 'autoplay; encrypted-media; clipboard-write; picture-in-picture';
         iframe.style.cssText = 'position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;';
 
         info.appendChild(titleEl);
@@ -1633,6 +1633,8 @@ class AvatarChatBot {
                     selectedVoice = voices.find(v => v.lang.startsWith(voiceSearchLang) || v.lang.replace('_', '-').startsWith(voiceSearchLang)) || this.femaleVoice;
                 }
             }
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
 
             utterance.voice = selectedVoice;
             utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
