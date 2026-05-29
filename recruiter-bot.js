@@ -172,11 +172,28 @@ class RecruiterBot {
     }
 
     // ── TTS ────────────────────────────────────────────────
-    _speak(text) {
+    _speak(text, retryCount = 0) {
         if (!this.synth || !text) return;
         // Strip any JSON action blocks before speaking
         const clean = text.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
         if (!clean) return;
+
+        // If voices not loaded yet, wait and retry (Chrome loads voices async)
+        const voices = this.synth.getVoices();
+        if (!voices || voices.length === 0) {
+            if (retryCount < 5) {
+                const retry = () => this._speak(text, retryCount + 1);
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        window.speechSynthesis.onvoiceschanged = null;
+                        retry();
+                    };
+                } else {
+                    setTimeout(retry, 400);
+                }
+            }
+            return;
+        }
 
         this.synth.cancel();
         const utt = new SpeechSynthesisUtterance(clean);
@@ -199,7 +216,6 @@ class RecruiterBot {
             voiceSearchLang = 'hi';
         }
 
-        const voices = this.synth.getVoices();
         let selectedVoice = null;
         if (voiceSearchLang !== 'en') {
             selectedVoice = voices.find(v => v.lang.startsWith(voiceSearchLang) || v.lang.replace('_', '-').startsWith(voiceSearchLang));
@@ -219,7 +235,9 @@ class RecruiterBot {
         utt.pitch  = 1.1;
         utt.volume = 1;
 
+        let started = false;
         utt.onstart = () => {
+            started = true;
             this.isSpeaking = true;
             this._wakeWordCooldown = true;
             this._updateMicUI();
@@ -229,6 +247,15 @@ class RecruiterBot {
             setTimeout(() => { this._wakeWordCooldown = false; }, 600);
             this._updateMicUI();
         };
+
+        // Chrome bug: if speech doesn't start within 600ms, retry once
+        setTimeout(() => {
+            if (!started && retryCount < 2) {
+                this.synth.cancel();
+                setTimeout(() => this._speak(text, retryCount + 1), 200);
+            }
+        }, 600);
+
         // Chrome bug: cancel speaking if utterance gets stuck
         setTimeout(() => {
             if (this.isSpeaking) { this.synth.cancel(); }
@@ -393,7 +420,7 @@ class RecruiterBot {
             this._addMsg('bot', reply);
             this._speak(reply);
             setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = '/theme-picker.html?direct=1';
             }, 1200);
             return;
         }
@@ -480,7 +507,7 @@ class RecruiterBot {
                     window.location.href = 'mailto:kumarsinghratnesh3@gmail.com';
                 }
             } else if (actionObj.action === 'navigate') {
-                window.location.href = '/';
+                setTimeout(() => { window.location.href = '/theme-picker.html?direct=1'; }, 1200);
             }
         }
     }
@@ -561,7 +588,7 @@ class RecruiterBot {
                 card.className = 'chat-mode-card';
                 card.innerHTML = `
                     <p>Switch to the full immersive experience?</p>
-                    <a href="/" class="btn btn-accent" aria-label="Open full 3D portfolio" style="text-decoration:none">✨ Enter Full 3D Portfolio</a>
+                    <a href="/theme-picker.html?direct=1" class="btn btn-accent" aria-label="Open full 3D portfolio" style="text-decoration:none">✨ Enter Full 3D Portfolio</a>
                 `;
                 this._messagesEl.appendChild(card);
                 this._scrollBottom();
