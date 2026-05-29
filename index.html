@@ -28,6 +28,12 @@
 </head>
 <body>
 
+<!-- ═══ BUBBLE ENTRY SCREEN ══════════════════════════════════ -->
+<div id="bubble-screen" role="dialog" aria-label="Tap a bubble to enter the portfolio" aria-modal="true">
+  <div class="bubble-instructions" id="bubble-text">Tap a Bubble to Enter</div>
+  <div id="bubble-container"></div>
+</div>
+
 <!-- ═══ STICKY NAV ═══════════════════════════════════════ -->
 <nav id="r-nav" role="navigation" aria-label="Recruiter portfolio navigation">
   <div class="container">
@@ -513,7 +519,7 @@
 <!-- ═══ FOOTER ═════════════════════════════════════════════════ -->
 <footer id="r-footer" role="contentinfo">
   <div class="container">
-    <p>Designed &amp; built by <span>Ratnesh Kumar Singh</span> · Powered by Raya AI · <a href="/" style="color:var(--accent)">View 3D Portfolio →</a></p>
+    <p>Designed &amp; built by <span>Ratnesh Kumar Singh</span> · Powered by Raya AI · <a href="/theme-picker.html?direct=1" style="color:var(--accent)">View 3D Portfolio →</a></p>
   </div>
 </footer>
 
@@ -641,5 +647,89 @@ bannerObs.observe(modeBanner);
     });
   });
 </script>
+
+<script>
+// ── Bubble Entry Screen ───────────────────────────────────────────
+(function() {
+  // Skip bubble if user has already been here this session
+  if (sessionStorage.getItem('raya_bubble_done')) {
+    document.getElementById('bubble-screen').remove();
+    return;
+  }
+
+  const bubbleScreen = document.getElementById('bubble-screen');
+  const container    = document.getElementById('bubble-container');
+  const isMobile     = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  const spawnMs      = isMobile ? 1800 : 700;
+
+  const interval = setInterval(() => {
+    const b = document.createElement('div');
+    b.className = 'bubble-item';
+    const size = 30 + Math.random() * 80;
+    b.style.cssText = `width:${size}px;height:${size}px;left:${5+Math.random()*85}vw;animation-duration:${(isMobile?8:4)+Math.random()*5}s;`;
+
+    b.addEventListener('pointerdown', (e) => {
+      clearInterval(interval);
+      document.querySelectorAll('.bubble-item').forEach(x => x.style.opacity='0');
+
+      // Crack + mist burst effect
+      const cx=e.clientX, cy=e.clientY, r=b.getBoundingClientRect().width*0.5;
+      for(let i=0;i<4;i++){
+        const ang=(i/4)*Math.PI, len=r*(1.1+Math.random()*0.4);
+        const l=document.createElement('div');
+        l.className='bubble-crack-line';
+        l.style.cssText=`left:${cx}px;top:${cy}px;width:${len*2}px;height:${1+Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent,rgba(200,235,255,0.9) 30%,#fff 50%,rgba(200,235,255,0.9) 70%,transparent);transform:rotate(${ang}rad) scaleX(0);animation-delay:${i*0.03}s;`;
+        document.body.appendChild(l);
+        setTimeout(()=>l.remove(),500);
+      }
+      for(let i=0;i<6;i++){
+        const ang=(i/6)*2*Math.PI+Math.random()*0.4;
+        const dist=r*(0.5+Math.random()*0.8);
+        const sz=2+Math.random()*3;
+        const m=document.createElement('div');
+        m.className='bubble-mist-dot';
+        m.style.cssText=`left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz/2}px;margin-top:${-sz/2}px;`;
+        document.body.appendChild(m);
+        requestAnimationFrame(()=>{ m.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px) scale(0)`; });
+        setTimeout(()=>m.remove(),550);
+      }
+
+      // Fade out overlay after burst
+      setTimeout(() => {
+        bubbleScreen.classList.add('hidden');
+        sessionStorage.setItem('raya_bubble_done','1');
+        setTimeout(() => {
+          bubbleScreen.remove();
+          // Trigger Raya's intro voice — bubble pop = user gesture, TTS now allowed
+          if (window.recruitBot && typeof window.recruitBot._speak === 'function') {
+            const chatBtn = document.getElementById('r-chat-btn');
+            const chatWin = document.getElementById('r-chat-window');
+            if (chatBtn && chatWin) {
+              chatBtn.classList.add('open');
+              chatWin.classList.add('open');
+              chatBtn.setAttribute('aria-expanded','true');
+            }
+            // Mark gesture done and warm up TTS
+            window.recruitBot._userHasGestured = true;
+            try{
+              const w=new SpeechSynthesisUtterance(''); w.volume=0;
+              speechSynthesis.speak(w);
+            }catch(e){}
+            // Speak the intro (already in chat from _initChat, just re-speak)
+            const msgs = document.querySelectorAll('#r-chat-messages .chat-msg.bot');
+            if(msgs.length > 0) {
+              const introText = msgs[msgs.length-1].textContent;
+              setTimeout(()=>window.recruitBot._speak(introText), 300);
+            }
+          }
+        }, 400);
+      }, 280);
+    });
+    container.appendChild(b);
+    setTimeout(()=>{ if(b.parentNode) b.remove(); }, isMobile?16000:9000);
+  }, spawnMs);
+})();
+</script>
+
 </body>
 </html>
