@@ -586,94 +586,14 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         }
     };
 
-    // Bubble Intro Logic (Forces user interaction for audio autoplay)
-    const bubbleScreen = document.getElementById('bubble-screen');
-    const bubbleContainer = document.getElementById('bubble-container');
-    
-    if (bubbleScreen && bubbleContainer) {
-        const bubbleInterval = isMobile ? 1800 : 800;
-        let spawnInterval = setInterval(() => {
-            const b = document.createElement('div');
-            b.className = 'bubble-item';
-            const size = 30 + Math.random() * 70;
-            b.style.width = size + 'px';
-            b.style.height = size + 'px';
-            b.style.left = (5 + Math.random() * 85) + 'vw';
-            
-            const minDur = isMobile ? 8 : 4;
-            const extraDur = isMobile ? 6 : 4;
-            b.style.animationDuration = (minDur + Math.random() * extraDur) + 's';
-            
-            b.addEventListener('pointerdown', (e) => {
-                clearInterval(spawnInterval);
-                document.querySelectorAll('.bubble-item').forEach(bbl => bbl.style.opacity = '0');
-
-                const cx = e.clientX;
-                const cy = e.clientY;
-                const r  = b.getBoundingClientRect().width * 0.5;
-
-                // 4 crack-lines radiating outward
-                for (let i = 0; i < 4; i++) {
-                    const angle = (i / 4) * Math.PI;
-                    const len   = r * (1.1 + Math.random() * 0.4);
-                    const line  = document.createElement('div');
-                    line.className = 'bubble-crack-line';
-                    line.style.cssText = `left:${cx}px;top:${cy}px;width:${len*2}px;height:${1+Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent 0%,rgba(200,235,255,0.9) 30%,rgba(255,255,255,1) 50%,rgba(200,235,255,0.9) 70%,transparent 100%);transform:rotate(${angle}rad) scaleX(0);animation-delay:${i*0.03}s;`;
-                    document.body.appendChild(line);
-                    setTimeout(() => line.remove(), 500);
-                }
-
-                // 6 tiny mist droplets
-                for (let i = 0; i < 6; i++) {
-                    const angle = (i / 6) * 2 * Math.PI + Math.random() * 0.4;
-                    const dist  = r * (0.5 + Math.random() * 0.8);
-                    const tx    = Math.cos(angle) * dist;
-                    const ty    = Math.sin(angle) * dist;
-                    const sz    = 2 + Math.random() * 3;
-                    const mist  = document.createElement('div');
-                    mist.className = 'bubble-mist-dot';
-                    mist.style.cssText = `left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz/2}px;margin-top:${-sz/2}px;`;
-                    document.body.appendChild(mist);
-                    requestAnimationFrame(() => { mist.style.transform = `translate(${tx}px,${ty}px) scale(0)`; });
-                    setTimeout(() => mist.remove(), 550);
-                }
-
-                setTimeout(() => {
-                    bubbleScreen.classList.add('hidden');
-                    setTimeout(() => {
-                        // Check if user came from recruiter mode via "3D Themes" button (?direct=1)
-                        // If yes → show theme picker normally. If no (first visit) → go to recruiter mode.
-                        const isDirect = new URLSearchParams(window.location.search).get('direct') === '1';
-                        if (isDirect) {
-                            // User wanted the 3D experience — show theme picker
-                            bubbleScreen.remove();
-                            window.playWaveAnimation();
-                            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-                                window.chatBot.introduceHerself();
-                            }
-                        } else {
-                            // First visit — send them to recruiter mode (the default experience)
-                            sessionStorage.setItem('raya_bubble_popped', '1');
-                            window.location.href = '/index.html';
-                        }
-                    }, 350);
-                }, 280);
-            });
-            bubbleContainer.appendChild(b);
-            // Remove bubbles that float off screen to prevent DOM buildup
-            const removeDelay = isMobile ? 16000 : 9000;
-            setTimeout(() => { if (b.parentNode) b.remove(); }, removeDelay);
-        }, bubbleInterval);
-    } else {
-        // Fallback if no bubble screen exists
-        setTimeout(async () => {
-            if (hasDragged || isDragging) return;
-            window.playWaveAnimation();
-            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-                window.chatBot.introduceHerself();
-            }
-        }, 1500);
-    }
+    // Trigger intro directly (no bubbles for theme-picker)
+    setTimeout(async () => {
+        if (hasDragged || isDragging) return;
+        window.playWaveAnimation();
+        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+            window.chatBot.introduceHerself();
+        }
+    }, 1500);
 
 
 }, xhr => {

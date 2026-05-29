@@ -1313,7 +1313,8 @@ class AvatarChatBot {
                 card.click();
                 // onThemeOpened is triggered by index.html's card click listener
             }
-        } else {
+        }
+        
         // Hook the change-theme-btn to notify Raya when user closes the iframe
         if (!this._changeThemeBtnHooked) {
             this._changeThemeBtnHooked = true;
@@ -1325,7 +1326,6 @@ class AvatarChatBot {
             }
         }
     }
-
     executeScroll(target) {
         if (!target) return;
         const iframeContainer = document.getElementById('iframe-container');
