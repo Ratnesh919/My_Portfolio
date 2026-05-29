@@ -48,5 +48,20 @@
   </head>
   <body class="bg-[#010828] text-[#EFF4FF] font-mono overflow-x-hidden w-full m-0 p-0">
     <div id="root"></div>
-  </body>
+      <!-- Raya scroll postMessage listener -->
+    <script>
+      window.addEventListener('message', function(e) {
+        if (!e.data || e.data.type !== 'raya-scroll') return;
+        var d = e.data;
+        if (d.direction === 'down') { window.scrollBy({ top: 600, behavior: 'smooth' }); return; }
+        if (d.direction === 'up')   { window.scrollBy({ top: -600, behavior: 'smooth' }); return; }
+        if (d.section) {
+          var el = document.getElementById(d.section) ||
+                   document.querySelector('.' + d.section + '-section') ||
+                   document.querySelector('[id*="' + d.section + '"]');
+          if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        }
+      });
+    </script>
+</body>
 </html>
