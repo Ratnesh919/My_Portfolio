@@ -599,13 +599,9 @@
     <script>
         let chatbotInstance = null;
         window.addEventListener('load', () => {
-            // Give VRM a moment to load before speaking
-            setTimeout(() => {
-                if (typeof AvatarChatBot !== 'undefined') {
-                    chatbotInstance = window.chatBot || new AvatarChatBot();
-                    chatbotInstance.introduceHerself();
-                }
-            }, 3000);
+            if (typeof AvatarChatBot !== 'undefined') {
+                chatbotInstance = window.chatBot || new AvatarChatBot();
+            }
         });
     </script>
 </body>
