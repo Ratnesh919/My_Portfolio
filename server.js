@@ -285,7 +285,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
             if (memCtx) {
                 sysContent += '\n\n' + memCtx;
-                sysContent += '\n\n[CRITICAL OVERRIDE]\nIf ANY information in the MEMORY above contradicts the [CREATOR/RATNESH FACTS] (for example, about Ratnesh\\'s college, skills, or background), you MUST completely ignore the MEMORY and strictly use the [CREATOR/RATNESH FACTS]. Ratnesh goes to Swami Vivekananda Institute of Science & Technology, NOT Delhi Technological University.';
+                sysContent += "\\n\\n[CRITICAL OVERRIDE]\\nIf ANY information in the MEMORY above contradicts the [CREATOR/RATNESH FACTS] (for example, about Ratnesh's college, skills, or background), you MUST completely ignore the MEMORY and strictly use the [CREATOR/RATNESH FACTS]. Ratnesh goes to Swami Vivekananda Institute of Science & Technology, NOT Delhi Technological University.";
             }
 
             // Inject Pending Facts if Admin Mode is active
