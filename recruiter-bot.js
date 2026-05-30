@@ -47,7 +47,7 @@ Examples:
 - "Let's check out his 3D version! {"action":"navigate","target":"full"}"
 
 When asked to switch to visitor mode, full experience, 3D version, or regular portfolio, explain that it has interactive VRM avatars, themes, and music, and navigate them there using {"action":"navigate","target":"full"}.
-REMEMBER: Never exceed 150 words.`;
+REMEMBER: Never exceed 20 words.`;
 
 const R_INTRO = "Hi! I'm Raya, Ratnesh's AI guide. What's your name? I can tell you about his skills, projects, experience — or just scroll around for you!";
 
