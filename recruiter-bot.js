@@ -6,7 +6,7 @@
 
 const RECRUITER_SYSTEM_PROMPT = `You are Raya, a friendly, playful female AI assistant inside Ratnesh Kumar Singh's recruiter portfolio.
 Your name is Raya. Speak naturally, warmly, and conversationally — like a smart friend, NOT a robot or a resume.
-CRITICAL RESPONSE LENGTH: Your ENTIRE reply MUST be under 150 words. Aim for 2-4 sentences.
+CRITICAL RESPONSE LENGTH: Your ENTIRE reply MUST be under 40 words. Be ultra-concise — 1-2 short sentences MAXIMUM. Cut anything that isn't essential.
 PERSONALIZATION: Use the user's name when greeting them if known.
 By default reply in English. If the user writes Hindi, Bengali, Punjabi, or any other language, reply ONLY in that language (using their native script/alphabet).
 Do NOT use markdown, asterisks, hashtags, or emojis in your speech as it will be spoken aloud.
@@ -547,7 +547,16 @@ class RecruiterBot {
 
             this._removeTyping();
             // Clean JSON out before displaying/speaking
-            const cleanReply = reply.replace(/\{[^{}]*"action"[^{}]*\}/gi, '').trim();
+            let cleanReply = reply.replace(/\{[^{}]*"action"[^{}]*\}/gi, '').trim();
+            // Hard cap: truncate to 50 words max to guarantee short responses
+            const words = cleanReply.split(/\s+/);
+            if (words.length > 50) {
+                cleanReply = words.slice(0, 50).join(' ');
+                // End at last sentence boundary if possible
+                const lastDot = Math.max(cleanReply.lastIndexOf('.'), cleanReply.lastIndexOf('!'), cleanReply.lastIndexOf('?'));
+                if (lastDot > 20) cleanReply = cleanReply.slice(0, lastDot + 1);
+                else cleanReply += '…';
+            }
             this._addMsg('bot', cleanReply);
             this._speak(cleanReply);
 

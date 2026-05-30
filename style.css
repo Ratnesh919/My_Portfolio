@@ -1069,6 +1069,7 @@ h1 {
     height: 100%;
     border: none;
     background: transparent;
+    pointer-events: auto; /* iframe itself handles its own internal events */
 }
 
 #change-theme-btn, #avatar-toggle-btn {
@@ -1253,11 +1254,16 @@ header, .container, .contact-section {
     bottom: 28px;
     right: 28px;
     width: 340px;
-    z-index: 999999;
+    z-index: 999999 !important;
     display: flex;
     flex-direction: column;
     gap: 8px;
     font-family: 'Outfit', sans-serif;
+    pointer-events: auto !important; /* ALWAYS receive clicks even when iframe is open */
+}
+/* Ensure all chatbot children are always clickable */
+#chatbot-panel * {
+    pointer-events: auto !important;
 }
 
 /* Bubble */
