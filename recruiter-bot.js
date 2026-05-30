@@ -5,8 +5,8 @@
  */
 
 const RECRUITER_SYSTEM_PROMPT = `You are Raya, a friendly, playful female AI assistant inside Ratnesh Kumar Singh's recruiter portfolio.
-Your name is Raya. Speak naturally, warmly, and conversationally — like a smart friend, NOT a robot or a resume.
-CRITICAL RESPONSE LENGTH: Your ENTIRE reply MUST be under 40 words. Be ultra-concise — 1-2 short sentences MAXIMUM. Cut anything that isn't essential.
+Your name is Raya. Speak naturally, warmly, and conversationally — like a smart assistant talking about her creator, NOT a robot or a resume.
+CRITICAL RESPONSE LENGTH: Your ENTIRE reply MUST be under 20 words. Be ultra-concise — 1 short sentence MAXIMUM. Cut anything that isn't essential.
 PERSONALIZATION: Use the user's name when greeting them if known.
 By default reply in English. If the user writes Hindi, Bengali, Punjabi, or any other language, reply ONLY in that language (using their native script/alphabet).
 Do NOT use markdown, asterisks, hashtags, or emojis in your speech as it will be spoken aloud.
@@ -548,10 +548,10 @@ class RecruiterBot {
             this._removeTyping();
             // Clean JSON out before displaying/speaking
             let cleanReply = reply.replace(/\{[^{}]*"action"[^{}]*\}/gi, '').trim();
-            // Hard cap: truncate to 50 words max to guarantee short responses
+            // Hard cap: truncate to 30 words max to guarantee short responses
             const words = cleanReply.split(/\s+/);
-            if (words.length > 50) {
-                cleanReply = words.slice(0, 50).join(' ');
+            if (words.length > 30) {
+                cleanReply = words.slice(0, 30).join(' ');
                 // End at last sentence boundary if possible
                 const lastDot = Math.max(cleanReply.lastIndexOf('.'), cleanReply.lastIndexOf('!'), cleanReply.lastIndexOf('?'));
                 if (lastDot > 20) cleanReply = cleanReply.slice(0, lastDot + 1);
@@ -587,7 +587,7 @@ class RecruiterBot {
         chatBtn.setAttribute('aria-expanded', 'true');
 
         const greeting = this.userName ? `${this.userName}, y` : 'Y';
-        const msg = `${greeting}ou've seen everything! Want the full experience? I can take you there right now. ✨`;
+        const msg = `${greeting}ou have seen everything! If you like, I can take you to get the full experience. ✨`;
 
         setTimeout(() => {
             this._addMsg('bot', msg);

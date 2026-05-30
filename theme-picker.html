@@ -542,6 +542,7 @@
             sizeSlider.value = '0.70';
             sizePct.innerText = '70%';
         }
+
         sizeSlider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             sizePct.innerText = Math.round(val * 100) + '%';
@@ -593,8 +594,19 @@
     <!-- ─── VRM Configuration & Controller ────────────────────────────── -->
     <script src="./vrm-config.js"></script>
     <script type="module" src="./vrm-character.js"></script>
-
-    <!-- ─── Voice Chatbot ─────────────────────────────────────────────── -->
     <script src="./chatbot.js"></script>
+    
+    <script>
+        let chatbotInstance = null;
+        window.addEventListener('load', () => {
+            // Give VRM a moment to load before speaking
+            setTimeout(() => {
+                if (typeof AvatarChatBot !== 'undefined') {
+                    chatbotInstance = window.chatBot || new AvatarChatBot();
+                    chatbotInstance.introduceHerself();
+                }
+            }, 3000);
+        });
+    </script>
 </body>
 </html>
