@@ -18,3 +18,5 @@ prompt.txt
 creator-profile.txt
 
 # Test/debug images
+media__*.png
+.vercel
