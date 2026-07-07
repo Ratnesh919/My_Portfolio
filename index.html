@@ -1,735 +1,666 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ratnesh Kumar Singh — Recruiter Portfolio</title>
-  <meta name="description" content="Fast-loading recruiter portfolio of Ratnesh Kumar Singh — ECE Engineer, AI developer, hardware prototyper. With Raya AI assistant.">
-  <meta name="robots" content="index, follow">
-  <link rel="icon" type="image/png" href="favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratnesh Kumar Singh | Interactive 3D Portfolio & Theme Selector</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="description" content="Explore the multi-themed interactive 3D portfolio of Ratnesh Kumar Singh. Experience immersive WebGL 3D, playful Cosmic styles, bold Urban street art, clean Essential minimalist, and neon Lumen designs with custom VRM avatars and an AI chatbot.">
+    <meta name="keywords" content="Ratnesh Kumar Singh, Ratnesh Singh, Portfolio, 3D Portfolio, Web Developer, Electronics and Communication Engineer, Three.js, React, WebGL, Vercel, VRM Avatar, Mixamo, AI Chatbot, Hardware Prototypes, Arduino, Python">
+    <meta name="author" content="Ratnesh Kumar Singh">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ratnesh-portfolio.vercel.app/">
+    <meta property="og:title" content="Ratnesh Kumar Singh | Interactive 3D Portfolio & Theme Selector">
+    <meta property="og:description" content="Explore the multi-themed interactive 3D portfolio of Ratnesh Kumar Singh. Choose your visual theme (Immersive, Cosmic, Urban, Essential, Lumen) and interact with custom 3D avatars.">
+    <meta property="og:image" content="https://ratnesh-portfolio.vercel.app/favicon.png">
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ratnesh-portfolio.vercel.app/">
+    <meta property="twitter:title" content="Ratnesh Kumar Singh | Interactive 3D Portfolio">
+    <meta property="twitter:description" content="Explore the multi-themed interactive 3D portfolio of Ratnesh Kumar Singh featuring custom 3D avatars and an AI chatbot.">
+    <meta property="twitter:image" content="https://ratnesh-portfolio.vercel.app/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Basic styling overrides -->
+    <style>
+        .shiny-glass-btn {
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            z-index: 200;
+        }
+        .shiny-glass-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(255, 255, 255, 0.35),
+                transparent
+            );
+            transform: skewX(-25deg);
+            transition: 0.75s;
+        }
+        .shiny-glass-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.45);
+            box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.25),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .shiny-glass-btn:hover::before {
+            left: 150%;
+        }
+        .shiny-glass-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .loader-skip-row {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .loader-skip-hint {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.3);
+            font-family: 'Outfit', system-ui, sans-serif;
+            letter-spacing: 0.06em;
+        }
+    </style>
+    <!-- ─── Importmap for Three.js and three-vrm ────────────────────────── -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/",
+                "@pixiv/three-vrm": "https://unpkg.com/@pixiv/three-vrm@3.4.0/lib/three-vrm.module.js"
+            }
+        }
+    </script>
+    <!-- Basic Security Obfuscation -->
+    <script>
+        // Disable Right-Click
+        document.addEventListener('contextmenu', event => event.preventDefault());
 
-  <!-- Design System -->
-  <link rel="stylesheet" href="recruiter.css">
+        // Disable common DevTools shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+        document.addEventListener('keydown', function(e) {
+            // Block F12
+            if (e.key === "F12" || e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            // Block Ctrl+Shift+I, J, C
+            if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
+                e.preventDefault();
+                return false;
+            }
+            // Block Ctrl+U (View Source)
+            if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+                e.preventDefault();
+                return false;
+            }
+        });
 
-  <!-- Security: Disable right-click & DevTools shortcuts -->
-  <script>
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
-      if (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) { e.preventDefault(); return false; }
-      if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; }
-    });
-  </script>
+        // Prevent dragging to extract models
+        document.addEventListener('dragstart', event => {
+            if(event.target.nodeName.toUpperCase() === "IMG" || event.target.nodeName.toUpperCase() === "CANVAS") {
+                event.preventDefault();
+            }
+        });
+    </script>
 </head>
 <body>
-
-<!-- ═══ BUBBLE ENTRY SCREEN ══════════════════════════════════ -->
-<div id="bubble-screen" role="dialog" aria-label="Tap a bubble to enter the portfolio" aria-modal="true">
-  <div class="bubble-instructions" id="bubble-text">Tap a Bubble to Enter</div>
-  <div id="bubble-container"></div>
-</div>
-
-<!-- ═══ STICKY NAV ═══════════════════════════════════════ -->
-<nav id="r-nav" role="navigation" aria-label="Recruiter portfolio navigation">
-  <div class="container">
-    <div class="nav-inner">
-      <div class="nav-brand">RK<span>.</span>Singh</div>
-      <ul class="nav-links" role="list">
-        <li><a href="#r-about">About</a></li>
-        <li><a href="#r-skills">Skills</a></li>
-        <li><a href="#r-projects">Projects</a></li>
-        <li><a href="#r-achievements">Workshops</a></li>
-        <li><a href="#r-education">Education</a></li>
-        <li><a href="#r-contact">Contact</a></li>
-      </ul>
-      <div class="nav-actions">
-        <a href="Ratnesh_Kumar_Singh_CV.pdf" download class="btn btn-ghost" title="Download Resume">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download CV
-        </a>
-        <a href="theme-picker.html?direct=1" class="btn btn-ghost" id="nav-switch-btn" title="Explore 3D Portfolio Themes">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-          3D Themes
-        </a>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<!-- ═══ HERO ══════════════════════════════════════════════ -->
-<section id="r-hero" aria-labelledby="hero-heading">
-  <div class="container">
-    <div class="hero-eyebrow">
-      <div class="hero-dot" aria-hidden="true"></div>
-      <span class="label">Available for opportunities</span>
+    <!-- ═══ BUBBLE ENTRY SCREEN ══════════════════════════════════ -->
+    <div id="bubble-screen" role="dialog" aria-label="Tap a bubble to enter the portfolio" aria-modal="true">
+        <div class="bubble-instructions" id="bubble-text">Tap a Bubble to Enter</div>
+        <div id="bubble-container"></div>
     </div>
 
-    <h1 id="hero-heading">
-      <span class="hero-name">Ratnesh Kumar Singh</span>
-    </h1>
-    <p class="hero-title">Electronics &amp; Communication Engineer · AI Developer · Hardware Prototyper</p>
-
-    <div class="hero-stats" role="list" aria-label="Key statistics">
-      <div class="hero-stat reveal" role="listitem">
-        <div class="hero-stat-num">3<span>+</span></div>
-        <div class="hero-stat-label">Projects Built</div>
-      </div>
-      <div class="hero-stat reveal reveal-delay-1" role="listitem">
-        <div class="hero-stat-num">3<span>+</span></div>
-        <div class="hero-stat-label">Languages</div>
-      </div>
-      <div class="hero-stat reveal reveal-delay-2" role="listitem">
-        <div class="hero-stat-num">2026</div>
-        <div class="hero-stat-label">B.Tech Graduate</div>
-      </div>
-    </div>
-
-    <div class="hero-ctas reveal reveal-delay-2">
-      <a href="Ratnesh_Kumar_Singh_CV.pdf" download class="btn btn-primary" aria-label="Download CV">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download CV
-      </a>
-      <a href="#r-contact" class="btn btn-ghost">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        Contact
-      </a>
-      <button class="btn btn-ghost" id="hero-chat-btn" aria-label="Open Raya AI assistant">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-        Talk to Raya
-      </button>
-      <a href="theme-picker.html?direct=1" class="btn btn-ghost" aria-label="Open 3D portfolio themes">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        3D Themes
-      </a>
-    </div>
-
-    <div class="hero-scroll-hint reveal reveal-delay-4" aria-hidden="true">
-      <div class="scroll-line"></div>
-      <span>Scroll to explore</span>
-    </div>
-  </div>
-</section>
-
-<hr class="gradient-divider">
-
-<!-- ═══ ABOUT ══════════════════════════════════════════════ -->
-<section id="r-about" class="r-section" aria-labelledby="about-heading">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-num">01 / About</span>
-        <h2 id="about-heading" class="section-title">Who I Am</h2>
-        <div class="section-line" aria-hidden="true"></div>
-      </div>
-    </div>
-    <div class="about-grid">
-      <div class="about-main reveal">
-        <div class="glass">
-          <p class="about-bio">
-            I'm a <strong>B.Tech ECE student</strong> from Swami Vivekananda Institute (MAKAUT), Kolkata, 
-            passionate about bridging the gap between <strong>software intelligence and hardware systems</strong>.
-          </p>
-          <div class="about-tags">
-            <span class="pill pill-primary">AI / ML Enthusiast</span>
-            <span class="pill pill-primary">Embedded Systems</span>
-            <span class="pill pill-primary">Full-Stack Web</span>
-            <span class="pill pill-accent">Hardware Prototyping</span>
-            <span class="pill pill-accent">3D Web (Three.js)</span>
-          </div>
-        </div>
-      </div>
-      <div class="about-side">
-        <div class="glass about-info-card reveal reveal-delay-1">
-          <div class="info-label">Location</div>
-          <div class="info-value">📍 Kolkata, West Bengal, India</div>
-        </div>
-        <div class="glass about-info-card reveal reveal-delay-2">
-          <div class="info-label">Current Status</div>
-          <div class="info-value">🎓 Final Year B.Tech ECE (2026)</div>
-        </div>
-
-        <div class="glass about-info-card reveal reveal-delay-3">
-          <div class="info-label">Looking For</div>
-          <div class="info-value">Internships · Entry-Level Roles · Projects</div>
-        </div>
-        <div class="glass about-info-card reveal reveal-delay-3">
-          <div class="info-label">Languages</div>
-          <div class="info-value">English · Hindi · Bengali (basic)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="gradient-divider">
-
-<!-- ═══ SKILLS ══════════════════════════════════════════════ -->
-<section id="r-skills" class="r-section" aria-labelledby="skills-heading">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-num">02 / Skills</span>
-        <h2 id="skills-heading" class="section-title">Technical Skills</h2>
-        <div class="section-line" aria-hidden="true"></div>
-      </div>
-    </div>
-    <div class="skills-grid">
-      <div class="glass skill-card reveal">
-        <div class="skill-category-icon" aria-hidden="true">💻</div>
-        <div class="skill-category-title">Programming Languages</div>
-        <div class="skill-pills">
-          <span class="pill pill-primary">C</span>
-          <span class="pill pill-primary">C++</span>
-          <span class="pill pill-primary">Python</span>
-          <span class="pill">JavaScript</span>
-          <span class="pill">Node.js</span>
-        </div>
-      </div>
-      <div class="glass skill-card reveal reveal-delay-1">
-        <div class="skill-category-icon" aria-hidden="true">🌐</div>
-        <div class="skill-category-title">Web Development</div>
-        <div class="skill-pills">
-          <span class="pill pill-primary">HTML5</span>
-          <span class="pill pill-primary">CSS3</span>
-          <span class="pill pill-primary">Express.js</span>
-          <span class="pill">Three.js</span>
-          <span class="pill">React (basics)</span>
-          <span class="pill">REST APIs</span>
-        </div>
-      </div>
-      <div class="glass skill-card reveal reveal-delay-2">
-        <div class="skill-category-icon" aria-hidden="true">🤖</div>
-        <div class="skill-category-title">AI &amp; Machine Learning</div>
-        <div class="skill-pills">
-          <span class="pill pill-accent">Groq API</span>
-          <span class="pill pill-accent">LLM Integration</span>
-          <span class="pill pill-accent">Prompt Engineering</span>
-          <span class="pill">Speech Recognition</span>
-          <span class="pill">TTS (Web Speech API)</span>
-        </div>
-      </div>
-      <div class="glass skill-card reveal reveal-delay-1">
-        <div class="skill-category-icon" aria-hidden="true">🔩</div>
-        <div class="skill-category-title">Hardware &amp; Embedded</div>
-        <div class="skill-pills">
-          <span class="pill">Arduino</span>
-          <span class="pill">Embedded C</span>
-          <span class="pill">Sensor Interfacing</span>
-          <span class="pill">GIS (basics)</span>
-          <span class="pill">EV Systems</span>
-        </div>
-      </div>
-      <div class="glass skill-card reveal reveal-delay-2">
-        <div class="skill-category-icon" aria-hidden="true">🛠️</div>
-        <div class="skill-category-title">Tools &amp; Platforms</div>
-        <div class="skill-pills">
-          <span class="pill">Git &amp; GitHub</span>
-          <span class="pill">Vercel</span>
-          <span class="pill">Render</span>
-          <span class="pill">Supabase</span>
-          <span class="pill">SQLite</span>
-          <span class="pill">VS Code</span>
-        </div>
-      </div>
-      <div class="glass skill-card reveal reveal-delay-3">
-        <div class="skill-category-icon" aria-hidden="true">🧠</div>
-        <div class="skill-category-title">Soft Skills</div>
-        <div class="skill-pills">
-          <span class="pill pill-green">Fast Learner</span>
-          <span class="pill pill-green">Problem Solving</span>
-          <span class="pill pill-green">Collaborative</span>
-          <span class="pill pill-green">Creative Thinking</span>
-          <span class="pill pill-green">Self-Motivated</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="gradient-divider">
-
-<!-- ═══ PROJECTS ═════════════════════════════════════════════ -->
-<section id="r-projects" class="r-section" aria-labelledby="projects-heading">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-num">03 / Projects</span>
-        <h2 id="projects-heading" class="section-title">Featured Projects</h2>
-        <div class="section-line" aria-hidden="true"></div>
-      </div>
-    </div>
-    <div class="projects-grid">
-
-      <!-- Project 1 -->
-      <article class="glass project-card reveal">
-        <img src="images/project1.png" alt="Multi-Theme 3D Portfolio thumbnail" class="project-thumbnail" loading="lazy">
-        <div class="project-card-top">
-          <div class="project-icon" aria-hidden="true">🌐</div>
-          <span class="pill pill-green" style="font-size:0.68rem">Live</span>
-        </div>
-        <h3 class="project-title">Multi-Theme 3D Portfolio</h3>
-        <p class="project-desc">An interactive portfolio with 5 unique themes (Immersive, Cosmic, Urban, Essential, Lumen), each with custom VRM avatars, Three.js 3D rendering, and Raya — an AI chatbot that navigates the site via voice commands.</p>
-        <div class="project-stack">
-          <span class="pill">Three.js</span>
-          <span class="pill">Node.js</span>
-          <span class="pill">Groq API</span>
-          <span class="pill">Supabase</span>
-          <span class="pill">Vercel</span>
-        </div>
-        <div class="project-footer">
-          <a href="https://ratnesh-portfolio.vercel.app" target="_blank" rel="noopener" class="project-link" aria-label="View live portfolio">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-            Live Demo
-          </a>
-        </div>
-      </article>
-
-      <!-- Project 2 -->
-      <article class="glass project-card reveal reveal-delay-1">
-        <img src="images/project2.png" alt="Raya AI Assistant thumbnail" class="project-thumbnail" loading="lazy">
-        <div class="project-card-top">
-          <div class="project-icon" aria-hidden="true">🤖</div>
-          <span class="pill pill-accent" style="font-size:0.68rem">AI</span>
-        </div>
-        <h3 class="project-title">Raya — Self-Learning AI Assistant</h3>
-        <p class="project-desc">Contextual AI assistant integrated into the portfolio. Learns user names, preferences, and past conversations. Executes voice commands to navigate, play music, change avatars, and guide visitors through the site using Groq LLM.</p>
-        <div class="project-stack">
-          <span class="pill">Groq LLaMA</span>
-          <span class="pill">Web Speech API</span>
-          <span class="pill">Supabase</span>
-          <span class="pill">Express.js</span>
-          <span class="pill">Cookies</span>
-        </div>
-        <div class="project-footer">
-          <a href="https://ratnesh-portfolio.vercel.app" target="_blank" rel="noopener" class="project-link" aria-label="Try Raya live">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-            Try Live
-          </a>
-        </div>
-      </article>
-
-      <!-- Project 3 -->
-      <article class="glass project-card reveal reveal-delay-2">
-        <img src="images/project3.png" alt="Smart Parking System thumbnail" class="project-thumbnail" loading="lazy">
-        <div class="project-card-top">
-          <div class="project-icon" aria-hidden="true">🔩</div>
-          <span class="pill" style="font-size:0.68rem">Hardware</span>
-        </div>
-        <h3 class="project-title">Smart Parking System</h3>
-        <p class="project-desc">Embedded systems project using ultrasonic sensors to detect vacant spaces in a parking area, featuring real-time space status monitoring.</p>
-        <div class="project-stack">
-          <span class="pill">Arduino</span>
-          <span class="pill">Embedded C</span>
-          <span class="pill">C++</span>
-          <span class="pill">Serial Comm</span>
-        </div>
-        <div class="project-footer">
-          <span class="project-link" style="color:var(--text-3); cursor:default">
-            Academic Project
-          </span>
-        </div>
-      </article>
-
-    </div>
-  </div>
-</section>
-
-<hr class="gradient-divider">
-
-<!-- ═══ TRAINING & WORKSHOPS ════════════════════════════════════ -->
-<section id="r-achievements" class="r-section" aria-labelledby="achieve-heading">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-num">04 / Training &amp; Workshops</span>
-        <h2 id="achieve-heading" class="section-title">Workshops &amp; Extracurriculars</h2>
-        <div class="section-line" aria-hidden="true"></div>
-      </div>
-    </div>
-    <div class="achieve-grid">
-      <!-- Item 1: GIS Data Analysis Tool / Training -->
-      <div class="glass achieve-item reveal">
-        <div class="achieve-icon" aria-hidden="true">🗺️</div>
-        <div class="achieve-text">
-          <strong>GIS Spatial Analysis &amp; Mapping</strong><br>
-          Completed 2-week Geographic Information Systems training; spatial data visualization &amp; analysis.
-        </div>
-      </div>
-      <!-- Item 2: HAM Radio Workshop -->
-      <div class="glass achieve-item reveal reveal-delay-1">
-        <div class="achieve-icon" aria-hidden="true">📡</div>
-        <div class="achieve-text">
-          <strong>HAM Radio Innovation Workshop</strong><br>
-          Learned about wireless RF systems, emergency communications, and transmitter innovation.
-        </div>
-      </div>
-      <!-- Item 3: Cyber Security Awareness -->
-      <div class="glass achieve-item reveal reveal-delay-2">
-        <div class="achieve-icon" aria-hidden="true">🔒</div>
-        <div class="achieve-text">
-          <strong>Cyber Security Awareness Workshop</strong><br>
-          Gained awareness in ethical hacking, digital safety, and common web threat vectors.
-        </div>
-      </div>
-      <!-- Item 4: BSNL Telecom Visit -->
-      <div class="glass achieve-item reveal">
-        <div class="achieve-icon" aria-hidden="true">🏭</div>
-        <div class="achieve-text">
-          <strong>BSNL Telecom Industrial Visit</strong><br>
-          Toured operations to study telecommunication switching equipment and network routing.
-        </div>
-      </div>
-      <!-- Item 5: EV Service Technician -->
-      <div class="glass achieve-item reveal reveal-delay-1">
-        <div class="achieve-icon" aria-hidden="true">⚡</div>
-        <div class="achieve-text">
-          <strong>EV Service Technician Training</strong><br>
-          Completed a 1-month program on electric vehicle diagnostics, battery tech, and servicing.
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="gradient-divider">
-
-<!-- ═══ EDUCATION ════════════════════════════════════════════ -->
-<section id="r-education" class="r-section" aria-labelledby="edu-heading">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-num">05 / Education</span>
-        <h2 id="edu-heading" class="section-title">Education &amp; Training</h2>
-        <div class="section-line" aria-hidden="true"></div>
-      </div>
-    </div>
-    <div class="edu-timeline">
-      <div class="glass edu-item reveal">
-        <div class="edu-year">2022–2026</div>
-        <div>
-          <div class="edu-name">B.Tech — Electronics &amp; Communication Engineering</div>
-          <div class="edu-inst">Swami Vivekananda Institute of Science &amp; Technology (M.A.K.A.U.T.) · Kolkata</div>
-          <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
-            <span class="pill pill-primary">Embedded Systems</span>
-            <span class="pill pill-primary">Signal Processing</span>
-            <span class="pill pill-primary">Communication Networks</span>
-          </div>
-        </div>
-      </div>
-      <div class="glass edu-item reveal reveal-delay-1">
-        <div class="edu-year">2020</div>
-        <div>
-          <div class="edu-name">12th Standard — Science (P.C.M)</div>
-          <div class="edu-inst">P.B.S College · Bihar School Examination Board (B.S.E.B)</div>
-        </div>
-      </div>
-      <div class="glass edu-item reveal reveal-delay-2">
-        <div class="edu-year">2018</div>
-        <div>
-          <div class="edu-name">10th Standard — I.G.C.S.E</div>
-          <div class="edu-inst">Vidyanjali High School</div>
-        </div>
-      </div>
-
-      <!-- Training Row -->
-      <div class="glass edu-item reveal reveal-delay-1" style="background: rgba(34,211,238,0.04); border-color: rgba(34,211,238,0.15);">
-        <div class="edu-year" style="color: var(--accent)">Training</div>
-        <div>
-          <div class="edu-name">Certifications &amp; Courses</div>
-          <div class="edu-inst" style="margin-bottom:12px">Professional development alongside engineering degree</div>
-          <div style="display:flex; flex-wrap:wrap; gap:8px">
-            <span class="pill pill-accent">Python (1 Month)</span>
-            <span class="pill pill-accent">C Language (1 Month)</span>
-            <span class="pill pill-accent">EV Service Technician (1 Month)</span>
-            <span class="pill pill-accent">GIS Training (2 Weeks)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="gradient-divider">
-
-<hr class="gradient-divider">
-
-<!-- ═══ CONTACT ═══════════════════════════════════════════════ -->
-<section id="r-contact" class="r-section" aria-labelledby="contact-heading">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-title-wrap">
-        <span class="section-num">06 / Contact</span>
-        <h2 id="contact-heading" class="section-title">Let's Connect</h2>
-        <div class="section-line" aria-hidden="true"></div>
-      </div>
-    </div>
-    <div class="contact-grid">
-      <div class="glass contact-cta-card reveal">
-        <h3>Open to Opportunities</h3>
-        <p>Currently looking for internships, entry-level roles, and exciting projects in embedded systems, AI, or full-stack development. Let's build something great together.</p>
-        <button class="btn btn-accent" id="contact-raya-btn" aria-label="Ask Raya to help contact Ratnesh">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-          Ask Raya to Help
-        </button>
-      </div>
-      <div class="contact-links reveal reveal-delay-1">
-        <div class="glass contact-link-item" role="group" aria-label="Email contact">
-          <div class="clink-icon" aria-hidden="true">✉️</div>
-          <div>
-            <div class="clink-label">Email</div>
-            <div class="clink-value" id="contact-email-display">
-              <a href="#" id="contact-email-link" onclick="revealEmail(event)" aria-label="Reveal email address">Click to reveal →</a>
+    <!-- ─── Site Global Loading Screen ─────────────────────────────────── -->
+    <div id="site-loader">
+        <div class="site-loader-bg"></div>
+        <div class="site-loader-content">
+            <div class="site-loader-logo">
+                <i data-lucide="zap" style="color: #ff416c; width: 48px; height: 48px;"></i>
             </div>
-          </div>
+            <h1 class="site-loader-title">SYSTEM INITIALIZING</h1>
+            <div class="site-loader-bar-wrap">
+                <div id="site-loader-bar"></div>
+            </div>
+            <div class="site-loader-footer">
+                <span id="site-loader-text">Loading Character Engine...</span>
+                <span id="site-loader-pct">0%</span>
+            </div>
+            <p class="site-loader-warning">Switch to desktop or rotate your phone for better experience</p>
         </div>
-        <a class="glass contact-link-item" href="https://www.linkedin.com/in/ratnesh-kumar-singh-b75aba2b8/" target="_blank" rel="noopener" aria-label="Visit LinkedIn profile">
-          <div class="clink-icon" aria-hidden="true">💼</div>
-          <div>
-            <div class="clink-label">LinkedIn</div>
-            <div class="clink-value">Ratnesh Kumar Singh →</div>
-          </div>
-        </a>
-
-      </div>
     </div>
-  </div>
-</section>
 
-<!-- ═══ MODE SWITCH BANNER ════════════════════════════════════ -->
-<div class="container">
-  <div id="r-mode-banner" class="reveal" role="complementary" aria-labelledby="banner-heading">
-    <div class="banner-sparkles" aria-hidden="true">✨</div>
-    <h2 id="banner-heading">Ready for the Full Experience?</h2>
-    <p>You've seen my work. Now experience it in a whole new dimension — 3D avatars, immersive themes, and Raya in her full form.</p>
-    <div class="banner-ctas">
-      <a href="theme-picker.html?direct=1" class="btn btn-accent" aria-label="Open full 3D portfolio">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        Enter Full 3D Portfolio
-      </a>
-      <button class="btn btn-ghost" id="banner-chat-btn" aria-label="Open Raya chat">Ask Raya About It</button>
+    <!-- ─── Background decorations ──────────────────────────────────────── -->
+    <div class="bg-gradient"></div>
+    <div class="glow" style="top: -10%; left: -10%; background: radial-gradient(circle, rgba(79, 172, 254, 0.3) 0%, transparent 70%);"></div>
+    <div class="glow" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(254, 154, 158, 0.3) 0%, transparent 70%);"></div>
+
+    <!-- ─── VRM Character canvas (ABOVE cards, always on top) ─────────────── -->
+    <canvas id="vrm-canvas"></canvas>
+
+    <!-- ─── Loading indicator ───────────────────────────────────────────── -->
+    <div id="vrm-loading">
+        <div class="loading-text">INITIALIZING AVATAR... <span id="vrm-loading-pct">0%</span></div>
+        <div class="loading-bar-container">
+            <div id="vrm-loading-bar"></div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- ═══ FOOTER ═════════════════════════════════════════════════ -->
-<footer id="r-footer" role="contentinfo">
-  <div class="container">
-    <p>Designed &amp; built by <span>Ratnesh Kumar Singh</span> · Powered by Raya AI · <a href="/theme-picker.html?direct=1" style="color:var(--accent)">View 3D Portfolio →</a></p>
-  </div>
-</footer>
-
-<!-- ═══ CHATBOT ════════════════════════════════════════════════ -->
-<button id="r-chat-btn" aria-label="Toggle Raya AI chat" aria-expanded="false" aria-controls="r-chat-window">
-  <!-- Open icon -->
-  <svg class="chat-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-  <!-- Close icon -->
-  <svg class="chat-close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-</button>
-
-<div id="r-chat-window" role="dialog" aria-label="Raya AI assistant" aria-modal="false">
-  <div class="chat-header">
-    <div class="chat-avatar" aria-hidden="true">✨</div>
-    <div class="chat-header-info">
-      <div class="chat-name">Raya</div>
-      <div class="chat-status">● Online</div>
-    </div>
-  </div>
-  <div class="chat-messages" id="r-chat-messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
-  <div class="chat-footer">
-    <input type="text" id="r-chat-input" placeholder="Ask Raya anything..." autocomplete="off" aria-label="Message Raya" maxlength="300">
-    <button id="r-mic-btn" aria-label="Start voice input" title="Speak to Raya">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-    </button>
-    <button id="r-chat-send" aria-label="Send message">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-    </button>
-  </div>
-</div>
-
-<!-- Chatbot Logic -->
-<script src="recruiter-bot.js"></script>
-
-<script>
-// ── Email Obfuscation ──────────────────────────────────────
-function revealEmail(e) {
-  e.preventDefault();
-  const parts = ['kumarsinghratnesh', '9', '@gmail.com'];
-  const email = parts[0] + parts[1] + parts[2];
-  const link = document.getElementById('reveal-email-link');
-  const clink = document.getElementById('contact-email-link');
-  const display = document.getElementById('contact-email-display');
-  if (link) {
-    link.textContent = email;
-    link.href = 'mailto:' + email;
-    link.onclick = null;
-  }
-  if (display) {
-    display.innerHTML = '<a href="mailto:' + email + '">' + email + '</a>';
-  }
-}
-
-// ── Scroll Reveal ─────────────────────────────────────────
-const revealEls = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      observer.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-revealEls.forEach(el => observer.observe(el));
-
-// ── Chat Toggle ───────────────────────────────────────────
-const chatBtn = document.getElementById('r-chat-btn');
-const chatWin = document.getElementById('r-chat-window');
-function openChat() {
-  chatBtn.classList.add('open');
-  chatWin.classList.add('open');
-  chatBtn.setAttribute('aria-expanded', 'true');
-  document.getElementById('r-chat-input').focus();
-}
-function closeChat() {
-  chatBtn.classList.remove('open');
-  chatWin.classList.remove('open');
-  chatBtn.setAttribute('aria-expanded', 'false');
-}
-chatBtn.addEventListener('click', () => {
-  chatBtn.classList.contains('open') ? closeChat() : openChat();
-});
-document.getElementById('hero-chat-btn').addEventListener('click', openChat);
-document.getElementById('contact-raya-btn').addEventListener('click', openChat);
-document.getElementById('banner-chat-btn').addEventListener('click', openChat);
-
-// ── End-of-page Raya Prompt (via IntersectionObserver) ────
-const modeBanner = document.getElementById('r-mode-banner');
-let bannerTriggered = false;
-const bannerObs = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && !bannerTriggered) {
-      bannerTriggered = true;
-      // Delay slightly for dramatic effect
-      setTimeout(() => {
-        if (window.recruitBot) {
-          window.recruitBot.showModeSwitchPrompt();
-        }
-      }, 1200);
-    }
-  });
-}, { threshold: 0.5 });
-bannerObs.observe(modeBanner);
-</script>
-<script>
-  // 3D Tilt Effect for Project Cards
-  document.querySelectorAll('.project-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      if (window.innerWidth < 768) return; // Disable on mobile for performance
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -5; // max rotation 5deg
-      const rotateY = ((x - centerX) / centerX) * 5;
-      
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-      card.style.boxShadow = `${-rotateY * 2}px ${rotateX * 2 + 10}px 30px rgba(0,0,0,0.4)`;
-    });
+    <!-- ─── Page content (z-index above canvas) ─────────────────────────── -->
+    <header>
+        <h1>Select A Theme.</h1>
+    </header>
     
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-      card.style.boxShadow = 'var(--shadow-glass)';
-    });
-  });
-</script>
+    <main class="container">
+        <a href="./Immersive/dist/index.html" class="card" id="card-1">
+            <div class="card-icon"><i data-lucide="box"></i></div>
+            <div class="card-vertical-title">IMMERSIVE</div>
+            <div class="card-content">
+                <div class="card-title">Immersive</div>
+                <div class="card-subtitle">An immersive, multidimensional experience.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Cosmic/dist/index.html" class="card" id="card-2">
+            <div class="card-icon"><i data-lucide="ghost"></i></div>
+            <div class="card-vertical-title">COSMIC</div>
+            <div class="card-content">
+                <div class="card-title">Cosmic</div>
+                <div class="card-subtitle">Playful, quirky, and out of this world.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Urban/dist/index.html" class="card" id="card-3">
+            <div class="card-icon"><i data-lucide="palette"></i></div>
+            <div class="card-vertical-title">URBAN</div>
+            <div class="card-content">
+                <div class="card-title">Urban</div>
+                <div class="card-subtitle">Bold, urban styling and street art aesthetics.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Essential/dist/index.html" class="card" id="card-4">
+            <div class="card-icon"><i data-lucide="layers"></i></div>
+            <div class="card-vertical-title">ESSENTIAL</div>
+            <div class="card-content">
+                <div class="card-title">Essential</div>
+                <div class="card-subtitle">Clean lines, white space, and elegant simplicity.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+        <a href="./Lumen/dist/index.html" class="card" id="card-5">
+            <div class="card-icon"><i data-lucide="sun"></i></div>
+            <div class="card-vertical-title">LUMEN</div>
+            <div class="card-content">
+                <div class="card-title">Lumen</div>
+                <div class="card-subtitle">Soothing contrast, elegant dark mode, and calm vibes.</div>
+                <div class="view-project">
+                    <span>View Portfolio</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
+    </main>
 
-<script>
-// ── Bubble Entry Screen ───────────────────────────────────────────
-(function() {
-  // Skip bubble if user has already been here this session
-  if (sessionStorage.getItem('raya_bubble_done')) {
-    document.getElementById('bubble-screen').remove();
-    return;
-  }
+    <!-- ─── Theme Switcher / Iframe Container ───────────────────────────── -->
+    <button id="change-theme-btn">Change Theme <i data-lucide="refresh-cw" style="width:18px;height:18px;margin-left:5px;display:inline-block;vertical-align:middle;"></i></button>
+    <div id="iframe-container"></div>
 
-  const bubbleScreen = document.getElementById('bubble-screen');
-  const container    = document.getElementById('bubble-container');
-  const isMobile     = /Android|iPhone|iPad/i.test(navigator.userAgent);
-  const spawnMs      = isMobile ? 1800 : 700;
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+        
+        // Iframe Logic for Seamless Theme Switching
+        const container = document.querySelector('.container');
+        const header = document.querySelector('header');
+        const contactSection = document.querySelector('.contact-section'); // may be null
+        const changeThemeBtn = document.getElementById('change-theme-btn');
+        const iframeContainer = document.getElementById('iframe-container');
 
-  const interval = setInterval(() => {
-    const b = document.createElement('div');
-    b.className = 'bubble-item';
-    const size = 30 + Math.random() * 80;
-    b.style.cssText = `width:${size}px;height:${size}px;left:${5+Math.random()*85}vw;animation-duration:${(isMobile?8:4)+Math.random()*5}s;`;
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetUrl = card.getAttribute('href');
+                localStorage.setItem('selectedTheme', targetUrl);
 
-    b.addEventListener('pointerdown', (e) => {
-      clearInterval(interval);
-      document.querySelectorAll('.bubble-item').forEach(x => x.style.opacity='0');
+                // Determine theme name for Raya's navigation hints
+                const themeNames = { 'card-1': 'Immersive', 'card-2': 'Cosmic', 'card-3': 'Urban', 'card-4': 'Essential', 'card-5': 'Lumen' };
+                const themeName = themeNames[card.id] || '';
+                
+                // Animate cards out
+                document.querySelectorAll('.card').forEach((c, idx) => {
+                    c.classList.add('exiting');
+                    c.style.animationDelay = `${idx * 0.05}s`;
+                });
 
-      // Crack + mist burst effect
-      const cx=e.clientX, cy=e.clientY, r=b.getBoundingClientRect().width*0.5;
-      for(let i=0;i<4;i++){
-        const ang=(i/4)*Math.PI, len=r*(1.1+Math.random()*0.4);
-        const l=document.createElement('div');
-        l.className='bubble-crack-line';
-        l.style.cssText=`left:${cx}px;top:${cy}px;width:${len*2}px;height:${1+Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent,rgba(200,235,255,0.9) 30%,#fff 50%,rgba(200,235,255,0.9) 70%,transparent);transform:rotate(${ang}rad) scaleX(0);animation-delay:${i*0.03}s;`;
-        document.body.appendChild(l);
-        setTimeout(()=>l.remove(),500);
-      }
-      for(let i=0;i<6;i++){
-        const ang=(i/6)*2*Math.PI+Math.random()*0.4;
-        const dist=r*(0.5+Math.random()*0.8);
-        const sz=2+Math.random()*3;
-        const m=document.createElement('div');
-        m.className='bubble-mist-dot';
-        m.style.cssText=`left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz/2}px;margin-top:${-sz/2}px;`;
-        document.body.appendChild(m);
-        requestAnimationFrame(()=>{ m.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px) scale(0)`; });
-        setTimeout(()=>m.remove(),550);
-      }
+                // Hide main UI
+                container.style.opacity = '0';
+                container.style.pointerEvents = 'none';
+                header.style.opacity = '0';
+                header.style.pointerEvents = 'none';
+                if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
+                
+                setTimeout(() => {
+                    const loaderHTML = `
+                        <div id="iframe-loader" style="position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; background:#080808; z-index:5;">
+                            <div style="width:48px; height:48px; border:3px solid rgba(255,65,108,0.2); border-top-color:#ff416c; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                            <span style="color:rgba(255,255,255,0.4); font-family:'Outfit',sans-serif; font-size:13px; letter-spacing:1px;">LOADING...</span>
+                            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+                        </div>
+                    `;
 
-      // Fade out overlay after burst
-      setTimeout(() => {
-        bubbleScreen.classList.add('hidden');
-        sessionStorage.setItem('raya_bubble_done','1');
-        setTimeout(() => {
-          bubbleScreen.remove();
-          // Trigger Raya's intro voice — bubble pop = user gesture, TTS now allowed
-          if (window.recruitBot && typeof window.recruitBot._speak === 'function') {
-            const chatBtn = document.getElementById('r-chat-btn');
-            const chatWin = document.getElementById('r-chat-window');
-            if (chatBtn && chatWin) {
-              chatBtn.classList.add('open');
-              chatWin.classList.add('open');
-              chatBtn.setAttribute('aria-expanded','true');
+                    // Create and show iframe
+                    iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.addEventListener('pointermove', e => window.parent.postMessage({type: 'vrm-pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerdown', e => window.parent.postMessage({type: 'vrm-pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerup', e => window.parent.postMessage({type: 'vrm-pointerup', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
+                    iframeContainer.style.opacity = '1';
+                    iframeContainer.style.pointerEvents = 'none';
+                    const newIframe = iframeContainer.querySelector('iframe');
+                    if (newIframe) newIframe.style.pointerEvents = 'auto';
+                    
+                    // Show switch theme button, hide avatar button
+                    changeThemeBtn.style.opacity = '1';
+                    changeThemeBtn.style.pointerEvents = 'auto';
+                    const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+                    if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
+                    const avatarPanel = document.getElementById('avatar-panel');
+                    if (avatarPanel) { avatarPanel.classList.remove('open'); }
+
+                    // Notify Raya that a theme was opened (for navigation hints)
+                    if (themeName && window.chatbot && typeof window.chatbot.onThemeOpened === 'function') {
+                        window.chatbot.onThemeOpened(themeName);
+                    }
+                }, 600); // Wait for card exit and fade out
+            });
+        });
+
+        changeThemeBtn.addEventListener('click', () => {
+            localStorage.removeItem('selectedTheme');
+            // Hide iframe and button
+            iframeContainer.style.opacity = '0';
+            iframeContainer.style.pointerEvents = 'none';
+            changeThemeBtn.style.opacity = '0';
+            changeThemeBtn.style.pointerEvents = 'none';
+            // Restore avatar button
+            const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+            if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '1'; avatarToggleBtn.style.pointerEvents = 'auto'; }
+
+            // Notify Raya that user returned to theme selector
+            if (window.chatbot && typeof window.chatbot.onThemeClosed === 'function') {
+                window.chatbot.onThemeClosed();
             }
-            // Mark gesture done and warm up TTS
-            window.recruitBot._userHasGestured = true;
-            try{
-              const w=new SpeechSynthesisUtterance(''); w.volume=0;
-              speechSynthesis.speak(w);
-            }catch(e){}
-            // Speak the intro (already in chat from _initChat, just re-speak)
-            const msgs = document.querySelectorAll('#r-chat-messages .chat-msg.bot');
-            if(msgs.length > 0) {
-              const introText = msgs[msgs.length-1].textContent;
-              setTimeout(()=>window.recruitBot._speak(introText), 300);
-            }
-          }
-        }, 400);
-      }, 280);
-    });
-    container.appendChild(b);
-    setTimeout(()=>{ if(b.parentNode) b.remove(); }, isMobile?16000:9000);
-  }, spawnMs);
-})();
-</script>
+            
+            setTimeout(() => {
+                iframeContainer.innerHTML = ''; // clear iframe memory
+                
+                // Show main UI
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+                header.style.opacity = '1';
+                header.style.pointerEvents = 'auto';
+                if (contactSection) { contactSection.style.opacity = '1'; contactSection.style.pointerEvents = 'auto'; }
+                
+                // Animate cards back in
+                document.querySelectorAll('.card').forEach((c) => {
+                    c.style.animationDelay = ''; // clear exit delay
+                    c.style.animation = 'none';
+                    c.offsetHeight; /* trigger reflow */
+                    c.classList.remove('exiting');
+                    c.style.animation = ''; // restore CSS defined animation
+                });
+            }, 500); // Wait for fade out
+        });
 
+        // Auto-load previously selected theme
+        const savedTheme = localStorage.getItem('selectedTheme');
+        if (savedTheme) {
+            const card = Array.from(document.querySelectorAll('.card')).find(c => c.getAttribute('href') === savedTheme);
+            if (card) {
+                // Simulate quick transition without animation delays
+                const targetUrl = savedTheme;
+                const container = document.querySelector('.container');
+                const header = document.querySelector('header');
+                const contactSection = document.querySelector('.contact-section');
+                
+                container.style.opacity = '0';
+                container.style.pointerEvents = 'none';
+                header.style.opacity = '0';
+                header.style.pointerEvents = 'none';
+                if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
+                
+                const loaderHTML = `
+                    <div id="iframe-loader" style="position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; background:#080808; z-index:5;">
+                        <div style="width:48px; height:48px; border:3px solid rgba(255,65,108,0.2); border-top-color:#ff416c; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        <span style="color:rgba(255,255,255,0.4); font-family:'Outfit',sans-serif; font-size:13px; letter-spacing:1px;">LOADING...</span>
+                        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+                    </div>
+                `;
+                iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.addEventListener('pointermove', e => window.parent.postMessage({type: 'vrm-pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerdown', e => window.parent.postMessage({type: 'vrm-pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerup', e => window.parent.postMessage({type: 'vrm-pointerup', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
+                iframeContainer.style.opacity = '1';
+                iframeContainer.style.pointerEvents = 'none';
+                const newIframe2 = iframeContainer.querySelector('iframe');
+                if (newIframe2) newIframe2.style.pointerEvents = 'auto';
+                
+                changeThemeBtn.style.opacity = '1';
+                changeThemeBtn.style.pointerEvents = 'auto';
+                const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+                if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
+                const avatarPanel = document.getElementById('avatar-panel');
+                if (avatarPanel) { avatarPanel.classList.remove('open'); }
+            }
+        }
+    </script>
+
+    <!-- SVG Filter for Liquid Effect -->
+    <svg style="visibility: hidden; position: absolute;" width="0" height="0">
+        <filter id="liquid-filter">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="liquid" />
+            <feComposite in="SourceGraphic" in2="liquid" operator="atop" />
+        </filter>
+    </svg>
+
+    <!-- ─── Avatar Switcher ──────────────────────────────────────────── -->
+    <button id="avatar-toggle-btn" title="Switch Avatar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>Avatar</span>
+    </button>
+
+    <div id="avatar-panel">
+        <div class="avatar-panel-header">
+            <span>Choose Avatar</span>
+            <button id="avatar-panel-close">✕</button>
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-size-slider">Character Size <span id="avatar-size-pct">95%</span></label>
+            <input type="range" id="avatar-size-slider" min="0.5" max="1.5" step="0.01" value="0.95">
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-brightness-slider">Scene Brightness <span id="avatar-brightness-pct">100%</span></label>
+            <input type="range" id="avatar-brightness-slider" min="0.2" max="3.0" step="0.05" value="1.0">
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-hair-slider">💇 Hair Brightness <span id="avatar-hair-pct">100%</span></label>
+            <input type="range" id="avatar-hair-slider" min="0.1" max="3.0" step="0.05" value="1.0">
+        </div>
+        <div class="avatar-slider-container">
+            <label for="avatar-skin-slider">✨ Skin Brightness <span id="avatar-skin-pct">100%</span></label>
+            <input type="range" id="avatar-skin-slider" min="0.1" max="3.0" step="0.05" value="1.0">
+        </div>
+        <div class="avatar-grid" id="avatar-grid">
+            <!-- filled by JS -->
+        </div>
+    </div>
+
+    <script>
+        const isMobileDevice = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        window.getAvatarUrl = function(localPath) {
+            if (!localPath) return '';
+            if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
+                return localPath;
+            }
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:') {
+                return localPath;
+            }
+            return `/api/avatar-proxy?file=${encodeURIComponent(localPath)}`;
+        };
+
+        const AVATARS = [
+            { name: 'Changli',        file: './Wuwa/changli(fixed).vrm' },
+            { name: 'Camellya',       file: './Wuwa/CamellyaV1.vrm' },
+            { name: 'Carlotta',       file: './Wuwa/CarlottaV1.vrm' },
+            { name: 'Chixia',         file: './Wuwa/chixia.vrm' },
+            { name: 'Jinshi',         file: './Wuwa/jinshi.vrm' },
+            { name: 'Kid Changli',    file: './Wuwa/Kid changli.vrm' },
+            { name: 'Pinkshi',        file: './Wuwa/PinkshiV1.vrm' },
+            { name: 'Roccia',         file: './Wuwa/RocciaV3.vrm' },
+            { name: 'Rover',          file: './Wuwa/rover.vrm' },
+            { name: 'Sanhua',         file: './Wuwa/SanhuaV2.vrm' },
+            { name: 'Shorekeeper',    file: './Wuwa/ShorekeeperV3.vrm' },
+            { name: 'Verina',         file: './Wuwa/verina.vrm' },
+            { name: 'Yangyang',       file: './Wuwa/yangyang.vrm' },
+            { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
+        ];
+
+        // Load user's saved avatar, defaulting to Changli on both mobile and desktop
+        let activeAvatar = localStorage.getItem('selectedAvatar') || './Wuwa/changli(fixed).vrm';
+        window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
+
+        const panel      = document.getElementById('avatar-panel');
+        const toggleBtn  = document.getElementById('avatar-toggle-btn');
+        const closeBtn   = document.getElementById('avatar-panel-close');
+        const grid       = document.getElementById('avatar-grid');
+
+        // Build grid
+        AVATARS.forEach(av => {
+            const btn = document.createElement('button');
+            btn.className = 'avatar-item' + (av.file === activeAvatar ? ' active' : '');
+            btn.dataset.file = av.file;
+            btn.innerHTML = `
+                <div class="avatar-icon">✦</div>
+                <div class="avatar-name">${av.name}</div>`;
+            btn.addEventListener('click', () => {
+                if (av.file === activeAvatar) return;
+                activeAvatar = av.file; localStorage.setItem('selectedAvatar', activeAvatar);
+                grid.querySelectorAll('.avatar-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // Call the exposed switch function from vrm-character.js
+                if (typeof window.switchVRM === 'function') window.switchVRM(av.file);
+                // Reset brightness sliders to defaults for new avatar
+                if (typeof resetBrightnessSliders === 'function') resetBrightnessSliders();
+                panel.classList.remove('open');
+            });
+            grid.appendChild(btn);
+        });
+
+        toggleBtn.addEventListener('click', () => panel.classList.toggle('open'));
+        closeBtn.addEventListener('click',  () => panel.classList.remove('open'));
+        // Close when clicking outside
+        document.addEventListener('click', e => {
+            if (!panel.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target))
+                panel.classList.remove('open');
+        });
+
+        // Setup size slider
+        const sizeSlider = document.getElementById('avatar-size-slider');
+        const sizePct = document.getElementById('avatar-size-pct');
+        // isMobileDevice is declared at the top of script
+        if (isMobileDevice) {
+            sizeSlider.value = '0.70';
+            sizePct.innerText = '70%';
+        }
+
+        sizeSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            sizePct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMScale === 'function') {
+                window.setVRMScale(val);
+            }
+        });
+
+        // Setup scene brightness slider
+        const brightSlider = document.getElementById('avatar-brightness-slider');
+        const brightPct = document.getElementById('avatar-brightness-pct');
+        brightSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            brightPct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMBrightness === 'function') window.setVRMBrightness(val);
+        });
+
+        // Setup hair brightness slider
+        const hairSlider = document.getElementById('avatar-hair-slider');
+        const hairPct = document.getElementById('avatar-hair-pct');
+        hairSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            hairPct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMHairBrightness === 'function') window.setVRMHairBrightness(val);
+        });
+
+        // Setup skin brightness slider
+        const skinSlider = document.getElementById('avatar-skin-slider');
+        const skinPct = document.getElementById('avatar-skin-pct');
+        skinSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            skinPct.innerText = Math.round(val * 100) + '%';
+            if (typeof window.setVRMSkinBrightness === 'function') window.setVRMSkinBrightness(val);
+        });
+
+        // Reset sliders to default when avatar switches
+        function resetBrightnessSliders() {
+            brightSlider.value = 1.0; brightPct.innerText = '100%';
+            hairSlider.value = 1.0;   hairPct.innerText = '100%';
+            skinSlider.value = 1.0;   skinPct.innerText = '100%';
+        }
+    </script>
+
+    <!-- ─── Copyright Footer ──────────────────────────────────────────── -->
+    <div style="position: fixed; bottom: 15px; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.4); font-family: 'Outfit', sans-serif; font-size: 11px; z-index: 8000; pointer-events: none; letter-spacing: 1px;">
+        &copy; <span id="copyright-year"></span> Ratnesh Singh. All Rights Reserved.
+        <script>document.getElementById('copyright-year').innerText = new Date().getFullYear();</script>
+    </div>
+
+    <!-- ─── Bubble Entry Screen Script ───────────────────────────────── -->
+    <script>
+        (function() {
+            // Skip bubble if user has already been here this session
+            if (sessionStorage.getItem('raya_bubble_done')) {
+                const bs = document.getElementById('bubble-screen');
+                if (bs) bs.remove();
+                return;
+            }
+
+            const bubbleScreen = document.getElementById('bubble-screen');
+            const container    = document.getElementById('bubble-container');
+            const isMobile     = /Android|iPhone|iPad/i.test(navigator.userAgent);
+            const spawnMs      = isMobile ? 1800 : 700;
+
+            const interval = setInterval(() => {
+                if (!document.getElementById('bubble-screen')) {
+                    clearInterval(interval);
+                    return;
+                }
+                const b = document.createElement('div');
+                b.className = 'bubble-item';
+                const size = 30 + Math.random() * 80;
+                b.style.cssText = `width:${size}px;height:${size}px;left:${5+Math.random()*85}vw;animation-duration:${(isMobile?8:4)+Math.random()*5}s;`;
+
+                b.addEventListener('pointerdown', (e) => {
+                    clearInterval(interval);
+                    document.querySelectorAll('.bubble-item').forEach(x => x.style.opacity='0');
+
+                    // Crack + mist burst effect
+                    const cx=e.clientX, cy=e.clientY, r=b.getBoundingClientRect().width*0.5;
+                    for(let i=0;i<4;i++){
+                        const ang=(i/4)*Math.PI, len=r*(1.1+Math.random()*0.4);
+                        const l=document.createElement('div');
+                        l.className='bubble-crack-line';
+                        l.style.cssText=`left:${cx}px;top:${cy}px;width:${len*2}px;height:${1+Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent,rgba(200,235,255,0.9) 30%,#fff 50%,rgba(200,235,255,0.9) 70%,transparent);transform:rotate(${ang}rad) scaleX(0);animation-delay:${i*0.03}s;`;
+                        document.body.appendChild(l);
+                        setTimeout(()=>l.remove(),500);
+                    }
+                    for(let i=0;i<6;i++){
+                        const ang=(i/6)*2*Math.PI+Math.random()*0.4;
+                        const dist=r*(0.5+Math.random()*0.8);
+                        const sz=2+Math.random()*3;
+                        const m=document.createElement('div');
+                        m.className='bubble-mist-dot';
+                        m.style.cssText=`left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz/2}px;margin-top:${-sz/2}px;`;
+                        document.body.appendChild(m);
+                        requestAnimationFrame(()=>{ m.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px) scale(0)`; });
+                        setTimeout(()=>m.remove(),550);
+                    }
+
+                    // Fade out overlay after burst
+                    setTimeout(() => {
+                        bubbleScreen.classList.add('hidden');
+                        sessionStorage.setItem('raya_bubble_done','1');
+                        setTimeout(() => {
+                            bubbleScreen.remove();
+                            // Prime TTS & activate voice / wave
+                            if (window.chatBot) {
+                                window.chatBot._userHasGestured = true;
+                            }
+                            try {
+                                const w = new SpeechSynthesisUtterance('');
+                                w.volume = 0;
+                                speechSynthesis.speak(w);
+                            } catch(e){}
+                            if (typeof window.onBubblePopped === 'function') {
+                                window.onBubblePopped();
+                            }
+                        }, 400);
+                    }, 280);
+                });
+                container.appendChild(b);
+                setTimeout(()=>{ if(b.parentNode) b.remove(); }, isMobile?16000:9000);
+            }, spawnMs);
+        })();
+    </script>
+
+    <!-- ─── VRM Configuration & Controller ────────────────────────────── -->
+    <script src="./vrm-config.js"></script>
+    <script type="module" src="./vrm-character.js"></script>
+    <script src="./chatbot.js"></script>
+    
+    <script>
+        let chatbotInstance = null;
+        window.addEventListener('load', () => {
+            if (typeof AvatarChatBot !== 'undefined') {
+                chatbotInstance = window.chatBot || new AvatarChatBot();
+            }
+        });
+    </script>
 </body>
 </html>

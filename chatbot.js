@@ -15,13 +15,9 @@ CRITICAL MULTI-ACTION RULE: If the user asks for TWO things at once (e.g. open a
 - If the user asks you to navigate to a theme or open a card (e.g. Immersive, Cosmic, Urban, Essential, Lumen), append this JSON at the END of your reply:
 {"action":"navigate", "target":"<theme name>"}
 Example: "Opening the Essential theme for you! {"action":"navigate","target":"essential"}"
-- If the user asks you to switch to recruiter mode, fast mode, or visitor mode, append this JSON at the END of your reply:
-{"action":"navigate", "target":"recruiter"}
-Example: "Switching to Recruiter Mode! {"action":"navigate","target":"recruiter"}"
-
-To switch back to the main 3D portfolio / visitor mode:
+- If the user asks you to go back to the main menu, theme picker, or home, append this JSON at the END of your reply:
 {"action":"navigate", "target":"visitor"}
-Example: "Taking you to the main portfolio! {"action":"navigate","target":"visitor"}"
+Example: "Taking you to the main menu! {"action":"navigate","target":"visitor"}"
 - If the user asks you to scroll down, scroll up, or navigate to sections like home, about, education, skills, projects, contact, append this JSON:
 {"action":"scroll", "target":"<section id or direction>"}
 IMPORTANT: If the user asks for external links (Instagram, LinkedIn, GitHub, etc.), NEVER say you cannot open links. Just say you are taking them to the contact section where the links are, and append the scroll JSON for "contact".
@@ -1050,13 +1046,7 @@ class AvatarChatBot {
             return { speech: replies[Math.floor(Math.random() * replies.length)], actions: [] };
         }
 
-        // Fast-path recruiter mode switch command
-        if (/switch to recruiter|go to recruiter|open recruiter|recruiter mode|recruiter portfolio|fast mode|fast version/i.test(t)) {
-            return {
-                speech: 'Switching to Recruiter Mode!',
-                actions: [() => this.executeNavigation('recruiter')]
-            };
-        }
+
 
         // If it looks like a question or an explanation request, let the LLM handle it
         const infoWords = ['what', 'why', 'explain', 'tell', 'describe', 'details', 'who is', 'what is', 'tell me about'];
@@ -1259,23 +1249,15 @@ class AvatarChatBot {
         if (!target) return;
         const targetClean = target.toLowerCase().replace(/card\s*/, '').trim();
         
-        if (targetClean === 'recruiter' || targetClean === 'recruiter mode' || targetClean.includes('recruiter')) {
-            window.location.href = '/';
-            return;
-        }
-
-        if (targetClean === 'visitor' || targetClean === 'visitor mode' || targetClean === 'main' || targetClean === 'main portfolio' || targetClean === 'home') {
-            if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html') || window.location.pathname.includes('recruiter')) {
-                window.location.href = '/theme-picker.html';
-                return;
-            } else {
-                const changeThemeBtn = document.getElementById('change-theme-btn');
-                if (changeThemeBtn && changeThemeBtn.style.opacity === '1') {
-                    changeThemeBtn.click();
-                    this.onThemeClosed();
-                }
-                return;
+        if (targetClean === 'recruiter' || targetClean === 'recruiter mode' || targetClean.includes('recruiter') ||
+            targetClean === 'visitor' || targetClean === 'visitor mode' || targetClean === 'main' || targetClean === 'main portfolio' || targetClean === 'home') {
+            
+            const changeThemeBtn = document.getElementById('change-theme-btn');
+            if (changeThemeBtn && changeThemeBtn.style.opacity === '1') {
+                changeThemeBtn.click();
+                this.onThemeClosed();
             }
+            return;
         }
         
         let id = null;
@@ -1289,9 +1271,9 @@ class AvatarChatBot {
         if (id) {
             const card = document.querySelector(id);
             
-            // If card isn't found, we're likely on the recruiter page (index.html), so redirect to theme picker
+            // If card isn't found, redirect to the main selector page
             if (!card) {
-                window.location.href = '/theme-picker.html';
+                window.location.href = '/';
                 return;
             }
 

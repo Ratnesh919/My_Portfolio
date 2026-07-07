@@ -586,14 +586,25 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         }
     };
 
-    // Trigger intro directly (no bubbles for theme-picker)
-    setTimeout(async () => {
-        if (hasDragged || isDragging) return;
-        window.playWaveAnimation();
-        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-            window.chatBot.introduceHerself();
-        }
-    }, 1500);
+    // Trigger intro: wait for bubble pop if screen is active, otherwise trigger after delay
+    const bubbleScreen = document.getElementById('bubble-screen');
+    if (bubbleScreen && !sessionStorage.getItem('raya_bubble_done')) {
+        window.onBubblePopped = () => {
+            if (hasDragged || isDragging) return;
+            window.playWaveAnimation();
+            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                window.chatBot.introduceHerself();
+            }
+        };
+    } else {
+        setTimeout(async () => {
+            if (hasDragged || isDragging) return;
+            window.playWaveAnimation();
+            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                window.chatBot.introduceHerself();
+            }
+        }, 1500);
+    }
 
 
 }, xhr => {
