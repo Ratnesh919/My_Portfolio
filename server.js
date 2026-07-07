@@ -296,10 +296,42 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                 // Dynamic Admin Queries
                 if (lastUser) {
                     const lc = lastUser.content.toLowerCase();
-                    if (lc.includes('user') || lc.includes('visitor')) {
+                    
+                    // 1. Fetch site statistics for insights/stats queries
+                    if (lc.includes('insight') || lc.includes('stat') || lc.includes('visit') || lc.includes('traffic') || lc.includes('analytics')) {
+                        const stats = await mem.getSiteStats();
+                        sysContent += '\n\n[ADMIN DATA: SITE INSIGHTS & STATS]\n' + JSON.stringify(stats, null, 2);
+                    }
+
+                    // 2. Fetch list of users
+                    if (lc.includes('users') || lc.includes('visitors') || lc.includes('all user') || lc.includes('all visitor') || lc.includes('user list') || lc.includes('visitor list')) {
                         const users = await mem.getAllUsers();
                         sysContent += '\n\n[ADMIN DATA: ALL USERS]\n' + JSON.stringify(users, null, 2);
                     }
+
+                    // 3. Fetch specific user details by name or cookie_id
+                    const usrMatch = lc.match(/(usr_[a-z0-9_]+)/i);
+                    let matchedUser = null;
+                    if (usrMatch) {
+                        matchedUser = { cookie_id: usrMatch[1], name: usrMatch[1] };
+                    } else {
+                        const users = await mem.getAllUsers();
+                        for (const u of users) {
+                            if (u.name && u.name !== '(anonymous)') {
+                                const nameRegex = new RegExp('\\b' + u.name.toLowerCase() + '\\b', 'i');
+                                if (nameRegex.test(lc)) {
+                                    matchedUser = u;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (matchedUser) {
+                        const profile = await mem.getUserProfile(matchedUser.cookie_id);
+                        sysContent += `\n\n[ADMIN DATA: PROFILE FOR USER ${matchedUser.name} (${matchedUser.cookie_id})]\n` + JSON.stringify(profile, null, 2);
+                    }
+
                     if (lc.includes('learn') || lc.includes('know')) {
                         const allLearnings = await mem.getAllVerifiedLearnings();
                         sysContent += '\n\n[ADMIN DATA: ALL VERIFIED LEARNINGS ACROSS SYSTEM]\n' + JSON.stringify(allLearnings, null, 2);

@@ -272,9 +272,16 @@ async function getAllVerifiedLearnings() {
     return data || [];
 }
 
+async function getUserProfile(userId) {
+    const { data: learnings } = await supabase.from('learnings').select('type, content, status').eq('user_id', userId).limit(20);
+    const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
+    return { learnings: learnings || [], preferences: prefs || [] };
+}
+
 module.exports = {
     initUser, getSiteStats, startSession, endSession, saveMessage, saveLearning,
     savePendingLearning, getPendingLearnings, verifyLearning, rejectLearning,
     setPreference, getPreference, getCachedCommand, recordCommand, addAdminRule,
-    buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings
+    buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
+    getUserProfile
 };
