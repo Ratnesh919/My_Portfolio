@@ -274,13 +274,10 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             
             // Inject creator profile facts so Raya knows about the user
             try {
-                const profilePath = path.join(__dirname, 'creator-profile.txt');
-                if (fs.existsSync(profilePath)) {
-                    const profileData = fs.readFileSync(profilePath, 'utf8');
-                    sysContent += '\n\n[CREATOR/RATNESH FACTS]\nHere are personal details, traits, and hobbies about your creator (Ratnesh Kumar Singh, who the portfolio belongs to). If the user asks about the creator, use this information to answer naturally:\n' + profileData;
-                }
+                const profileData = require('./creator-profile');
+                sysContent += '\n\n[CREATOR/RATNESH FACTS]\nHere are personal details, traits, and hobbies about your creator (Ratnesh Kumar Singh, who the portfolio belongs to). If the user asks about the creator, use this information to answer naturally:\n' + profileData;
             } catch (e) {
-                console.error('Failed to read creator-profile.txt', e);
+                console.error('Failed to load creator-profile.js module', e);
             }
 
             if (memCtx) {

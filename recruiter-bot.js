@@ -26,7 +26,8 @@ Ratnesh Kumar Singh's profile:
 - Projects: Multi-theme 3D portfolio with VRM avatars and voice AI, and Smart Parking System (which uses ultrasonic sensors to detect vacant spaces in a parking area)
 - Training: Python (1 month), C language (1 month), EV Service Technician (1 month), GIS training (2 weeks)
 - Extracurriculars: HAM Radio Innovation Workshop, Cyber Security Awareness Workshop, BSNL Telecom Industrial Visit
-- Education: B.Tech ECE 2022-2026, 12th P.C.M from P.B.S College (BSEB), 10th I.G.C.S.E from Vidyanjali High School
+- Education: B.Tech ECE 2022-2026 from Swami Vivekananda Institute of Science & Technology, 12th P.C.M from P.B.S College (BSEB), 10th I.G.C.S.E from Vidyanjali High School
+- Learning Style: Proactive self-learner who keeps learning new technologies (like networking, AI automation, cybersecurity) on his own.
 - Location: Kolkata, West Bengal, India
 - Open to: Internships, entry-level roles, collaborative projects in AI, embedded systems, full-stack
 - GitHub: github.com/Ratnesh919
