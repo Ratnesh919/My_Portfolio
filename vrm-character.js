@@ -767,9 +767,11 @@ function returnToIdle() {
         applyState('idle', 'happy', 0.6);
         playAnim(ANIM.idle, true, 0.5);
         introComplete = true;
-        // Fixed 25s wait before the next random animation fires
-        const delay = 25000;   // 25s
-        autoTimerId = setTimeout(playRandomAnim, delay);
+        // Block auto-cycle scheduling if chatbot is currently speaking
+        if (!window.chatbotTalking) {
+            const delay = 25000;   // 25s
+            autoTimerId = setTimeout(playRandomAnim, delay);
+        }
         // Kick off smile scheduler when entering idle (if not already running)
         if (!smileTimerId) scheduleNextSmile();
     }
@@ -825,6 +827,12 @@ function pickRandom() {
 function playRandomAnim() {
     if (!vrm) return;
     clearAutoTimer();  // cancel any pending timer (important when called from click too)
+
+    // Safety block: prevent random standing animations while Raya is speaking
+    if (window.chatbotTalking && !isSittingOnChatbox) {
+        returnToIdle();
+        return;
+    }
 
     const pick = pickRandom();
 
@@ -1181,26 +1189,24 @@ function animate() {
     if (window.chatbotTalking !== wasTalking) {
         wasTalking = window.chatbotTalking;
         if (wasTalking) {
-            // EXCEPTION: if the intro wave1 is currently playing, never interrupt it.
-            // wave1 + intro speech run simultaneously; wave1 finishes → idle naturally.
-            if (currentKey === ANIM.wave1) {
-                // do nothing — let wave1 play to completion
-            } else if (isSittingOnChatbox) {
+            if (isSittingOnChatbox) {
+                // Sitting: keep sitting animation rules completely untouched
                 if (currentKey !== ANIM.sit2) {
                     clearAutoTimer();
                     applyState('happyIdle', 'happy', 0.85);
                     playAnim(ANIM.sit2, true, 0.5);
                 }
             } else {
-                // Stay in current idle during talking — just update expression
-                // (No animation change needed; lip-sync & expr are driven in the expr block)
+                // Standing: immediately interrupt ANY active animation (incl. wave1)
+                // and force idle — no exceptions while speaking
+                clearAutoTimer();
                 applyState('idle', 'happy', 0.75);
                 if (currentKey !== ANIM.idle) {
-                    clearAutoTimer();
                     playAnim(ANIM.idle, true, 0.5);
                 }
             }
         } else {
+            // Re-schedules the standing 25s auto-cycle naturally when speaking ends
             returnToIdle();
         }
     }
