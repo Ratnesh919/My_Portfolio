@@ -1853,8 +1853,13 @@ class AvatarChatBot {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', () => {
+        window.chatBot = new AvatarChatBot();
+        window.chatbot = window.chatBot; // alias for index.html hooks
+    });
+} else {
     window.chatBot = new AvatarChatBot();
     window.chatbot = window.chatBot; // alias for index.html hooks
-});
+}
 

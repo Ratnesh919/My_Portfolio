@@ -151,7 +151,7 @@
     </div>
 
     <!-- ─── Site Global Loading Screen ─────────────────────────────────── -->
-    <div id="site-loader">
+    <div id="site-loader" style="display: none;">
         <div class="site-loader-bg"></div>
         <div class="site-loader-content">
             <div class="site-loader-logo">
@@ -652,18 +652,52 @@
         })();
     </script>
 
-    <!-- ─── VRM Configuration & Controller ────────────────────────────── -->
-    <script src="./vrm-config.js"></script>
-    <script type="module" src="./vrm-character.js"></script>
-    <script src="./chatbot.js"></script>
-    
+    <!-- ─── VRM Configuration & Controller (Dynamically Loaded) ───────── -->
     <script>
-        let chatbotInstance = null;
-        window.addEventListener('load', () => {
-            if (typeof AvatarChatBot !== 'undefined') {
-                chatbotInstance = window.chatBot || new AvatarChatBot();
-            }
-        });
+        // Master engine loading function
+        function startEngine() {
+            if (window.engineStarted) return;
+            window.engineStarted = true;
+
+            // Show the loader screen immediately
+            const loader = document.getElementById('site-loader');
+            if (loader) loader.style.display = ''; // Restore to CSS display value (flex)
+
+            // 1. Load vrm-config.js
+            const configScript = document.createElement('script');
+            configScript.src = "./vrm-config.js";
+            configScript.onload = () => {
+                // 2. Load chatbot.js
+                const chatScript = document.createElement('script');
+                chatScript.src = "./chatbot.js";
+                chatScript.onload = () => {
+                    if (typeof AvatarChatBot !== 'undefined') {
+                        window.chatBot = window.chatBot || new AvatarChatBot();
+                    }
+                };
+                document.body.appendChild(chatScript);
+
+                // 3. Load vrm-character.js (as ES module)
+                const charScript = document.createElement('script');
+                charScript.type = "module";
+                charScript.src = "./vrm-character.js";
+                document.body.appendChild(charScript);
+            };
+            document.body.appendChild(configScript);
+        }
+
+        // Check if user has already entered in this session
+        if (sessionStorage.getItem('raya_bubble_done')) {
+            // Restore loader immediately and run the engine
+            const loader = document.getElementById('site-loader');
+            if (loader) loader.style.display = '';
+            startEngine();
+        } else {
+            // Wait for user to pop the bubble
+            window.onBubblePopped = () => {
+                startEngine();
+            };
+        }
     </script>
 </body>
 </html>
