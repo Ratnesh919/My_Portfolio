@@ -125,8 +125,19 @@ class AvatarChatBot {
 
         this.initUI();
         this.initSpeechRecognition();
+
+        // --- Cross-browser voice loading ---
+        // Edge: voices are sometimes available synchronously already,
+        // so call immediately AND hook the event, AND poll as a fallback.
         this.loadVoices();
         speechSynthesis.onvoiceschanged = () => this.loadVoices();
+        // Fallback poll: Edge sometimes fires onvoiceschanged before the list fills.
+        // Keep retrying every 250 ms for up to 5 s until we have a voice.
+        let _vPoll = 0;
+        const _vTimer = setInterval(() => {
+            if (this.femaleVoice || _vPoll++ > 20) { clearInterval(_vTimer); return; }
+            this.loadVoices();
+        }, 250);
     }
 
     // -- Analytics & Cookies --------------------------------------------------
@@ -539,8 +550,8 @@ class AvatarChatBot {
     loadVoices(retryCount = 0) {
         const voices = this.synth.getVoices();
         if (!voices.length) {
-            // Chrome loads voices asynchronously — retry up to 10 times
-            if (retryCount < 10) {
+            // Voices not ready yet — retry up to 20 times (covers slow Edge/Firefox init)
+            if (retryCount < 20) {
                 setTimeout(() => this.loadVoices(retryCount + 1), 200 * (retryCount + 1));
             }
             return;
@@ -549,25 +560,27 @@ class AvatarChatBot {
         // Log all voices for debug
         console.log('[Raya TTS] Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
 
-        // -- Priority 1: Best neural/natural Indian English female voices --
+        // -- Priority 1: Microsoft Edge neural voices (very natural, available on Edge & Win)
+        const edgeNeuralFemale =
+            voices.find(v => /Ava.*Natural/i.test(v.name)   && v.lang.startsWith('en')) ||
+            voices.find(v => /Jenny.*Natural/i.test(v.name) && v.lang.startsWith('en')) ||
+            voices.find(v => /Aria.*Natural/i.test(v.name)  && v.lang.startsWith('en')) ||
+            voices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+            voices.find(v => v.name.includes('Ava')   && v.lang.startsWith('en') && v.localService === false) ||
+            voices.find(v => v.name.includes('Jenny') && v.lang.startsWith('en') && v.localService === false) ||
+            voices.find(v => v.name.includes('Aria')  && v.lang.startsWith('en') && v.localService === false);
+
+        // -- Priority 2: Indian English neural voices (Neerja / Heera) --
         const neuralIndianFemale =
             voices.find(v => v.name.includes('Neerja')) ||
-            voices.find(v => v.name.includes('Heera')) ||
-            voices.find(v => v.name === 'Microsoft Neerja Online (Natural) - English (India)');
+            voices.find(v => v.name.includes('Heera'));
 
-        // -- Priority 2: Google voices — high quality, non-robotic --
+        // -- Priority 3: Google voices — high quality, non-robotic --
         const googleFemale =
             voices.find(v => v.name === 'Google UK English Female') ||
             voices.find(v => v.name === 'Google US English') ||
             voices.find(v => v.name.startsWith('Google') && v.lang === 'en-IN') ||
             voices.find(v => v.name.startsWith('Google') && v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
-
-        // -- Priority 3: Modern Edge neural female voices (very natural) --
-        const edgeNeuralFemale =
-            voices.find(v => v.name.includes('Jenny') && v.lang.startsWith('en')) ||
-            voices.find(v => v.name.includes('Aria')  && v.lang.startsWith('en')) ||
-            voices.find(v => v.name.includes('Ana')   && v.lang.startsWith('en')) ||
-            voices.find(v => v.name.includes('Emma')  && v.lang.startsWith('en'));
 
         // -- Priority 4: Apple natural voices --
         const appleFemale =
@@ -580,12 +593,13 @@ class AvatarChatBot {
         const anyEnglishFemale =
             voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
             voices.find(v => v.name.includes('Zira'))  ||
-            voices.find(v => v.name.includes('Hazel'));
+            voices.find(v => v.name.includes('Hazel')) ||
+            voices.find(v => v.name.includes('Emma')  && v.lang.startsWith('en'));
 
-        // -- Priority 6: Fallback avoiding male voices --
-        const fallback = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().match(/male|ravi|david|mark|george/));
+        // -- Priority 6: Fallback avoiding known male voices --
+        const fallback = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().match(/male|ravi|david|mark|george|james/));
 
-        this.femaleVoice = neuralIndianFemale || googleFemale || edgeNeuralFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
+        this.femaleVoice = edgeNeuralFemale || neuralIndianFemale || googleFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
 
         console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
     }
@@ -1799,12 +1813,22 @@ class AvatarChatBot {
         };
 
         // Cancel any stale utterance.
+        // Edge requires a short delay after cancel() before speak() works reliably.
+        const isEdge = /Edg\//.test(navigator.userAgent);
         if (this.synth.speaking) {
             try { this.synth.cancel(); } catch(e) {}
-            // No delay, invoke immediately to fix latency
-            doSpeak();
+            if (isEdge) {
+                setTimeout(() => doSpeak(), 120);
+            } else {
+                doSpeak();
+            }
         } else {
-            doSpeak();
+            if (isEdge && this.synth.pending) {
+                try { this.synth.cancel(); } catch(e) {}
+                setTimeout(() => doSpeak(), 120);
+            } else {
+                doSpeak();
+            }
         }
     }
 
