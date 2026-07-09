@@ -1197,12 +1197,18 @@ function animate() {
                     playAnim(ANIM.sit2, true, 0.5);
                 }
             } else {
-                // Standing: immediately interrupt ANY active animation (incl. wave1)
-                // and force idle — no exceptions while speaking
-                clearAutoTimer();
-                applyState('idle', 'happy', 0.75);
-                if (currentKey !== ANIM.idle) {
-                    playAnim(ANIM.idle, true, 0.5);
+                // Standing mode speaking:
+                // ONE exception — wave1 during the intro introduction (theme selector page load).
+                // introComplete is false only during that first wave + speech moment.
+                // In all other situations, immediately interrupt and force idle.
+                if (currentKey === ANIM.wave1 && !introComplete) {
+                    // Allow wave1 to play to completion alongside intro speech — do nothing
+                } else {
+                    clearAutoTimer();
+                    applyState('idle', 'happy', 0.75);
+                    if (currentKey !== ANIM.idle) {
+                        playAnim(ANIM.idle, true, 0.5);
+                    }
                 }
             }
         } else {
