@@ -644,6 +644,12 @@
                                 w.volume = 0;
                                 speechSynthesis.speak(w);
                             } catch(e){}
+
+                            // Activate avatar and chatbot container
+                            if (typeof activateAvatarAndChatbot === 'function') {
+                                activateAvatarAndChatbot();
+                            }
+
                             if (typeof window.onBubblePopped === 'function') {
                                 window.onBubblePopped();
                             }
@@ -656,83 +662,30 @@
         })();
     </script>
 
-    <!-- ─── VRM Configuration & Controller (Dynamically Loaded) ───────── -->
+    <!-- ─── VRM Configuration & Controller ────────────────────────────── -->
+    <script src="./vrm-config.js"></script>
+    <script type="module" src="./vrm-character.js"></script>
+    <script src="./chatbot.js"></script>
+    
     <script>
-        // Master engine loading function
-        function startEngine() {
-            if (window.engineStarted) return;
-            window.engineStarted = true;
+        // Reveal VRM and Chatbot immediately
+        function activateAvatarAndChatbot() {
+            const canvas = document.getElementById('vrm-canvas');
+            if (canvas) canvas.classList.add('active');
 
-            // 1. Load vrm-config.js
-            const configScript = document.createElement('script');
-            configScript.src = "./vrm-config.js";
-            configScript.onload = () => {
-                // 2. Load chatbot.js
-                const chatScript = document.createElement('script');
-                chatScript.src = "./chatbot.js";
-                chatScript.onload = () => {
-                    if (typeof AvatarChatBot !== 'undefined') {
-                        window.chatBot = window.chatBot || new AvatarChatBot();
-                    }
-                };
-                document.body.appendChild(chatScript);
-
-                // 3. Load vrm-character.js (as ES module)
-                const charScript = document.createElement('script');
-                charScript.type = "module";
-                charScript.src = "./vrm-character.js";
-                document.body.appendChild(charScript);
-            };
-            document.body.appendChild(configScript);
+            const panel = document.getElementById('chatbot-panel');
+            if (panel) {
+                panel.classList.add('active');
+            }
         }
 
-        // Handle load sequences
-        (function() {
-            const skipBubble = sessionStorage.getItem('raya_bubble_done');
-            if (skipBubble) {
-                // Instantly remove bubble screen if skip is active
-                const bs = document.getElementById('bubble-screen');
-                if (bs) bs.remove();
-                
-                // Load engine immediately (styles in head will keep it clean)
-                startEngine();
-            } else {
-                // First-time entry: Run simulated loading animation first
-                const loader = document.getElementById('site-loader');
-                const barEl = document.getElementById('site-loader-bar');
-                const pctEl = document.getElementById('site-loader-pct');
-                const textEl = document.getElementById('site-loader-text');
-                if (textEl) textEl.textContent = 'Booting System...';
-
-                let pct = 0;
-                const simLoad = setInterval(() => {
-                    pct += Math.floor(Math.random() * 8) + 4;
-                    if (pct >= 100) {
-                        pct = 100;
-                        clearInterval(simLoad);
-                        if (pctEl) pctEl.textContent = '100%';
-                        if (barEl) barEl.style.width = '100%';
-                        if (textEl) textEl.textContent = 'System Ready';
-                        
-                        // Fade out loader to reveal bubble screen
-                        setTimeout(() => {
-                            if (loader) {
-                                loader.classList.add('hidden');
-                                // Keep it in DOM but hidden, so we can reuse it later
-                            }
-                        }, 500);
-                    } else {
-                        if (pctEl) pctEl.textContent = pct + '%';
-                        if (barEl) barEl.style.width = pct + '%';
-                    }
-                }, 80);
-
-                // Hook bubble pop event to trigger VRM engine loading
-                window.onBubblePopped = () => {
-                    startEngine();
-                };
+        // On window load
+        window.addEventListener('load', () => {
+            // If skip bubble is active, reveal immediately
+            if (sessionStorage.getItem('raya_bubble_done')) {
+                activateAvatarAndChatbot();
             }
-        })();
+        });
     </script>
 </body>
 </html>

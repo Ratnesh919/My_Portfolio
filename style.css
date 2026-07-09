@@ -282,6 +282,11 @@ body {
     pointer-events: none;  /* Transparent regions let clicks reach UI beneath */
     display: block;
     cursor: default;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+#vrm-canvas.active {
+    opacity: 1;
 }
 
 /* ── Enhanced Gaming Loading Bar ── */
@@ -1259,10 +1264,16 @@ header, .container, .contact-section {
     flex-direction: column;
     gap: 8px;
     font-family: 'Outfit', sans-serif;
-    pointer-events: auto !important; /* ALWAYS receive clicks even when iframe is open */
+    opacity: 0;
+    pointer-events: none !important;
+    transition: opacity 0.5s ease;
 }
-/* Ensure all chatbot children are always clickable */
-#chatbot-panel * {
+#chatbot-panel.active {
+    opacity: 1;
+    pointer-events: auto !important;
+}
+/* Ensure all chatbot children are always clickable when active */
+#chatbot-panel.active * {
     pointer-events: auto !important;
 }
 
