@@ -565,13 +565,19 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     // Step 2: Load the remaining animations in the background
     loadBackgroundAnimations(vrm);
 
-    // Global helper so chatbot can trigger wave if needed
+    // Global helper so chatbot can trigger the intro wave.
+    // ONE-SHOT: wave1 plays exactly once (during Raya's intro on page load).
+    // All subsequent calls are silently ignored — wave will never play again.
+    let waveHasPlayed = false;
     window.playWaveAnimation = () => {
+        // One-shot guard: only play wave once, ever
+        if (waveHasPlayed) return;
+
         const wave1Key = ANIM.wave1;
-        
-        // Prevent restarting the wave if it's already playing, avoiding Three.js crossFade issues
-        if (currentKey === wave1Key || currentKey === ANIM.wave2) return; 
-        
+
+        // Prevent restarting the wave if it's already playing
+        if (currentKey === wave1Key || currentKey === ANIM.wave2) return;
+
         // Clear any stale auto-timer to prevent ghost playRandomAnim calls
         clearAutoTimer();
 
@@ -584,6 +590,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         } else if (actions[ANIM.wave2]) {
             playAnim(ANIM.wave2, false, 0.35);
         }
+
+        // Lock: never play wave again after this point
+        waveHasPlayed = true;
     };
 
     // Trigger intro: wait for bubble pop if screen is active, otherwise trigger after delay
