@@ -141,6 +141,10 @@
                 event.preventDefault();
             }
         });
+        // Prevent overlay flash if session bubble is already done
+        if (sessionStorage.getItem('raya_bubble_done')) {
+            document.write('<style>#site-loader, #bubble-screen { display: none !important; }</style>');
+        }
     </script>
 </head>
 <body>
@@ -151,7 +155,7 @@
     </div>
 
     <!-- ─── Site Global Loading Screen ─────────────────────────────────── -->
-    <div id="site-loader" style="display: none;">
+    <div id="site-loader">
         <div class="site-loader-bg"></div>
         <div class="site-loader-content">
             <div class="site-loader-logo">
@@ -659,9 +663,18 @@
             if (window.engineStarted) return;
             window.engineStarted = true;
 
-            // Show the loader screen immediately
+            // Show the loader screen immediately and reset progress UI
             const loader = document.getElementById('site-loader');
-            if (loader) loader.style.display = ''; // Restore to CSS display value (flex)
+            if (loader) {
+                loader.style.display = ''; // Restore display
+                loader.classList.remove('hidden'); // Ensure visible
+            }
+            const barEl = document.getElementById('site-loader-bar');
+            const pctEl = document.getElementById('site-loader-pct');
+            const textEl = document.getElementById('site-loader-text');
+            if (barEl) barEl.style.width = '0%';
+            if (pctEl) pctEl.textContent = '0%';
+            if (textEl) textEl.textContent = 'Initializing Character Engine...';
 
             // 1. Load vrm-config.js
             const configScript = document.createElement('script');
@@ -686,18 +699,53 @@
             document.body.appendChild(configScript);
         }
 
-        // Check if user has already entered in this session
-        if (sessionStorage.getItem('raya_bubble_done')) {
-            // Restore loader immediately and run the engine
-            const loader = document.getElementById('site-loader');
-            if (loader) loader.style.display = '';
-            startEngine();
-        } else {
-            // Wait for user to pop the bubble
-            window.onBubblePopped = () => {
+        // Handle load sequences
+        (function() {
+            const skipBubble = sessionStorage.getItem('raya_bubble_done');
+            if (skipBubble) {
+                // Instantly remove bubble screen if skip is active
+                const bs = document.getElementById('bubble-screen');
+                if (bs) bs.remove();
+                
+                // Load engine immediately (styles in head will keep it clean)
                 startEngine();
-            };
-        }
+            } else {
+                // First-time entry: Run simulated loading animation first
+                const loader = document.getElementById('site-loader');
+                const barEl = document.getElementById('site-loader-bar');
+                const pctEl = document.getElementById('site-loader-pct');
+                const textEl = document.getElementById('site-loader-text');
+                if (textEl) textEl.textContent = 'Booting System...';
+
+                let pct = 0;
+                const simLoad = setInterval(() => {
+                    pct += Math.floor(Math.random() * 8) + 4;
+                    if (pct >= 100) {
+                        pct = 100;
+                        clearInterval(simLoad);
+                        if (pctEl) pctEl.textContent = '100%';
+                        if (barEl) barEl.style.width = '100%';
+                        if (textEl) textEl.textContent = 'System Ready';
+                        
+                        // Fade out loader to reveal bubble screen
+                        setTimeout(() => {
+                            if (loader) {
+                                loader.classList.add('hidden');
+                                // Keep it in DOM but hidden, so we can reuse it later
+                            }
+                        }, 500);
+                    } else {
+                        if (pctEl) pctEl.textContent = pct + '%';
+                        if (barEl) barEl.style.width = pct + '%';
+                    }
+                }, 80);
+
+                // Hook bubble pop event to trigger VRM engine loading
+                window.onBubblePopped = () => {
+                    startEngine();
+                };
+            }
+        })();
     </script>
 </body>
 </html>
