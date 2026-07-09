@@ -663,19 +663,6 @@
             if (window.engineStarted) return;
             window.engineStarted = true;
 
-            // Show the loader screen immediately and reset progress UI
-            const loader = document.getElementById('site-loader');
-            if (loader) {
-                loader.style.display = ''; // Restore display
-                loader.classList.remove('hidden'); // Ensure visible
-            }
-            const barEl = document.getElementById('site-loader-bar');
-            const pctEl = document.getElementById('site-loader-pct');
-            const textEl = document.getElementById('site-loader-text');
-            if (barEl) barEl.style.width = '0%';
-            if (pctEl) pctEl.textContent = '0%';
-            if (textEl) textEl.textContent = 'Initializing Character Engine...';
-
             // 1. Load vrm-config.js
             const configScript = document.createElement('script');
             configScript.src = "./vrm-config.js";
