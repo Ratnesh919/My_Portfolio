@@ -176,9 +176,10 @@ class AvatarChatBot {
         console.log('[Raya Intro] introduceHerself called. _userHasGestured:', this._userHasGestured);
 
         let introMessage;
-        if (this.userName) {
-            // Returning user — greet by name and go straight to theme/music
-            introMessage = `Welcome back ${this.userName}! It's so nice to see you again. We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
+        const isReturning = this.userName || localStorage.getItem('rayaHasVisited') === 'true';
+        if (isReturning) {
+            const namePart = this.userName ? `, ${this.userName}` : '';
+            introMessage = `Hi there${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
             this._awaitingTheme = true;
         } else {
             // New user — combined intro + theme list in one message
@@ -187,6 +188,7 @@ class AvatarChatBot {
             this._awaitingTheme   = true;
             this._awaitingCommand = true;
         }
+        try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
 
         // 1. Always show text bubble — no gesture required
         this.messages.push({ role: 'assistant', content: introMessage });
@@ -292,17 +294,22 @@ class AvatarChatBot {
     showIntro(autoListen = false) {
         if (this.hasIntroduced) return;
         this.hasIntroduced = true;
-        const introMsg = this.userName
-            ? `Welcome back ${this.userName}! It's so nice to see you again. We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`
-            : INTRO_TEXT;
+        const isReturning = this.userName || localStorage.getItem('rayaHasVisited') === 'true';
+        let introMsg;
+        if (isReturning) {
+            const namePart = this.userName ? `, ${this.userName}` : '';
+            introMsg = `Hi there${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
+            this._awaitingTheme = true;
+        } else {
+            introMsg = INTRO_TEXT;
+            this._awaitingName = true;
+            this._awaitingTheme = true;
+        }
+        try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
         this.messages.push({ role: 'assistant', content: introMsg });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
         this.showBubble(introMsg);
         this._awaitingCommand = true;
-        this._awaitingTheme   = true;
-        if (!this.userName) {
-            this._awaitingName = true;
-        }
         // Queue speech for first real gesture (click / keydown)
         this._queueSpeechOnGesture(introMsg, autoListen);
     }
@@ -623,7 +630,7 @@ class AvatarChatBot {
             this.isListening = true;
             this.updateMicUI();
             // Only show "Listening" bubble if user clicked the mic button
-            if (!this._passiveModeActive) this.showBubble('?? Listening...');
+            if (!this._passiveModeActive) this.showBubble('Listening...');
         };
 
         this.recognition.onresult = (event) => {

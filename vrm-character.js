@@ -1207,11 +1207,10 @@ function animate() {
                 }
             } else {
                 // Standing mode speaking:
-                // ONE exception — wave1 during the intro introduction (theme selector page load).
-                // introComplete is false only during that first wave + speech moment.
-                // In all other situations, immediately interrupt and force idle.
-                if (currentKey === ANIM.wave1 && !introComplete) {
-                    // Allow wave1 to play to completion alongside intro speech — do nothing
+                // ONE exception — waving animations (wave1 or wave2) during the intro.
+                // Allow wave to play to completion alongside intro speech — do nothing.
+                if (currentKey === ANIM.wave1 || currentKey === ANIM.wave2) {
+                    // Do nothing — let wave play to completion
                 } else {
                     clearAutoTimer();
                     applyState('idle', 'happy', 0.75);
