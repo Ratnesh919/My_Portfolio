@@ -23,8 +23,6 @@
     <meta property="twitter:title" content="Ratnesh Kumar Singh | Lumen Glowing 3D Portfolio" />
     <meta property="twitter:description" content="Glow-themed interactive 3D portfolio of Ratnesh Kumar Singh." />
     <meta property="twitter:image" content="https://ratnesh-portfolio.vercel.app/favicon.png" />
-    <script type="module" crossorigin src="./assets/index-DRqQiENH.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-C264N3Cz.css">
     <script>
       document.addEventListener('contextmenu', e => e.preventDefault());
       document.addEventListener('keydown', function(e) {
@@ -42,23 +40,10 @@
         }
       });
     </script>
+    <script type="module" crossorigin src="./assets/index-BQAiw4Qx.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C264N3Cz.css">
   </head>
   <body>
     <div id="root"></div>
-      <!-- Raya scroll postMessage listener -->
-    <script>
-      window.addEventListener('message', function(e) {
-        if (!e.data || e.data.type !== 'raya-scroll') return;
-        var d = e.data;
-        if (d.direction === 'down') { window.scrollBy({ top: 600, behavior: 'smooth' }); return; }
-        if (d.direction === 'up')   { window.scrollBy({ top: -600, behavior: 'smooth' }); return; }
-        if (d.section) {
-          var el = document.getElementById(d.section) ||
-                   document.querySelector('.' + d.section + '-section') ||
-                   document.querySelector('[id*="' + d.section + '"]');
-          if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-        }
-      });
-    </script>
-</body>
+  </body>
 </html>

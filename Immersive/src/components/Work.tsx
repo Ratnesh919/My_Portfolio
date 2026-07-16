@@ -4,6 +4,11 @@ import { MdArrowBack, MdArrowForward } from "react-icons/md";
 
 const projects = [
   {
+    title: "Smart Antenna (V2X)",
+    category: "ECE Hardware & Simulation",
+    tools: "HFSS, Vector Network Analyzer (VNA), Dielectric Sleeve",
+  },
+  {
     title: "Smart Parking System",
     category: "Hardware Prototype",
     tools: "Arduino, Ultrasonic Sensors",

@@ -23,7 +23,7 @@ Below is a comprehensive professional, academic, and personal profile of your cr
 - **Special Interests:** Networking & IT infrastructure, AI automation, Embedded Systems, UI/UX Design
 
 - **Key Projects:**
-  - Adaptive Smart Antenna (V2X) (ECE Hardware): Designed and developed an adaptive smart antenna system prototype to improve wireless communication reliability in high-mobility vehicular environments. Implemented beamforming algorithms supporting emerging V2X standards.
+  - Smart Antenna for Vehicular Applications (ECE Hardware & Simulation): Designed and simulated a low-profile dielectric-loaded and capacitive end-loaded monopole antenna in Ansys HFSS. Achieved a 74% physical size reduction (36 mm height) resonating at 535.57 MHz with a return loss of -31.87 dB, VSWR of 1.05, and 98.34% radiation efficiency. Fabricated and verified prototype using a Vector Network Analyzer (VNA) for V2X (V2V/V2I) communication.
   - AI Assistant (Python): Created an intelligent assistant using Python and API integrations, implementing conversational responses, command understanding, and client-server communication.
   - Smart Parking System (Arduino & IoT): Designed an IoT prototype using Arduino and ultrasonic sensors to detect available parking spaces in real-time.
   - UI/UX Design & Portfolio Website: Designed layouts/prototypes in Figma, developed and deployed a responsive portfolio website on Vercel.

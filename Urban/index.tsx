@@ -254,7 +254,13 @@ export default function Portfolio() {
                 >
                    <h4 className="text-xs font-black text-[#ff00ff] tracking-[.4em] mb-6 uppercase">The Arsenal</h4>
                    <div className="flex flex-wrap gap-2">
-                     {["C", "C++", "Python", "Verilog", "MATLAB", "Arduino", "Tinkercad", "Figma", "React", "Node.js", "Tailwind"].map((skill, i) => (
+                     {[
+                        "TCP/IP", "DNS", "Routing & Switching", "Cybersecurity",
+                        "C", "C++", "Python", "HTML", "CSS", "API Integration",
+                        "n8n", "Google AI Studio", "OpenAI", "AI Agents",
+                        "Arduino", "MATLAB", "Tinkercad", "Verilog", "ArcGIS",
+                        "Figma", "Wireframing", "Prototyping", "Canva"
+                     ].map((skill, i) => (
                        <span key={i} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all cursor-default">
                          {skill}
                        </span>
@@ -292,6 +298,13 @@ export default function Portfolio() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
+              { 
+                title: "Smart Antenna", 
+                type: "ECE / SIMULATION", 
+                desc: "Low-profile dielectric-loaded capacitive monopole antenna designed in HFSS. Achieved 74% size reduction and 98.34% radiation efficiency.",
+                tags: ["HFSS", "VNA", "V2X"],
+                accent: "#00ff88"
+              },
               { 
                 title: "Smart Parking AI", 
                 type: "IoT / ARDUINO", 

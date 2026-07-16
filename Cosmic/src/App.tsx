@@ -178,41 +178,60 @@ function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
-              <h3 className="font-grotesk text-[20px] text-neon mb-4">PROGRAMMING & WEB</h3>
+              <h3 className="font-grotesk text-[20px] text-neon mb-4">NETWORKING & IT</h3>
+              <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-col gap-2">
+                <span>TCP/IP</span>
+                <span>DNS</span>
+                <span>ROUTING & SWITCHING</span>
+                <span>CYBER SECURITY</span>
+              </div>
+            </div>
+
+            <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
+              <h3 className="font-grotesk text-[20px] text-neon mb-4">PROGRAMMING</h3>
               <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-col gap-2">
                 <span>C, C++</span>
                 <span>PYTHON</span>
                 <span>HTML, CSS</span>
-                <span>FIGMA (UI DESIGN)</span>
+                <span>API INTEGRATION</span>
               </div>
             </div>
 
             <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
-              <h3 className="font-grotesk text-[20px] text-neon mb-4">SOFTWARE & TOOLS</h3>
-              <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-wrap gap-x-4 gap-y-2">
-                <span>ARDUINO IDE</span> <span>MATLAB</span> <span>ARCGIS</span>
-                <span>TINKERCAD</span> <span>VERILOG</span> <span>VS CODE</span>
-                <span>MS OFFICE</span> <span>CANVA</span>
-              </div>
-            </div>
-
-            <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
-              <h3 className="font-grotesk text-[20px] text-neon mb-4">SPECIAL INTERESTS</h3>
+              <h3 className="font-grotesk text-[20px] text-neon mb-4">AI & AUTOMATION</h3>
               <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-col gap-2">
-                <span>EMBEDDED SYSTEMS</span>
-                <span>AI & MACHINE LEARNING</span>
-                <span>ELECTRIC VEHICLES</span>
-                <span>DIGITAL ELECTRONICS</span>
+                <span>n8n</span>
+                <span>GOOGLE AI STUDIO</span>
+                <span>OPENAI</span>
+                <span>AI AGENTS</span>
+              </div>
+            </div>
+
+            <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
+              <h3 className="font-grotesk text-[20px] text-neon mb-4">EMBEDDED & ENG.</h3>
+              <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-wrap gap-x-4 gap-y-2">
+                <span>ARDUINO</span> <span>MATLAB</span> <span>TINKERCAD</span>
+                <span>VERILOG</span> <span>ARCGIS</span> <span>HFSS SIMULATION</span>
+              </div>
+            </div>
+
+            <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
+              <h3 className="font-grotesk text-[20px] text-neon mb-4">UI/UX & DESIGN</h3>
+              <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-col gap-2">
+                <span>FIGMA</span>
+                <span>WIREFRAMING</span>
+                <span>PROTOTYPING</span>
+                <span>CANVA</span>
               </div>
             </div>
             
-            <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300 md:col-span-2 lg:col-span-3">
-               <h3 className="font-grotesk text-[20px] text-neon mb-4">PROFESSIONAL ATTRIBUTES</h3>
-               <div className="font-mono text-[14px] uppercase text-cream leading-relaxed grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                 <span className="p-4 bg-white/5 rounded-xl border border-white/10 text-center flex items-center justify-center">STRONG PROBLEM-SOLVING</span>
-                 <span className="p-4 bg-white/5 rounded-xl border border-white/10 text-center flex items-center justify-center">FAST LEARNER</span>
-                 <span className="p-4 bg-white/5 rounded-xl border border-white/10 text-center flex items-center justify-center">HIGHLY DEDICATED</span>
-                 <span className="p-4 bg-white/5 rounded-xl border border-white/10 text-center flex items-center justify-center">ADAPTABLE</span>
+            <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
+               <h3 className="font-grotesk text-[20px] text-neon mb-4">ATTRIBUTES</h3>
+               <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-col gap-2">
+                 <span>STRONG PROBLEM-SOLVING</span>
+                 <span>FAST LEARNER</span>
+                 <span>HIGHLY DEDICATED</span>
+                 <span>ADAPTABLE</span>
                </div>
             </div>
           </div>
@@ -251,7 +270,28 @@ function App() {
           {/* NFT Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            {/* Card 1 */}
+            {/* Card 1: Smart Antenna */}
+            <div className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300">
+              <div className="relative w-full pb-[100%] rounded-[24px] overflow-hidden bg-black/50">
+                <video 
+                  autoPlay loop muted playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                >
+                  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4" type="video/mp4" />
+                </video>
+              </div>
+              <div className="mt-[18px] liquid-glass rounded-[20px] px-5 py-4 flex justify-between items-center bg-white/5">
+                <div className="flex flex-col">
+                  <span className="font-mono text-[11px] text-cream/70 uppercase tracking-wider">PROJECT:</span>
+                  <span className="font-grotesk text-[16px] mt-1 track-widest">SMART ANTENNA</span>
+                </div>
+                <button className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b724ff] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-purple-500/50 hover:scale-110 transition-transform cursor-pointer">
+                  <ChevronRight className="text-white w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Card 2 */}
             <div className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300">
               <div className="relative w-full pb-[100%] rounded-[24px] overflow-hidden bg-black/50">
                 <video 

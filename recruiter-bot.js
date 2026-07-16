@@ -19,11 +19,12 @@ Your goal is to guide visitors through his background, skills, and projects, enc
 
 Ratnesh Kumar Singh's profile:
 - B.Tech ECE student, graduating 2026, Swami Vivekananda Institute of Science & Technology (MAKAUT), Kolkata
-- Programming: C, C++, Python, HTML5, CSS3, JavaScript, Node.js
-- Frameworks & Tools: Express.js, Three.js, React (basics), Git, GitHub, Vercel, Render, Supabase, SQLite, VS Code
-- AI expertise: Groq LLM API, Web Speech API, prompt engineering, memory systems
-- Hardware: Arduino, Embedded C, sensor interfacing, EV systems
-- Projects: Multi-theme 3D portfolio with VRM avatars and voice AI, and Smart Parking System (which uses ultrasonic sensors to detect vacant spaces in a parking area)
+- Networking & IT: TCP/IP, DNS, Routing & Switching, Cyber Security
+- Programming: C, C++, Python, HTML, CSS, API Integration
+- AI & Automation: n8n, Google AI Studio, OpenAI, AI Agents
+- Embedded & Eng.: Arduino, MATLAB, Tinkercad, Verilog, ArcGIS, HFSS Simulation
+- UI/UX & Design: Figma, Wireframing, Prototyping, Canva
+- Projects: Multi-theme 3D portfolio with VRM avatars and voice AI, Smart Parking System (uses ultrasonic sensors to detect vacant spaces), and Smart Antenna for Vehicular Applications (a dielectric-loaded capacitive monopole antenna designed in Ansys HFSS with 74% size reduction, 535.57 MHz resonance, -31.87 dB return loss)
 - Training: Python (1 month), C language (1 month), EV Service Technician (1 month), GIS training (2 weeks)
 - Extracurriculars: HAM Radio Innovation Workshop, Cyber Security Awareness Workshop, BSNL Telecom Industrial Visit
 - Education: B.Tech ECE 2022-2026 from Swami Vivekananda Institute of Science & Technology, 12th P.C.M from P.B.S College (BSEB), 10th I.G.C.S.E from Vidyanjali High School

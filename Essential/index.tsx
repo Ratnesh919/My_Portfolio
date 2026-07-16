@@ -206,16 +206,24 @@ export default function Portfolio() {
             <h3 className="text-3xl font-extrabold mb-8 text-[#111827] flex items-center gap-3"><Code2 className="text-[#2563eb]"/> Skills & Tools</h3>
             <div className="space-y-7">
               <div>
-                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-2">Programming</p>
-                <p className="text-lg font-bold text-[#1f2937]">C, C++, Python, HTML, CSS</p>
+                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-1">Networking & IT</p>
+                <p className="text-base font-bold text-[#1f2937]">TCP/IP, DNS, Routing & Switching, Cyber Security</p>
               </div>
               <div>
-                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-2">UI/UX Design</p>
-                <p className="text-lg font-bold text-[#1f2937]">Figma</p>
+                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-1">Programming</p>
+                <p className="text-base font-bold text-[#1f2937]">C, C++, Python, HTML, CSS, API Integration</p>
               </div>
               <div>
-                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-2">Software</p>
-                <p className="text-lg font-bold text-[#1f2937] leading-relaxed">Arduino IDE, MATLAB, ArcGIS, Tinkercad, Verilog, VS Code, MS Office, Canva</p>
+                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-1">AI & Automation</p>
+                <p className="text-base font-bold text-[#1f2937]">n8n, Google AI Studio, OpenAI, AI Agents</p>
+              </div>
+              <div>
+                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-1">Embedded & Engineering</p>
+                <p className="text-base font-bold text-[#1f2937]">Arduino IDE, MATLAB, Tinkercad, Verilog, ArcGIS, HFSS Simulation</p>
+              </div>
+              <div>
+                <p className="text-[#6b7280] text-sm font-bold tracking-wider uppercase mb-1">UI/UX & Design</p>
+                <p className="text-base font-bold text-[#1f2937]">Figma, Wireframing, Prototyping, Canva</p>
               </div>
               <div className="pt-4 flex flex-wrap gap-4">
                 <a href="https://tinywebs.site/mboHXS" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-bold text-[#2563eb] hover:bg-[#2563eb] hover:text-white bg-[#2563eb]/10 px-5 py-2.5 rounded-full border border-[#2563eb]/20 transition-all shadow-sm">
@@ -232,6 +240,7 @@ export default function Portfolio() {
             <h3 className="text-3xl font-extrabold mb-8 text-[#111827] flex items-center gap-3"><Cpu className="text-[#5438dc]"/> Projects & Activities</h3>
             <ul className="space-y-4">
               {[
+                'Smart Antenna for Vehicular Applications (74% size reduction, HFSS, 535.57 MHz)',
                 'Smart Parking System (Arduino + ultrasonic sensors)',
                 'Text Humanizer using Python',
                 'Simple AI Assistant with APIs',

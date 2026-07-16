@@ -3,24 +3,24 @@ import { motion, useInView } from 'framer-motion';
 
 const skillCategories = [
   {
+    title: "Networking & IT",
+    skills: ["TCP/IP", "DNS", "Routing & Switching", "Cybersecurity"]
+  },
+  {
     title: "Programming",
-    skills: ["C", "C++", "Python"]
+    skills: ["C", "C++", "Python", "HTML", "CSS", "API Integration"]
   },
   {
-    title: "Web Dev",
-    skills: ["HTML", "CSS"]
+    title: "AI & Automation",
+    skills: ["n8n", "Google AI Studio", "OpenAI", "AI Agents"]
   },
   {
-    title: "UI Design",
-    skills: ["Figma"]
+    title: "Embedded & Engineering",
+    skills: ["Arduino", "MATLAB", "Tinkercad", "Verilog", "ArcGIS", "Digital Electronics"]
   },
   {
-    title: "Software & Tools",
-    skills: ["Arduino IDE", "MATLAB", "ArcGIS", "Tinkercad", "Verilog", "VS Code", "MS Office Suite", "Canva"]
-  },
-  {
-    title: "Special Interests",
-    skills: ["Embedded Systems", "AI", "Machine Learning", "Electric Vehicles", "Digital Electronics"]
+    title: "UI/UX & Design",
+    skills: ["Figma", "Wireframing", "Prototyping", "Visual Design", "Canva"]
   },
   {
     title: "Soft Skills",

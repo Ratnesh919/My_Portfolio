@@ -16,10 +16,12 @@ const techNames = [
   "Python",
   "C++",
   "MATLAB",
-  "Verilog",
-  "AI & ML",
+  "n8n",
+  "TCP/IP",
+  "Cybersec",
   "Figma",
-  "C",
+  "OpenAI",
+  "Verilog",
 ];
 
 const textures = techNames.map((text) => {

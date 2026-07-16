@@ -27,8 +27,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="./assets/index-C-7pMscA.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-GKqOdNkx.css">
     <script>
       document.addEventListener('contextmenu', e => e.preventDefault());
       document.addEventListener('keydown', function(e) {
@@ -46,23 +44,10 @@
         }
       });
     </script>
+    <script type="module" crossorigin src="./assets/index-CSn6iN3K.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-GKqOdNkx.css">
   </head>
   <body class="noise-overlay">
     <div id="root"></div>
-      <!-- Raya scroll postMessage listener -->
-    <script>
-      window.addEventListener('message', function(e) {
-        if (!e.data || e.data.type !== 'raya-scroll') return;
-        var d = e.data;
-        if (d.direction === 'down') { window.scrollBy({ top: 600, behavior: 'smooth' }); return; }
-        if (d.direction === 'up')   { window.scrollBy({ top: -600, behavior: 'smooth' }); return; }
-        if (d.section) {
-          var el = document.getElementById(d.section) ||
-                   document.querySelector('.' + d.section + '-section') ||
-                   document.querySelector('[id*="' + d.section + '"]');
-          if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-        }
-      });
-    </script>
-</body>
+  </body>
 </html>

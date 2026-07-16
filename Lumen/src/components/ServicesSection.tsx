@@ -8,6 +8,12 @@ export default function ServicesSection() {
 
   const cards = [
     {
+      video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4",
+      tag: "Hardware & Simulation",
+      title: "Smart Antenna (V2X)",
+      description: "Designed and simulated a low-profile dielectric-loaded and capacitive end-loaded monopole antenna in HFSS. Achieved a 74% physical size reduction for vehicular integration."
+    },
+    {
       video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4",
       tag: "Software",
       title: "Simple AI Assistant",
