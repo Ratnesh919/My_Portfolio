@@ -135,20 +135,6 @@ body {
     color: #ff416c;
 }
 
-.site-loader-warning {
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
-    text-align: center;
-    margin-top: -5px; /* slightly pull up closer to the footer */
-    animation: textPulse 2.5s infinite ease-in-out;
-}
-@keyframes textPulse {
-    0% { opacity: 0.5; text-shadow: 0 0 0px transparent; }
-    50% { opacity: 1; text-shadow: 0 0 10px rgba(255, 65, 108, 0.8); color: #ff416c; }
-    100% { opacity: 0.5; text-shadow: 0 0 0px transparent; }
-}
-
 /* ── Interactive Bubble Overlay ── */
 #bubble-screen {
     position: fixed;
