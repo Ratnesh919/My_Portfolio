@@ -44,7 +44,18 @@ CRITICAL: You are a self-learning AI. If the user corrects a mistake, apologize 
 REMEMBER: NEVER exceed 200 words in any reply.`;
 
 
-const INTRO_TEXT = "Hi! I am Raya, your AI guide for this portfolio. What is your name? And while you think about it, we have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. You can say a name or number to open one!";
+function getTimeOfDayGreeting() {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return "Good morning";
+    if (hr >= 12 && hr < 17) return "Good afternoon";
+    return "Good evening";
+}
+
+function getIntroText() {
+    const greeting = getTimeOfDayGreeting();
+    return `${greeting}! I am Raya, your AI guide for this portfolio. What is your name? And while you think about it, we have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. You can say a name or number to open one!`;
+}
+
 const THEME_PROMPT = "We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open? You can say the name or the number.";
 const MUSIC_PROMPT = "Would you like me to play a song while you explore? Just say yes and tell me what you want to hear!";
 
@@ -178,12 +189,13 @@ class AvatarChatBot {
         let introMessage;
         const isReturning = this.userName || localStorage.getItem('rayaHasVisited') === 'true';
         if (isReturning) {
+            const greeting = getTimeOfDayGreeting();
             const namePart = this.userName ? `, ${this.userName}` : '';
-            introMessage = `Hi there${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
+            introMessage = `${greeting}${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
             this._awaitingTheme = true;
         } else {
             // New user — combined intro + theme list in one message
-            introMessage = INTRO_TEXT;
+            introMessage = getIntroText();
             this._awaitingName    = true;
             this._awaitingTheme   = true;
             this._awaitingCommand = true;
@@ -297,11 +309,12 @@ class AvatarChatBot {
         const isReturning = this.userName || localStorage.getItem('rayaHasVisited') === 'true';
         let introMsg;
         if (isReturning) {
+            const greeting = getTimeOfDayGreeting();
             const namePart = this.userName ? `, ${this.userName}` : '';
-            introMsg = `Hi there${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
+            introMsg = `${greeting}${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
             this._awaitingTheme = true;
         } else {
-            introMsg = INTRO_TEXT;
+            introMsg = getIntroText();
             this._awaitingName = true;
             this._awaitingTheme = true;
         }

@@ -51,7 +51,14 @@ Examples:
 When asked to switch to visitor mode, full experience, 3D version, or regular portfolio, explain that it has interactive VRM avatars, themes, and music, and navigate them there using {"action":"navigate","target":"full"}.
 REMEMBER: Never exceed 20 words.`;
 
-const R_INTRO = "Hi! I'm Raya, Ratnesh's AI guide. What's your name? I can tell you about his skills, projects, experience — or just scroll around for you!";
+function getTimeOfDayGreeting() {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return "Good morning";
+    if (hr >= 12 && hr < 17) return "Good afternoon";
+    return "Good evening";
+}
+
+const R_INTRO = "I'm Raya, Ratnesh's AI guide. What's your name? I can tell you about his skills, projects, experience — or just scroll around for you!";
 
 class RecruiterBot {
     constructor() {
@@ -330,9 +337,10 @@ class RecruiterBot {
 
         // Wait a bit for voices to load, then speak
         setTimeout(() => {
-            let intro = R_INTRO;
+            const greeting = getTimeOfDayGreeting();
+            let intro = `${greeting}! ${R_INTRO}`;
             if (this.userName) {
-                intro = `Welcome back, ${this.userName}! Great to see you again. Ask me anything about Ratnesh's skills, projects, or experience!`;
+                intro = `${greeting}, ${this.userName}! Great to see you again. Ask me anything about Ratnesh's skills, projects, or experience!`;
                 this._awaitingName = false;
             }
             this._addMsg('bot', intro);
