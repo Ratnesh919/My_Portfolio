@@ -442,7 +442,6 @@ class AvatarChatBot {
                 <li class="suggest-cmd">"take me to projects section"</li>
                 <li class="suggest-cmd">"tell me about Ratnesh's project"</li>
                 <li class="suggest-cmd">"tell me a joke"</li>
-                <li class="suggest-cmd">"switch to recruiter mode"</li>
             </ul>
         `;
         panel.appendChild(this.infoPanel);
