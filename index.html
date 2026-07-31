@@ -257,6 +257,18 @@
                 </div>
             </div>
         </a>
+        <a href="#" class="card" id="card-ece-sandbox">
+            <div class="card-icon"><i data-lucide="cpu"></i></div>
+            <div class="card-vertical-title">ECE SANDBOX</div>
+            <div class="card-content">
+                <div class="card-title">ECE Sandbox</div>
+                <div class="card-subtitle">Interactive logic gates & circuit simulator.</div>
+                <div class="view-project">
+                    <span>Open Sandbox</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </a>
     </main>
 
     <!-- ─── Theme Switcher / Iframe Container ───────────────────────────── -->
@@ -665,6 +677,43 @@
     <script src="./vrm-config.js"></script>
     <script type="module" src="./vrm-character.js"></script>
     <script src="./chatbot.js"></script>
+
+    <!-- ─── ECE Logic Gate Sandbox Modal ─────────────────────────────── -->
+    <div id="ece-sandbox-modal" class="sandbox-modal" style="display: none;">
+        <div class="sandbox-modal-content">
+            <div class="sandbox-header">
+                <h2>⚡ ECE Logic Gate Sandbox</h2>
+                <div class="sandbox-actions">
+                    <select id="sandbox-presets">
+                        <option value="empty">-- Load Preset --</option>
+                        <option value="and">Basic AND Gate</option>
+                        <option value="xor">XOR logic from basic gates</option>
+                        <option value="half-adder">Half Adder Circuit</option>
+                    </select>
+                    <button id="sandbox-reset" class="shiny-glass-btn small-btn">Reset Canvas</button>
+                    <button id="sandbox-close" class="sandbox-close-btn">&times;</button>
+                </div>
+            </div>
+            <div class="sandbox-workspace">
+                <div class="sandbox-sidebar">
+                    <h3>Components</h3>
+                    <button class="add-node-btn" data-type="switch">🔘 Input Switch</button>
+                    <button class="add-node-btn" data-type="and">AND Gate</button>
+                    <button class="add-node-btn" data-type="or">OR Gate</button>
+                    <button class="add-node-btn" data-type="not">NOT Gate</button>
+                    <button class="add-node-btn" data-type="xor">XOR Gate</button>
+                    <button class="add-node-btn" data-type="led">💡 Output LED</button>
+                    <p class="sidebar-help">💡 Click a component to add it, click terminals to connect wires, and click switches to toggle logic inputs.</p>
+                </div>
+                <div class="sandbox-canvas-container">
+                    <canvas id="sandbox-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ECE Circuit Simulator Engine -->
+    <script src="./ece-simulator.js"></script>
     
     <script>
         // Reveal VRM and Chatbot immediately
