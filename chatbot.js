@@ -417,14 +417,8 @@ class AvatarChatBot {
             <line x1="12" y1="8" x2="12.01" y2="8"/>
         </svg>`;
 
-        // Waveform Canvas for Voice Recording
-        this.waveformCanvas = document.createElement('canvas');
-        this.waveformCanvas.id = 'chatbot-waveform-canvas';
-        this.waveformCanvas.style.display = 'none';
-
         inputRow.appendChild(this.infoBtn);
         inputRow.appendChild(this.textInput);
-        inputRow.appendChild(this.waveformCanvas);
         inputRow.appendChild(sendBtn);
         inputRow.appendChild(this.micBtn);
 
@@ -684,7 +678,6 @@ class AvatarChatBot {
             this.updateMicUI();
             // Only show "Listening" bubble if user clicked the mic button
             if (!this._passiveModeActive) this.showBubble('Listening...');
-            this.startWaveformAnimation();
         };
 
         this.recognition.onresult = (event) => {
@@ -795,7 +788,6 @@ class AvatarChatBot {
         this.recognition.onerror = (e) => {
             console.error('[Raya] Mic error:', e.error);
             this.isListening = false;
-            this.stopWaveformAnimation();
             this.updateMicUI();
             if (e.error === 'not-allowed') {
                 this.showBubble('Mic blocked. Please allow mic in browser settings and reload.');
@@ -807,119 +799,8 @@ class AvatarChatBot {
 
         this.recognition.onend = () => {
             this.isListening = false;
-            this.stopWaveformAnimation();
             this.updateMicUI();
         };
-    }
-
-    async startWaveformAnimation() {
-        if (this._audioContext || this._waveformAnalyser) {
-            this.stopWaveformAnimation();
-        }
-
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            const audioCtx = new AudioContextClass();
-            const analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser);
-
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            const canvasCtx = this.waveformCanvas.getContext('2d');
-            this._waveformStream = stream;
-            this._audioContext = audioCtx;
-            this._waveformAnalyser = analyser;
-
-            // Toggle UI display
-            this.textInput.style.display = 'none';
-            if (document.getElementById('chatbot-send-btn')) {
-                document.getElementById('chatbot-send-btn').style.display = 'none';
-            }
-            this.waveformCanvas.style.display = 'block';
-
-            let phase = 0;
-            const draw = () => {
-                if (!this.isListening) {
-                    this.stopWaveformAnimation();
-                    return;
-                }
-                this._waveformAnimationFrame = requestAnimationFrame(draw);
-
-                analyser.getByteFrequencyData(dataArray);
-
-                // Calculate average volume/amplitude
-                let sum = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    sum += dataArray[i];
-                }
-                const average = sum / bufferLength;
-                
-                const width = this.waveformCanvas.width = this.waveformCanvas.clientWidth;
-                const height = this.waveformCanvas.height = this.waveformCanvas.clientHeight;
-
-                canvasCtx.clearRect(0, 0, width, height);
-
-                // Glow effect
-                canvasCtx.shadowBlur = 12;
-
-                const amplitude = Math.max(3, (average / 255.0) * (height / 2.2));
-
-                // Draw overlapping beautiful sine waves
-                const drawWave = (color, ampScale, frequency, offset, lineWidth = 2) => {
-                    canvasCtx.beginPath();
-                    canvasCtx.strokeStyle = color;
-                    canvasCtx.lineWidth = lineWidth;
-                    canvasCtx.shadowColor = color;
-
-                    for (let x = 0; x < width; x++) {
-                        const y = (height / 2) + Math.sin(x * frequency + phase + offset) * amplitude * ampScale;
-                        if (x === 0) canvasCtx.moveTo(x, y);
-                        else canvasCtx.lineTo(x, y);
-                    }
-                    canvasCtx.stroke();
-                };
-
-                // Pink/Red Wave (Primary)
-                drawWave('rgba(255, 65, 108, 0.95)', 1.0, 0.015, 0, 2.5);
-                // Cyan Wave (Secondary)
-                drawWave('rgba(79, 172, 254, 0.65)', 0.7, 0.022, Math.PI / 3, 2);
-                // White Wave (Tertiary)
-                drawWave('rgba(255, 255, 255, 0.45)', 0.45, 0.03, Math.PI / 1.5, 1.5);
-
-                phase += 0.18; // Speed
-            };
-
-            draw();
-        } catch (err) {
-            console.warn('[Raya] Failed to capture audio stream for waveform:', err);
-        }
-    }
-
-    stopWaveformAnimation() {
-        if (this._waveformAnimationFrame) {
-            cancelAnimationFrame(this._waveformAnimationFrame);
-            this._waveformAnimationFrame = null;
-        }
-        if (this._waveformStream) {
-            this._waveformStream.getTracks().forEach(track => track.stop());
-            this._waveformStream = null;
-        }
-        if (this._audioContext) {
-            try { this._audioContext.close(); } catch (e) {}
-            this._audioContext = null;
-        }
-        this._waveformAnalyser = null;
-
-        // Restore UI displays
-        this.waveformCanvas.style.display = 'none';
-        this.textInput.style.display = 'block';
-        if (document.getElementById('chatbot-send-btn')) {
-            document.getElementById('chatbot-send-btn').style.display = 'flex';
-        }
     }
 
     // -- Passive (always-on) mic starter ---------------------------------------

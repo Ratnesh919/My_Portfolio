@@ -1363,17 +1363,6 @@ header, .container, .contact-section {
 #chatbot-text-input::placeholder { color: rgba(255,255,255,0.35); }
 #chatbot-text-input:focus { border-color: rgba(255, 65, 108, 0.9); }
 
-#chatbot-waveform-canvas {
-    flex: 1;
-    height: 42px;
-    border-radius: 12px;
-    background: rgba(12, 12, 18, 0.88);
-    border: 1px solid rgba(255, 65, 108, 0.45);
-    backdrop-filter: blur(8px);
-    display: none;
-    box-shadow: inset 0 0 10px rgba(255, 65, 108, 0.15);
-}
-
 /* Send Button */
 #chatbot-send-btn {
     width: 42px;
