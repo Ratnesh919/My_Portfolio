@@ -506,7 +506,11 @@ function fixVRMHitbox(vrmObj) {
 const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
 vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile, async gltf => {
     vrm = gltf.userData.vrm;
-    if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
+    if (VRMUtils) {
+        if (typeof VRMUtils.rotateVRM0 === 'function') try { VRMUtils.rotateVRM0(vrm); } catch (_) {}
+        if (typeof VRMUtils.removeUnnecessaryVertices === 'function') try { VRMUtils.removeUnnecessaryVertices(vrm.scene); } catch (_) {}
+        if (typeof VRMUtils.combineSkeletons === 'function') try { VRMUtils.combineSkeletons(vrm.scene); } catch (_) {}
+    }
 
     configureVRMPhysics(vrm, initialFile);
     applyModelVisuals(vrm, initialFile);
@@ -1585,7 +1589,11 @@ window.switchVRM = function(modelPath) {
         newLoader.register(p => new VRMLoaderPlugin(p));
         newLoader.load(window.getAvatarUrl ? window.getAvatarUrl(modelPath) : modelPath, async gltf => {
         vrm = gltf.userData.vrm;
-        if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
+        if (VRMUtils) {
+            if (typeof VRMUtils.rotateVRM0 === 'function') try { VRMUtils.rotateVRM0(vrm); } catch (_) {}
+            if (typeof VRMUtils.removeUnnecessaryVertices === 'function') try { VRMUtils.removeUnnecessaryVertices(vrm.scene); } catch (_) {}
+            if (typeof VRMUtils.combineSkeletons === 'function') try { VRMUtils.combineSkeletons(vrm.scene); } catch (_) {}
+        }
         
         configureVRMPhysics(vrm, modelPath);
         applyModelVisuals(vrm, modelPath);
