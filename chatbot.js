@@ -409,30 +409,6 @@ class AvatarChatBot {
         inputRow.appendChild(sendBtn);
         inputRow.appendChild(this.micBtn);
 
-        // Wake word hint
-        this.wakeWordHint = document.createElement('div');
-        this.wakeWordHint.id = 'chatbot-wake-word-hint';
-        this.wakeWordHint.innerText = "Say wake word 'Hey Raya' to chat";
-        this.wakeWordHint.style.cssText = `
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.6);
-            text-align: center;
-            margin-bottom: 6px;
-            font-family: 'Outfit', sans-serif;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 3px 8px;
-            display: inline-block;
-            align-self: center;
-        `;
-        
-        // Use a flex container for the hint to center it above the input row
-        const hintContainer = document.createElement('div');
-        hintContainer.style.display = 'flex';
-        hintContainer.style.justifyContent = 'center';
-        hintContainer.appendChild(this.wakeWordHint);
-
-        panel.appendChild(hintContainer);
         panel.appendChild(inputRow);
 
         sendBtn.addEventListener('click', () => this.handleTextSend());
