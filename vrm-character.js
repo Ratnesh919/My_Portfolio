@@ -979,37 +979,52 @@ window.addEventListener('pointerup', e => {
     }
 
     if (wasDragging) {
-        // Check if dropped onto or near the chatbot panel
+        // Check if dropped onto or near the chatbot panel or any theme card
+        let targetEl = null;
         const chatEl = document.getElementById('chatbot-panel') ||
                        document.getElementById('chatbot-input-row');
         if (chatEl) {
             const rect = chatEl.getBoundingClientRect();
             const MARGIN = 60;
-            // Only trigger sitting if chatbox is visible (width > 0)
             if (rect.width > 0 && rect.height > 0 &&
                 e.clientX >= rect.left  - MARGIN && e.clientX <= rect.right  + MARGIN &&
                 e.clientY >= rect.top   - MARGIN && e.clientY <= rect.bottom + MARGIN) {
-                isSittingOnChatbox = true;
-                clearAutoTimer();
-
-                // ── Snap Y to chatbox level only (X stays at drop position) ────
-                if (vrm) {
-                    const halfH  = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
-                    const topNDC = 1 - 2 * (rect.top / window.innerHeight);
-                    const worldY = camera.position.y + topNDC * halfH;
-                    // +0.1 seats hips just above the panel top edge
-                    vrm.scene.position.y = Math.min(worldY + 0.1, 0.5);
-                    // X is intentionally NOT changed — she sits wherever dropped
-                }
-                // ─────────────────────────────────────────────────────────────────
-
-                applyState('happyIdle', 'relaxed', 0.55);  // sit2 expression
-                playAnim(ANIM.sit2, true, 0.5);            // sit2 FIRST
-                lastAnimKey = 'sit2';                      // so pickRandom picks sit1 next
-                // Cycle to sit1 after exactly 25s, then sit2 again, etc.
-                autoTimerId = setTimeout(() => playRandomAnim(), 25000);
-                return;
+                targetEl = chatEl;
             }
+        }
+
+        if (!targetEl) {
+            document.querySelectorAll('.card').forEach(c => {
+                const rect = c.getBoundingClientRect();
+                const MARGIN = 30;
+                if (e.clientX >= rect.left  - MARGIN && e.clientX <= rect.right  + MARGIN &&
+                    e.clientY >= rect.top   - MARGIN && e.clientY <= rect.bottom + MARGIN) {
+                    targetEl = c;
+                }
+            });
+        }
+
+        if (targetEl) {
+            const rect = targetEl.getBoundingClientRect();
+            isSittingOnChatbox = true;
+            clearAutoTimer();
+
+            // ── Snap Y so avatar sits flush on top edge (X stays at drop position) ────
+            if (vrm) {
+                const halfH  = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+                const topNDC = 1 - 2 * (rect.top / window.innerHeight);
+                const worldY = camera.position.y + topNDC * halfH;
+                // -0.08 seats thighs flush on the top surface
+                vrm.scene.position.y = Math.min(worldY - 0.08, 0.45);
+            }
+            // ─────────────────────────────────────────────────────────────────
+
+            applyState('happyIdle', 'relaxed', 0.55);  // sit2 expression
+            playAnim(ANIM.sit2, true, 0.5);            // sit2 FIRST
+            lastAnimKey = 'sit2';                      // so pickRandom picks sit1 next
+            // Cycle to sit1 after exactly 25s, then sit2 again, etc.
+            autoTimerId = setTimeout(() => playRandomAnim(), 25000);
+            return;
         }
         // Dropped somewhere else — just play idle at current position (no snap back)
         isSittingOnChatbox = false;
