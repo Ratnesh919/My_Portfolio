@@ -249,6 +249,19 @@ let smileTarget        = 0;   // what we're animating toward
 let smileSquintSmooth  = 0;   // eye squint amount
 let smileTimerId       = null;
 
+// State-driven blink system (natural intervals, smooth eyelids curve)
+let blinkTimer = 0;
+let nextBlinkTime = 2.0 + Math.random() * 4.0;
+let isBlinking = false;
+let blinkProgress = 0;
+const BLINK_DURATION = 0.18; // 180ms blink speed
+
+// Eye micro-saccades wandering system (adds natural jitter to eyes)
+let saccadeTimer = 0;
+let nextSaccadeInterval = 1.5;
+let saccadeOffsetX = 0;
+let saccadeOffsetY = 0;
+
 // Finger pose blend
 let fingerPoseCurrent = { ...FINGER_POSES.idle };
 let fingerPoseTarget  = { ...FINGER_POSES.idle };
@@ -324,6 +337,26 @@ function retargetMixamoToVRM(asset, vrm, fileUrl = '') {
             } else if (track instanceof THREE.VectorKeyframeTrack) {
                 const isCatwalk = fileUrl.toLowerCase().includes('catwalk');
                 const isSitting = fileUrl.toLowerCase().includes('sitting');
+                
+                // Calculate first frame hips offset to align animation pivot with model rest pose
+                let offsetX = 0, offsetY = 0, offsetZ = 0;
+                if (rigName === 'mixamorigHips' && prop === 'position') {
+                    const restHips = vrm.humanoid?.getNormalizedBoneNode('hips');
+                    if (restHips) {
+                        restHips.updateMatrixWorld(true);
+                        const restPos = new THREE.Vector3();
+                        restHips.getWorldPosition(restPos);
+                        
+                        const firstFrameX = (vrm.meta?.metaVersion === '0' ? -track.values[0] : track.values[0]) * hScale;
+                        const firstFrameY = track.values[1] * hScale;
+                        const firstFrameZ = (vrm.meta?.metaVersion === '0' ? -track.values[2] : track.values[2]) * hScale;
+                        
+                        offsetX = firstFrameX - restPos.x;
+                        offsetY = firstFrameY - restPos.y;
+                        offsetZ = firstFrameZ - restPos.z;
+                    }
+                }
+
                 tracks.push(new THREE.VectorKeyframeTrack(`${vrmNode}.${prop}`,track.times,
                     track.values.map((v,i)=>{
                         // Lock lateral (X-axis) translation for catwalk so it walks on one axis only
@@ -331,7 +364,14 @@ function retargetMixamoToVRM(asset, vrm, fileUrl = '') {
                         // SITTING: zero out hips Y so sit1/sit2 share the same base height
                         // The avatar's scene Y position controls where it sits instead.
                         if (isSitting && prop === 'position' && rigName === 'mixamorigHips' && i%3 === 1) return 0;
-                        return (vrm.meta?.metaVersion==='0'&&i%3!==1?-v:v)*hScale;
+                        
+                        let val = (vrm.meta?.metaVersion==='0'&&i%3!==1?-v:v)*hScale;
+                        if (rigName === 'mixamorigHips' && prop === 'position') {
+                            if (i%3 === 0) val -= offsetX;
+                            if (i%3 === 1) val -= offsetY;
+                            if (i%3 === 2) val -= offsetZ;
+                        }
+                        return val;
                     })));
             }
         }
@@ -1225,6 +1265,15 @@ function animate() {
         }
     }
 
+    // Update saccade timers to add micro-eye movement jitter
+    saccadeTimer += dt;
+    if (saccadeTimer >= nextSaccadeInterval) {
+        saccadeTimer = 0;
+        nextSaccadeInterval = 0.8 + Math.random() * 2.0; // randomize between 0.8s and 2.8s
+        saccadeOffsetX = (Math.random() - 0.5) * 0.55;
+        saccadeOffsetY = (Math.random() - 0.5) * 0.45;
+    }
+
     // Idle look-around animation
     if (vrm.lookAt) {
         if (!window.lookAtTargetObj) {
@@ -1235,14 +1284,20 @@ function animate() {
         
         // Randomly look around the viewport when idle
         if (currentKey && currentKey.includes('Idle') && !window.chatbotTalking) {
-            // Use combination of sine waves for pseudo-random smooth wandering
-            const lookX = Math.sin(t * 0.6) * 3.0 + Math.sin(t * 1.3) * 1.5;
-            const lookY = Math.sin(t * 0.4) * 2.0 + Math.cos(t * 1.1) * 1.0 + 1.2;
+            // Use combination of sine waves + micro-saccades for organic gaze wandering
+            const lookX = Math.sin(t * 0.6) * 3.0 + Math.sin(t * 1.3) * 1.5 + saccadeOffsetX * 2.0;
+            const lookY = Math.sin(t * 0.4) * 2.0 + Math.cos(t * 1.1) * 1.0 + 1.2 + saccadeOffsetY * 1.5;
             window.lookAtTargetObj.position.set(lookX, lookY, 15);
+        } else if (window.chatbotTalking) {
+            // While talking, eyes look straight at the viewer with tiny natural saccades
+            window.lookAtTargetObj.position.set(saccadeOffsetX * 0.35, 1.2 + saccadeOffsetY * 0.3, 15);
         } else {
             // Look straight ahead when doing other animations
             window.lookAtTargetObj.position.set(0, 1.2, 15);
         }
+        
+        // Explicitly update VRM look-at logic
+        try { vrm.lookAt.update(dt); } catch (_) {}
     }
 
     // ── Subtle body breathing sway (always-on, adds life to all animations) ──
@@ -1307,19 +1362,48 @@ function animate() {
         setVRMExpression('Joy', blendedSmile);
     }
 
-    // Auto-blink: blink during all animations except when yawning
+    // Auto-blink: state-driven natural eye blinking with smile squint blend
     if (expr !== 'yawn') {
-        // Reduce blink when smile-squint is active (squinted eyes look closed)
-        const blinkBase = Math.max(0, 1 - Math.abs(Math.sin(t * 0.37) * 20));
-        // Smile squint: eyes naturally narrow. We add blink_l/blink_r offset.
-        const squintAmt = smileSquintSmooth;
-        const blinkFinal = Math.min(1, blinkBase + squintAmt);
-        setVRMExpression('blink',      blinkFinal);
-        setVRMExpression('Blink',      blinkFinal);
-        setVRMExpression('blink_l',    blinkFinal);
-        setVRMExpression('blink_r',    blinkFinal);
-        setVRMExpression('blinkLeft',  blinkFinal);
-        setVRMExpression('blinkRight', blinkFinal);
+        if (!isBlinking) {
+            blinkTimer += dt;
+            if (blinkTimer >= nextBlinkTime) {
+                isBlinking = true;
+                blinkProgress = 0;
+            }
+            // Base state: eyes narrowed slightly if smiling
+            const squintAmt = smileSquintSmooth;
+            setVRMExpression('blink',      squintAmt);
+            setVRMExpression('Blink',      squintAmt);
+            setVRMExpression('blink_l',    squintAmt);
+            setVRMExpression('blink_r',    squintAmt);
+            setVRMExpression('blinkLeft',  squintAmt);
+            setVRMExpression('blinkRight', squintAmt);
+        } else {
+            blinkProgress += dt / BLINK_DURATION;
+            if (blinkProgress >= 1.0) {
+                isBlinking = false;
+                blinkTimer = 0;
+                nextBlinkTime = 1.8 + Math.random() * 4.5; // randomize interval
+                
+                const squintAmt = smileSquintSmooth;
+                setVRMExpression('blink',      squintAmt);
+                setVRMExpression('Blink',      squintAmt);
+                setVRMExpression('blink_l',    squintAmt);
+                setVRMExpression('blink_r',    squintAmt);
+                setVRMExpression('blinkLeft',  squintAmt);
+                setVRMExpression('blinkRight', squintAmt);
+            } else {
+                const blinkVal = Math.sin(Math.PI * blinkProgress);
+                const squintAmt = smileSquintSmooth;
+                const blinkFinal = Math.min(1.0, blinkVal + squintAmt);
+                setVRMExpression('blink',      blinkFinal);
+                setVRMExpression('Blink',      blinkFinal);
+                setVRMExpression('blink_l',    blinkFinal);
+                setVRMExpression('blink_r',    blinkFinal);
+                setVRMExpression('blinkLeft',  blinkFinal);
+                setVRMExpression('blinkRight', blinkFinal);
+            }
+        }
     } else {
         // Yawn: rising open-mouth (aa) + progressive squint (blink)
         // exprSmooth drives the yawn progress (0 → 1 as animation starts)
@@ -1334,19 +1418,29 @@ function animate() {
         setVRMExpression('blink_r',    yawnSquint);
         setVRMExpression('blinkLeft',  yawnSquint);
         setVRMExpression('blinkRight', yawnSquint);
+        
+        // Force blink timer to reset so we don't blink while yawning
+        isBlinking = false;
+        blinkTimer = 0;
     }
 
-    // Chatbot Lipsync (fake talking) — tuned to ~165 WPM / rate 1.10
+    // Chatbot Lipsync (fake talking) — modulated to match syllable cadence and phrase pauses
     if (window.chatbotTalking) {
-        // Primary open-vowel: ~8.5 cycles/s → matches syllable rate at 165 WPM
-        const talkMouth = Math.abs(Math.sin(t * 8.5)) * 0.75;
-        // Secondary vowel for realism: offset phase, lower amplitude
-        const talkIh    = Math.abs(Math.sin(t * 8.5 + 1.8)) * 0.35;
-        setVRMExpression('aa', talkMouth);
-        setVRMExpression('a',  talkMouth);
-        setVRMExpression('A',  talkMouth);
+        // Modulate speed slightly so it feels like natural cadence phrasing
+        const talkSpeed = 8.5 + Math.sin(t * 2.2) * 1.0;
+        const talkMouth = Math.max(0, Math.sin(t * talkSpeed)) * 0.8;
+        // Create natural word pauses (word spacing) in lip movements
+        const phraseGap = Math.sin(t * 1.5) > -0.75 ? 1 : 0;
+        
+        const mouthA = talkMouth * phraseGap;
+        const talkIh = Math.max(0, Math.sin(t * talkSpeed + 1.8)) * 0.3 * phraseGap;
+
+        setVRMExpression('aa', mouthA);
+        setVRMExpression('a',  mouthA);
+        setVRMExpression('A',  mouthA);
         setVRMExpression('ih', talkIh);
         setVRMExpression('i',  talkIh);
+        setVRMExpression('oh', talkMouth * 0.25 * phraseGap); // rounding
     }
 
     // Dist from cursor to the character on screen
