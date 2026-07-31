@@ -1508,3 +1508,91 @@ header, .container, .contact-section {
 .shiny-glass-btn:hover svg {
     transform: scale(1.1);
 }
+
+/* --- CHATBOT INFO BUTTON & PANEL --- */
+#chatbot-info-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    flex-shrink: 0;
+}
+#chatbot-info-btn:hover {
+    background: rgba(255, 65, 108, 0.45);
+    border-color: rgba(255, 65, 108, 0.6);
+    transform: scale(1.08);
+}
+#chatbot-info-panel {
+    background: rgba(10, 10, 15, 0.96);
+    border: 1px solid rgba(255, 65, 108, 0.45);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    display: none; /* controlled by JS */
+    flex-direction: column;
+    gap: 8px;
+    animation: slideUpInfo 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUpInfo {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.info-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ff416c;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.info-panel-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.info-panel-close:hover {
+    color: #ff416c;
+}
+.info-panel-commands {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.suggest-cmd {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+.suggest-cmd:hover {
+    background: rgba(255, 65, 108, 0.15);
+    border-color: rgba(255, 65, 108, 0.3);
+    color: #fff;
+    transform: translateX(4px);
+}

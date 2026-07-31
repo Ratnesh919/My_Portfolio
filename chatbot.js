@@ -405,11 +405,70 @@ class AvatarChatBot {
             <line x1="12" x2="12" y1="19" y2="22"/>
         </svg>`;
 
+        // Info Button
+        this.infoBtn = document.createElement('button');
+        this.infoBtn.id = 'chatbot-info-btn';
+        this.infoBtn.setAttribute('title', 'Help & Quick Commands');
+        this.infoBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>`;
+
+        inputRow.appendChild(this.infoBtn);
         inputRow.appendChild(this.textInput);
         inputRow.appendChild(sendBtn);
         inputRow.appendChild(this.micBtn);
 
+        // Info popup panel for command suggestions
+        this.infoPanel = document.createElement('div');
+        this.infoPanel.id = 'chatbot-info-panel';
+        this.infoPanel.style.display = 'none'; // hidden by default
+        this.infoPanel.innerHTML = `
+            <div class="info-panel-header">
+                <span>💡 Try Saying / Typing:</span>
+                <button class="info-panel-close">&times;</button>
+            </div>
+            <ul class="info-panel-commands">
+                <li class="suggest-cmd">"scroll down"</li>
+                <li class="suggest-cmd">"take me to projects section"</li>
+                <li class="suggest-cmd">"tell me about Ratnesh's project"</li>
+                <li class="suggest-cmd">"tell me a joke"</li>
+                <li class="suggest-cmd">"switch to recruiter mode"</li>
+            </ul>
+        `;
+        panel.appendChild(this.infoPanel);
         panel.appendChild(inputRow);
+
+        // Suggestions Click Handlers
+        this.infoPanel.querySelectorAll('.suggest-cmd').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const cmdText = e.target.textContent.replace(/"/g, '').trim();
+                this.textInput.value = cmdText;
+                this.infoPanel.style.display = 'none';
+                this.textInput.focus();
+            });
+        });
+
+        this.infoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = this.infoPanel.style.display === 'none';
+            this.infoPanel.style.display = isHidden ? 'flex' : 'none';
+        });
+
+        this.infoPanel.querySelector('.info-panel-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.infoPanel.style.display = 'none';
+        });
+
+        // Hide info panel if clicked outside
+        document.addEventListener('click', (e) => {
+            if (this.infoPanel && !this.infoPanel.contains(e.target) && e.target !== this.infoBtn) {
+                this.infoPanel.style.display = 'none';
+            }
+        });
 
         sendBtn.addEventListener('click', () => this.handleTextSend());
         this.textInput.addEventListener('keydown', e => { if (e.key === 'Enter') this.handleTextSend(); });
