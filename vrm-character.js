@@ -477,12 +477,19 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         window.currentVRMScale = scale;
         if (vrm) vrm.scene.scale.setScalar(scale);
     };
-    // Relative scale: multiplier e.g. 1.2 = +20%, 0.8 = -20%
-    window.adjustVRMScale = (multiplier) => {
-        const next = Math.min(1.8, Math.max(0.3, (window.currentVRMScale || (isMobile ? 0.7 : 0.95)) * multiplier));
-        window.setVRMScale(next);
-        return next; // Return so UI can sync slider
+    window.setVRMVisibility = (visible) => {
+        window.vrmEnabled = !!visible;
+        localStorage.setItem('avatarEnabled', visible ? 'true' : 'false');
+        if (vrm && vrm.scene) vrm.scene.visible = !!visible;
+        const canvas = document.getElementById('vrm-canvas');
+        if (canvas) {
+            canvas.style.display = visible ? 'block' : 'none';
+        }
     };
+    // Respect saved avatar visibility preference on load
+    if (localStorage.getItem('avatarEnabled') === 'false') {
+        window.setVRMVisibility(false);
+    }
 
 
     // Live brightness controls exposed to UI sliders

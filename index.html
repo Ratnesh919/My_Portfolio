@@ -428,6 +428,13 @@
             <span>Choose Avatar</span>
             <button id="avatar-panel-close">✕</button>
         </div>
+        <div class="avatar-toggle-row">
+            <span class="avatar-toggle-title">Display Avatar</span>
+            <label class="avatar-switch">
+                <input type="checkbox" id="avatar-onoff-toggle" checked>
+                <span class="avatar-switch-slider"></span>
+            </label>
+        </div>
         <div class="avatar-slider-container">
             <label for="avatar-size-slider">Character Size <span id="avatar-size-pct">95%</span></label>
             <input type="range" id="avatar-size-slider" min="0.5" max="1.5" step="0.01" value="0.95">
@@ -518,6 +525,23 @@
             if (!panel.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target))
                 panel.classList.remove('open');
         });
+
+        // Setup Avatar ON/OFF Toggle
+        const avatarOnOffToggle = document.getElementById('avatar-onoff-toggle');
+        const isAvatarSavedOff = localStorage.getItem('avatarEnabled') === 'false';
+        if (avatarOnOffToggle) {
+            avatarOnOffToggle.checked = !isAvatarSavedOff;
+            avatarOnOffToggle.addEventListener('change', (e) => {
+                const isEnabled = e.target.checked;
+                if (typeof window.setVRMVisibility === 'function') {
+                    window.setVRMVisibility(isEnabled);
+                } else {
+                    localStorage.setItem('avatarEnabled', isEnabled ? 'true' : 'false');
+                    const canvas = document.getElementById('vrm-canvas');
+                    if (canvas) canvas.style.display = isEnabled ? 'block' : 'none';
+                }
+            });
+        }
 
         // Setup size slider
         const sizeSlider = document.getElementById('avatar-size-slider');
