@@ -432,6 +432,7 @@ class AvatarChatBot {
                 <button class="info-panel-close">&times;</button>
             </div>
             <ul class="info-panel-commands">
+                <li class="suggest-cmd">"select last theme"</li>
                 <li class="suggest-cmd">"scroll down"</li>
                 <li class="suggest-cmd">"take me to projects section"</li>
                 <li class="suggest-cmd">"tell me about Ratnesh's project"</li>
@@ -1330,11 +1331,22 @@ class AvatarChatBot {
         
         let id = null;
         let themeName = '';
-        if (targetClean.includes('immersive') || targetClean.includes('3d model') || targetClean === '1' || targetClean.includes('1st')) { id = '#card-1'; themeName = 'Immersive'; }
+        if (targetClean.includes('last theme') || targetClean.includes('previous theme')) {
+            const saved = localStorage.getItem('selectedTheme');
+            if (saved) {
+                const card = Array.from(document.querySelectorAll('.card')).find(c => c.getAttribute('href') === saved);
+                if (card) {
+                    id = `#${card.id}`;
+                    themeName = card.querySelector('.card-title')?.textContent || 'Last Theme';
+                }
+            }
+            if (!id) { id = '#card-5'; themeName = 'Lumen'; }
+        }
+        else if (targetClean.includes('immersive') || targetClean.includes('3d model') || targetClean === '1' || targetClean.includes('1st')) { id = '#card-1'; themeName = 'Immersive'; }
         else if (targetClean.includes('cosmic') || targetClean.includes('cute alien') || targetClean === '2' || targetClean.includes('2nd')) { id = '#card-2'; themeName = 'Cosmic'; }
         else if (targetClean.includes('urban') || targetClean.includes('graffiti') || targetClean === '3' || targetClean.includes('3rd')) { id = '#card-3'; themeName = 'Urban'; }
         else if (targetClean.includes('essential') || targetClean.includes('minimalist') || targetClean === '4' || targetClean.includes('4th')) { id = '#card-4'; themeName = 'Essential'; }
-        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th') || targetClean.includes('last') || targetClean.includes('lst')) { id = '#card-5'; themeName = 'Lumen'; }
+        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th') || targetClean.includes('lst')) { id = '#card-5'; themeName = 'Lumen'; }
 
         if (id) {
             const card = document.querySelector(id);
