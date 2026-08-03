@@ -433,6 +433,7 @@ class AvatarChatBot {
             </div>
             <ul class="info-panel-commands">
                 <li class="suggest-cmd">"select last theme"</li>
+                <li class="suggest-cmd">"play a song"</li>
                 <li class="suggest-cmd">"scroll down"</li>
                 <li class="suggest-cmd">"take me to projects section"</li>
                 <li class="suggest-cmd">"tell me about Ratnesh's project"</li>
