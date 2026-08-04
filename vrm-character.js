@@ -472,7 +472,7 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     applyModelVisuals(vrm, initialFile);
     fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
 
-    window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.7 : 0.95);
+    window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
     window.setVRMScale = (scale) => {
         window.currentVRMScale = scale;
         if (vrm) vrm.scene.scale.setScalar(scale);
@@ -1503,7 +1503,7 @@ window.switchVRM = function(modelPath) {
         configureVRMPhysics(vrm, modelPath);
         applyModelVisuals(vrm, modelPath);
         fixVRMHitbox(vrm);  // always expand hitboxes so drag works in any pose
-        vrm.scene.scale.setScalar(window.currentVRMScale || (isMobile ? 0.7 : 0.95));
+        vrm.scene.scale.setScalar(window.currentVRMScale || (isMobile ? 0.65 : 0.95));
         
         if (savedPosition) {
             vrm.scene.position.copy(savedPosition);
