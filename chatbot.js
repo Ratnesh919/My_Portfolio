@@ -1213,8 +1213,8 @@ class AvatarChatBot {
                     return { speech: `Taking you to the ${sec.target} section!`, actions: [() => this.executeScroll(sec.target)] };
             }
         }
-        if (/scroll down|go down/.test(t))         return { speech: 'Scrolling down!',    actions: [() => this.executeScroll('down')] };
-        if (/scroll up|go up|back to top/.test(t)) return { speech: 'Scrolling back up!', actions: [() => this.executeScroll('up')] };
+        if (/scroll down|go down|page down|down/.test(t))         return { speech: 'Scrolling down!',    actions: [() => this.executeScroll('down')] };
+        if (/scroll up|go up|page up|back to top|up/.test(t))     return { speech: 'Scrolling back up!', actions: [() => this.executeScroll('up')] };
 
         // STOP MUSIC
         if (/stop music|pause music|quiet|shut up|turn off music|stop playing/.test(t))
@@ -1390,54 +1390,97 @@ class AvatarChatBot {
         if (!target) return;
         const iframeContainer = document.getElementById('iframe-container');
         const iframe = document.querySelector('#iframe-container iframe');
-        target = target.toLowerCase();
+        target = target.toLowerCase().trim();
 
-        // Helper: send a postMessage to iframe (works even for cross-origin frames)
         const postToIframe = (msg) => {
             if (iframe && iframe.contentWindow) {
                 try { iframe.contentWindow.postMessage(msg, '*'); } catch(e) {}
             }
         };
 
-        // If we are on the main theme selection page (iframe hidden or not loaded)
-        if (!iframe || !iframeContainer || iframeContainer.style.opacity === '0' || iframeContainer.style.opacity === '') {
-            // Fallback: scroll the main window itself
-            if (target === 'up')   { window.scrollBy({ top: -600, behavior: 'smooth' }); return; }
-            if (target === 'down') { window.scrollBy({ top:  600, behavior: 'smooth' }); return; }
-            console.log('[Raya] Cannot scroll — no iframe loaded.');
+        const isIframeActive = iframe && iframeContainer && (iframeContainer.style.opacity === '1' || iframeContainer.style.display !== 'none');
+
+        // ── Case A: Scroll inside active Theme Iframe ───────────────────────
+        if (isIframeActive) {
+            // Direct scroll up / down inside iframe window & document
+            if (target === 'up' || target === 'down' || target.includes('up') || target.includes('down')) {
+                const isUp = target.includes('up');
+                const distance = isUp ? -650 : 650;
+                try {
+                    const win = iframe.contentWindow;
+                    const doc = iframe.contentDocument || (win ? win.document : null);
+                    if (win) {
+                        win.scrollBy({ top: distance, behavior: 'smooth' });
+                    }
+                    if (doc) {
+                        if (doc.documentElement && typeof doc.documentElement.scrollBy === 'function') {
+                            doc.documentElement.scrollBy({ top: distance, behavior: 'smooth' });
+                        }
+                        if (doc.body && typeof doc.body.scrollBy === 'function') {
+                            doc.body.scrollBy({ top: distance, behavior: 'smooth' });
+                        }
+                    }
+                } catch(e) {
+                    console.warn('[Raya] Direct iframe scroll failed, sending postMessage fallback:', e);
+                }
+                postToIframe({ type: 'raya-scroll', direction: isUp ? 'up' : 'down' });
+                return;
+            }
+
+            // Named section navigation inside iframe
+            const safeTarget = target.split(' ')[0];
+            let elementId = safeTarget;
+            if (safeTarget === 'home' || safeTarget === 'top') elementId = 'home';
+            else if (safeTarget === 'about') elementId = 'about';
+            else if (safeTarget === 'education' || safeTarget === 'college' || safeTarget === 'university') elementId = 'education';
+            else if (safeTarget === 'skill' || safeTarget === 'skills') elementId = 'skills';
+            else if (safeTarget === 'project' || safeTarget === 'projects') elementId = 'projects';
+            else if (safeTarget === 'contact' || safeTarget === 'email' || safeTarget === 'social' || safeTarget === 'socials') elementId = 'contact';
+
+            try {
+                const win = iframe.contentWindow;
+                const doc = iframe.contentDocument || (win ? win.document : null);
+                if (doc) {
+                    if (elementId === 'home') {
+                        if (win) win.scrollTo({ top: 0, behavior: 'smooth' });
+                        if (doc.documentElement) doc.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+                    const section = doc.getElementById(elementId) ||
+                                    doc.querySelector(`.${elementId}-section`) ||
+                                    doc.querySelector(`[id*="${elementId}" i]`) ||
+                                    doc.querySelector(`[data-section="${elementId}"]`);
+                    if (section) {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        return;
+                    }
+                    // nav-link click fallback
+                    const navLinks = Array.from(doc.querySelectorAll('nav a, header a, .nav-link, a[href*="#"]'));
+                    const link = navLinks.find(l => (l.innerText || '').toLowerCase().includes(safeTarget) || (l.getAttribute('href') || '').toLowerCase().includes(safeTarget));
+                    if (link) { link.click(); return; }
+                }
+            } catch(e) {
+                console.warn('[Raya] Direct section scroll failed, sending postMessage fallback:', e);
+            }
+
+            postToIframe({ type: 'raya-scroll', section: elementId });
             return;
         }
 
-        if (target === 'up')   { postToIframe({ type: 'raya-scroll', direction: 'up' });   return; }
-        if (target === 'down') { postToIframe({ type: 'raya-scroll', direction: 'down' }); return; }
-
-        // Named section — try direct DOM access first, fallback to postMessage
-        const safeTarget = target.split(' ')[0];
-        let elementId = safeTarget;
-        if (safeTarget === 'home') elementId = 'home';
-        else if (safeTarget === 'about') elementId = 'about';
-        else if (safeTarget === 'education' || safeTarget === 'college' || safeTarget === 'university') elementId = 'education';
-        else if (safeTarget === 'skill' || safeTarget === 'skills') elementId = 'skills';
-        else if (safeTarget === 'project' || safeTarget === 'projects') elementId = 'projects';
-        else if (safeTarget === 'contact' || safeTarget === 'email') elementId = 'contact';
-
-        // Try direct DOM access (same-origin)
-        try {
-            const doc = iframe.contentDocument;
-            if (doc) {
-                const section = doc.getElementById(elementId) ||
-                                doc.querySelector(`.${elementId}-section`) ||
-                                doc.querySelector(`[id*="${elementId}" i]`);
-                if (section) { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-                // nav-link fallback
-                const navLinks = Array.from(doc.querySelectorAll('nav a, header a, .nav-link'));
-                const link = navLinks.find(l => l.innerText && l.innerText.toLowerCase().includes(safeTarget));
-                if (link) { link.click(); return; }
+        // ── Case B: Main Landing Page (No Theme Iframe Open) ─────────────────
+        const amount = (target === 'up' || target.includes('up')) ? -600 : 600;
+        if (target === 'contact' || target === 'email' || target === 'social') {
+            const contactSec = document.querySelector('.contact-section') || document.getElementById('contact');
+            if (contactSec) {
+                contactSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
             }
-        } catch(e) { /* cross-origin — fall through to postMessage */ }
-
-        // postMessage fallback for cross-origin / React iframes
-        postToIframe({ type: 'raya-scroll', section: elementId });
+        }
+        window.scrollBy({ top: amount, behavior: 'smooth' });
+        const container = document.querySelector('.container') || document.documentElement || document.body;
+        if (container && container.scrollBy) {
+            container.scrollBy({ top: amount, behavior: 'smooth' });
+        }
     }
 
     executeChangeAvatar(target) {
