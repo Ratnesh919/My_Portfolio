@@ -684,14 +684,19 @@ app.get('/api/avatar-proxy', async (req, res) => {
 
     const targetUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${filename}`;
     
+    const reqHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    };
+    if (process.env.GITHUB_TOKEN) {
+        reqHeaders['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
+    }
+
     try {
         const response = await axios({
             method: 'get',
             url: targetUrl,
             responseType: 'stream',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-            }
+            headers: reqHeaders
         });
         
         res.setHeader('Access-Control-Allow-Origin', '*');
