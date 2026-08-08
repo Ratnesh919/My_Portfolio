@@ -1,53 +1,18 @@
-export const config = {
-    runtime: 'edge'
-};
+const axios = require('axios');
 
-let assetIdMap = null;
+module.exports = async (req, res) => {
+    // Enable CORS for client-side fetches
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 
-async function getAssetApiUrl(filename, token) {
-    if (assetIdMap && assetIdMap[filename]) {
-        return { url: assetIdMap[filename], error: null };
-    }
-    try {
-        const headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'Accept': 'application/vnd.github+json',
-            'Authorization': `Bearer ${token}`
-        };
-        const relRes = await fetch('https://api.github.com/repos/Ratnesh919/My_Portfolio/releases/tags/vrm-models-v1', { headers });
-        if (!relRes.ok) {
-            const errText = await relRes.text();
-            return { url: null, error: `GitHub Release API returned ${relRes.status}: ${errText}` };
-        }
-        const data = await relRes.json();
-        assetIdMap = {};
-        if (data.assets && Array.isArray(data.assets)) {
-            for (const asset of data.assets) {
-                assetIdMap[asset.name] = asset.url;
-            }
-        }
-        if (!assetIdMap[filename]) {
-            return { url: null, error: `Asset '${filename}' not found in release assets list` };
-        }
-        return { url: assetIdMap[filename], error: null };
-    } catch (e) {
-        return { url: null, error: `GitHub API fetch error: ${e.message}` };
-    }
-}
-
-export default async function handler(req) {
     if (req.method === 'OPTIONS') {
-        const headers = new Headers();
-        headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        headers.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-        return new Response(null, { status: 204, headers });
+        return res.status(204).end();
     }
 
-    const { searchParams } = new URL(req.url);
-    const file = searchParams.get('file');
+    const { file } = req.query;
     if (!file) {
-        return new Response('Missing file parameter', { status: 400 });
+        return res.status(400).send('Missing file parameter');
     }
 
     let filename = file.substring(file.lastIndexOf('/') + 1);
@@ -60,52 +25,52 @@ export default async function handler(req) {
     const token = process.env.GITHUB_TOKEN;
 
     if (!token) {
-        return new Response(`[Avatar Proxy Error] GITHUB_TOKEN environment variable is missing on Vercel. Please add GITHUB_TOKEN in Vercel Project Settings -> Environment Variables and redeploy.`, { status: 401 });
+        return res.status(401).send('[Avatar Proxy Error] GITHUB_TOKEN environment variable is missing on Vercel. Please add GITHUB_TOKEN in Vercel Project Settings -> Environment Variables and redeploy.');
     }
 
+    const authHeader = token.startsWith('bearer ') || token.startsWith('token ') ? token : `Bearer ${token}`;
     const reqHeaders = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Authorization': `Bearer ${token}`
+        'Authorization': authHeader
     };
 
-    // 1. Try direct download URL
-    const directUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${filename}`;
-    let assetResponse = await fetch(directUrl, { headers: reqHeaders });
+    try {
+        // Fetch release asset metadata from GitHub REST API
+        const relRes = await axios.get('https://api.github.com/repos/Ratnesh919/My_Portfolio/releases/tags/vrm-models-v1', {
+            headers: {
+                ...reqHeaders,
+                'Accept': 'application/vnd.github+json'
+            }
+        });
 
-    // 2. Fallback to GitHub REST API asset endpoint for private repos
-    let apiErrorLog = '';
-    if (!assetResponse.ok) {
-        const { url: apiUrl, error: apiErr } = await getAssetApiUrl(filename, token);
-        if (apiUrl) {
-            assetResponse = await fetch(apiUrl, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/octet-stream'
-                }
-            });
-        } else {
-            apiErrorLog = apiErr ? ` | GitHub API Error: ${apiErr}` : '';
+        const assets = relRes.data.assets || [];
+        const targetAsset = assets.find(a => a.name === filename);
+
+        if (!targetAsset) {
+            return res.status(404).send(`Asset '${filename}' not found in GitHub release assets list.`);
         }
-    }
 
-    if (!assetResponse.ok) {
-        return new Response(`Failed to fetch avatar model '${filename}' (${assetResponse.status} ${assetResponse.statusText})${apiErrorLog}`, { status: assetResponse.status });
-    }
+        // Stream binary model data from GitHub API asset endpoint
+        const assetRes = await axios({
+            method: 'get',
+            url: targetAsset.url,
+            responseType: 'stream',
+            headers: {
+                ...reqHeaders,
+                'Accept': 'application/octet-stream'
+            }
+        });
 
-    const headers = new Headers();
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    headers.set('Content-Type', 'application/octet-stream');
-    
-    const contentLength = assetResponse.headers.get('content-length');
-    if (contentLength) {
-        headers.set('Content-Length', contentLength);
-    }
+        res.setHeader('Content-Type', 'application/octet-stream');
+        if (assetRes.headers['content-length']) {
+            res.setHeader('Content-Length', assetRes.headers['content-length']);
+        }
 
-    return new Response(assetResponse.body, {
-        status: 200,
-        headers
-    });
-}
+        assetRes.data.pipe(res);
+    } catch (error) {
+        console.error('[Avatar Proxy Error]', error.message);
+        const status = error.response ? error.response.status : 500;
+        const msg = error.response && error.response.data ? (typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)) : error.message;
+        res.status(status).send(`[Avatar Proxy Error] ${msg}`);
+    }
+};
