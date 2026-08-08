@@ -2,36 +2,37 @@ export const config = {
     runtime: 'edge'
 };
 
-// Cache asset ID mapping in edge memory for fast lookups
 let assetIdMap = null;
 
 async function getAssetApiUrl(filename, token) {
     if (assetIdMap && assetIdMap[filename]) {
-        return assetIdMap[filename];
+        return { url: assetIdMap[filename], error: null };
     }
     try {
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'Accept': 'application/vnd.github+json'
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${token}`
         };
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
         const relRes = await fetch('https://api.github.com/repos/Ratnesh919/My_Portfolio/releases/tags/vrm-models-v1', { headers });
-        if (relRes.ok) {
-            const data = await relRes.json();
-            assetIdMap = {};
-            if (data.assets && Array.isArray(data.assets)) {
-                for (const asset of data.assets) {
-                    assetIdMap[asset.name] = asset.url; // api.github.com/repos/.../releases/assets/:id
-                }
-            }
-            return assetIdMap[filename] || null;
+        if (!relRes.ok) {
+            const errText = await relRes.text();
+            return { url: null, error: `GitHub Release API returned ${relRes.status}: ${errText}` };
         }
+        const data = await relRes.json();
+        assetIdMap = {};
+        if (data.assets && Array.isArray(data.assets)) {
+            for (const asset of data.assets) {
+                assetIdMap[asset.name] = asset.url;
+            }
+        }
+        if (!assetIdMap[filename]) {
+            return { url: null, error: `Asset '${filename}' not found in release assets list` };
+        }
+        return { url: assetIdMap[filename], error: null };
     } catch (e) {
-        console.error('Failed to fetch release info from GitHub API:', e);
+        return { url: null, error: `GitHub API fetch error: ${e.message}` };
     }
-    return null;
 }
 
 export default async function handler(req) {
@@ -57,20 +58,24 @@ export default async function handler(req) {
     }
 
     const token = process.env.GITHUB_TOKEN;
-    const reqHeaders = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-    };
-    if (token) {
-        reqHeaders['Authorization'] = `Bearer ${token}`;
+
+    if (!token) {
+        return new Response(`[Avatar Proxy Error] GITHUB_TOKEN environment variable is missing on Vercel. Please add GITHUB_TOKEN in Vercel Project Settings -> Environment Variables and redeploy.`, { status: 401 });
     }
 
-    // Try direct release download URL first
+    const reqHeaders = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Authorization': `Bearer ${token}`
+    };
+
+    // 1. Try direct download URL
     const directUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${filename}`;
     let assetResponse = await fetch(directUrl, { headers: reqHeaders });
 
-    // If direct download returns 404/error (common for private repo releases), fallback to GitHub API asset endpoint
-    if (!assetResponse.ok && token) {
-        const apiUrl = await getAssetApiUrl(filename, token);
+    // 2. Fallback to GitHub REST API asset endpoint for private repos
+    let apiErrorLog = '';
+    if (!assetResponse.ok) {
+        const { url: apiUrl, error: apiErr } = await getAssetApiUrl(filename, token);
         if (apiUrl) {
             assetResponse = await fetch(apiUrl, {
                 headers: {
@@ -79,11 +84,13 @@ export default async function handler(req) {
                     'Accept': 'application/octet-stream'
                 }
             });
+        } else {
+            apiErrorLog = apiErr ? ` | GitHub API Error: ${apiErr}` : '';
         }
     }
 
     if (!assetResponse.ok) {
-        return new Response(`Failed to fetch asset from GitHub (${assetResponse.status}): ${assetResponse.statusText}`, { status: assetResponse.status });
+        return new Response(`Failed to fetch avatar model '${filename}' (${assetResponse.status} ${assetResponse.statusText})${apiErrorLog}`, { status: assetResponse.status });
     }
 
     const headers = new Headers();
