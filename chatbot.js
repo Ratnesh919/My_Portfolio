@@ -1045,19 +1045,23 @@ class AvatarChatBot {
         }
 
         // SMART COMMAND CACHE CHECK - Learn from crowd behavior to save API calls
-        try {
-            const cacheRes = await fetch('/api/cmd/lookup?q=' + encodeURIComponent(text));
-            if (cacheRes.ok) {
-                const cacheData = await cacheRes.json();
-                if (cacheData.cached) {
-                    console.log('🧠 [Raya Smart Cache] Hit for query:', text);
-                    this.hideTyping();
-                    this.processAIResponse(cacheData.response, text, true); // true = fromCache
-                    return;
+        // Do NOT cache or reuse responses for jokes/creative queries so they are never repetitive!
+        const isJokeOrCreative = /\b(joke|jokes|funny|riddle|riddles|laugh|humor|story|roast|pun)\b/i.test(text);
+        if (!isJokeOrCreative) {
+            try {
+                const cacheRes = await fetch('/api/cmd/lookup?q=' + encodeURIComponent(text));
+                if (cacheRes.ok) {
+                    const cacheData = await cacheRes.json();
+                    if (cacheData.cached) {
+                        console.log('🧠 [Raya Smart Cache] Hit for query:', text);
+                        this.hideTyping();
+                        this.processAIResponse(cacheData.response, text, true); // true = fromCache
+                        return;
+                    }
                 }
+            } catch (e) {
+                console.warn('[Raya Smart Cache] Lookup failed:', e);
             }
-        } catch (e) {
-            console.warn('[Raya Smart Cache] Lookup failed:', e);
         }
 
         // Fall through to Groq for real conversation
@@ -1224,6 +1228,46 @@ class AvatarChatBot {
                 return { speech: 'Making the avatar smaller!',          actions: [() => this.adjustAvatarSize(0.80)] };
             if (/\b(normal|reset|default|original)\b/.test(t))
                 return { speech: 'Resetting avatar to default size!',   actions: [() => this.setAvatarSize(0.95)] };
+        }
+
+        // RANDOM JOKES (Never repetitive!)
+        if (/\b(tell me a joke|tell a joke|another joke|say a joke|funny joke|make me laugh|joke|jokes)\b/i.test(t)) {
+            const JOKES = [
+                "Why do programmers prefer dark mode? Because light attracts bugs!",
+                "There are 10 types of people in the world: those who understand binary, and those who don't!",
+                "Why was the JavaScript developer sad? Because he didn't Know how to 'null' his feelings!",
+                "How many programmers does it take to change a lightbulb? None, that's a hardware problem!",
+                "Why do Java developers wear glasses? Because they don't C#!",
+                "An SQL query walks into a bar, walks up to two tables and asks: 'Can I join you?'",
+                "Why did the web developer leave the restaurant? Because of the table layout!",
+                "A user interface is like a joke. If you have to explain it, it's not that good!",
+                "Why did the developer go broke? Because he used up all his cache!",
+                "What's a database administrator's favorite song? 'Drop it like it's hot!'",
+                "Why was the computer cold? It left its Windows open!",
+                "Why did the function cross the road? To return to the main program!",
+                "What is an AI's favorite snack? Microchips and dip!",
+                "Why did the CSS code go to therapy? It had too many alignment issues!",
+                "Why don't programmers like nature? It has too many bugs and no stack trace!",
+                "Why did the robot go on a diet? It had too many bytes!",
+                "What do you call a programmer from Finland? Nerdic!",
+                "How does a computer get drunk? It takes screenshots!",
+                "Why did the AI break up with the server? There was zero connection!",
+                "Why was the Git commit so confident? Because it had a great push!",
+                "Why did the developer keep getting lost? Because his code kept throwing unhandled exceptions!",
+                "What's a pirate's favorite programming language? You'd think it's R, but his true love is the C!",
+                "Why did the smartphone get glasses? It lost its contacts!",
+                "How do you tell HTML from HTML5? Try it out in Internet Explorer. If it works, it's HTML. If it doesn't, it's HTML5!"
+            ];
+            if (!this._usedJokeIndices) this._usedJokeIndices = [];
+            let available = JOKES.map((_, i) => i).filter(i => !this._usedJokeIndices.includes(i));
+            if (available.length === 0) {
+                this._usedJokeIndices = [];
+                available = JOKES.map((_, i) => i);
+            }
+            const randomIndex = available[Math.floor(Math.random() * available.length)];
+            this._usedJokeIndices.push(randomIndex);
+            const jokeText = JOKES[randomIndex];
+            return { speech: jokeText, actions: [] };
         }
 
         return null; // Let Groq handle it

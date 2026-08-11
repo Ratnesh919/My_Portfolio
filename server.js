@@ -707,6 +707,12 @@ app.post('/api/cmd/record', generalApiLimiter, async (req, res) => {
             const cleanQuery = String(query).replace(/[<>]/g, '');
             let cleanResponse = String(response).replace(/[<>]/g, '');
 
+            // DO NOT cache jokes, riddles, stories or humor queries on server
+            const isJokeOrCreative = /\b(joke|jokes|funny|riddle|riddles|laugh|humor|story|roast|pun)\b/i.test(cleanQuery);
+            if (isJokeOrCreative) {
+                return res.json({ success: true, cached: false });
+            }
+
             // If query does NOT ask to scroll, strip any automatic scroll action JSON from response before caching
             const isScrollQuery = /\b(scroll|go to|take me|navigate|section|where is|contact|about|skills|projects|education)\b/i.test(cleanQuery);
             if (!isScrollQuery) {
