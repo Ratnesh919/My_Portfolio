@@ -40,12 +40,19 @@ if (supabaseUrl && supabaseKey) {
 }
 
 
-async function initUser(userId, isNewUser, ipAddress) {
+async function initUser(userId, isNewUser, ipAddress, location = null) {
     // Upsert User
+    const userPayload = { cookie_id: userId, ip_address: ipAddress, last_active_at: new Date() };
+    if (location) userPayload.location = location;
+
     const { error: userErr } = await supabase
         .from('users')
-        .upsert({ cookie_id: userId, ip_address: ipAddress, last_active_at: new Date() }, { onConflict: 'cookie_id' });
+        .upsert(userPayload, { onConflict: 'cookie_id' });
     if (userErr) console.error('[Supabase] InitUser Error:', userErr);
+
+    if (location) {
+        await setPreference(userId, 'user_location', location);
+    }
 
     if (isNewUser) {
         const { data: uniqueData } = await supabase.from('global_stats').select('value').eq('key', 'unique_users').single();
@@ -246,10 +253,10 @@ async function extractLearnings(userId, sessionId, userMsg, assistantReply) {
 }
 
 async function getAllUsers() {
-    const { data: users } = await supabase.from('users').select('cookie_id, last_active_at').order('last_active_at', { ascending: false }).limit(50);
+    const { data: users } = await supabase.from('users').select('cookie_id, ip_address, last_active_at').order('last_active_at', { ascending: false }).limit(50);
     if (!users || !users.length) return [];
 
-    // Enrich with stored user names from preferences table
+    // Enrich with stored user names and locations from preferences table
     const userIds = users.map(u => u.cookie_id);
     const { data: namePref } = await supabase
         .from('preferences')
@@ -257,14 +264,86 @@ async function getAllUsers() {
         .eq('key', 'user_name')
         .in('user_id', userIds);
 
+    const { data: locPref } = await supabase
+        .from('preferences')
+        .select('user_id, value')
+        .eq('key', 'user_location')
+        .in('user_id', userIds);
+
     const nameMap = {};
     (namePref || []).forEach(p => { nameMap[p.user_id] = p.value; });
+
+    const locMap = {};
+    (locPref || []).forEach(p => { locMap[p.user_id] = p.value; });
 
     return users.map(u => ({
         cookie_id: u.cookie_id,
         name: nameMap[u.cookie_id] || '(anonymous)',
+        location: locMap[u.cookie_id] || 'Unknown Location',
         last_active_at: u.last_active_at
     }));
+}
+
+async function getLocationStats() {
+    const { data: locPrefs } = await supabase
+        .from('preferences')
+        .select('user_id, value')
+        .eq('key', 'user_location');
+
+    const { data: users } = await supabase
+        .from('users')
+        .select('cookie_id, ip_address, last_active_at')
+        .order('last_active_at', { ascending: false })
+        .limit(100);
+
+    const userIds = (users || []).map(u => u.cookie_id);
+    let nameMap = {};
+    if (userIds.length > 0) {
+        const { data: namePrefs } = await supabase
+            .from('preferences')
+            .select('user_id, value')
+            .eq('key', 'user_name')
+            .in('user_id', userIds);
+        (namePrefs || []).forEach(p => { nameMap[p.user_id] = p.value; });
+    }
+
+    const locMap = {};
+    (locPrefs || []).forEach(p => { locMap[p.user_id] = p.value; });
+
+    const countryBreakdown = {};
+    const cityBreakdown = {};
+    const visitorList = [];
+
+    (users || []).forEach(u => {
+        const loc = locMap[u.cookie_id] || u.location || 'Unknown Location';
+        if (loc !== 'Unknown Location' && loc !== 'Local / Unknown') {
+            const parts = loc.split(',').map(s => s.trim());
+            const country = parts[parts.length - 1] || 'Unknown';
+            countryBreakdown[country] = (countryBreakdown[country] || 0) + 1;
+            cityBreakdown[loc] = (cityBreakdown[loc] || 0) + 1;
+        } else {
+            countryBreakdown['Unknown Location'] = (countryBreakdown['Unknown Location'] || 0) + 1;
+        }
+
+        visitorList.push({
+            user_id: u.cookie_id,
+            name: nameMap[u.cookie_id] || '(anonymous)',
+            location: loc,
+            last_active: u.last_active_at
+        });
+    });
+
+    const topCities = Object.entries(cityBreakdown)
+        .map(([city, count]) => ({ city, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+    return {
+        total_visitors_tracked: (users || []).length,
+        countries: countryBreakdown,
+        top_cities: topCities,
+        recent_visitors: visitorList.slice(0, 15)
+    };
 }
 
 async function getAllVerifiedLearnings() {
@@ -283,5 +362,5 @@ module.exports = {
     savePendingLearning, getPendingLearnings, verifyLearning, rejectLearning,
     setPreference, getPreference, getCachedCommand, recordCommand, addAdminRule,
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
-    getUserProfile
+    getUserProfile, getLocationStats
 };

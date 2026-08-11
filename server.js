@@ -174,6 +174,23 @@ const checkAdmin = async (req, res, next) => {
     }
 };
 
+function extractLocation(req) {
+    const city = req.headers['x-vercel-ip-city'];
+    const region = req.headers['x-vercel-ip-country-region'];
+    const country = req.headers['x-vercel-ip-country'];
+    
+    if (city || country) {
+        const parts = [city, region, country].map(p => p ? decodeURIComponent(p) : '').filter(Boolean);
+        return parts.join(', ');
+    }
+    
+    const ip = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.socket?.remoteAddress;
+    if (ip && ip !== '127.0.0.1' && ip !== '::1') {
+        return `IP: ${ip}`;
+    }
+    return 'Local / Unknown';
+}
+
 // ── Analytics ──────────────────────────────────────────────────────────────────
 app.post('/api/init-user', async (req, res) => {
     let userId = req.cookies['raya_user_id'];
@@ -191,7 +208,8 @@ app.post('/api/init-user', async (req, res) => {
     }
 
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const { userName } = await mem.initUser(userId, isNewUser, ipAddress);
+    const location = extractLocation(req);
+    const { userName } = await mem.initUser(userId, isNewUser, ipAddress, location);
     res.json({ ok: true, userName });
 });
 
@@ -327,6 +345,12 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     if (matchedUser) {
                         const profile = await mem.getUserProfile(matchedUser.cookie_id);
                         sysContent += `\n\n[ADMIN DATA: PROFILE FOR USER ${matchedUser.name} (${matchedUser.cookie_id})]\n` + JSON.stringify(profile, null, 2);
+                    }
+
+                    // 4. Fetch location & worldwide reach statistics for location/country queries
+                    if (lc.includes('location') || lc.includes('country') || lc.includes('where') || lc.includes('city') || lc.includes('reach') || lc.includes('world') || lc.includes('geographic') || lc.includes('map') || lc.includes('from where') || lc.includes('globally')) {
+                        const locStats = await mem.getLocationStats();
+                        sysContent += '\n\n[ADMIN DATA: VISITOR GEOGRAPHIC LOCATIONS & WORLDWIDE REACH]\n' + JSON.stringify(locStats, null, 2);
                     }
 
                     if (lc.includes('learn') || lc.includes('know')) {
