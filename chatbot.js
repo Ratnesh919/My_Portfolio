@@ -1295,7 +1295,13 @@ class AvatarChatBot {
             } else if (actionObj.action === 'navigate') {
                 this.executeNavigation(actionObj.target);
             } else if (actionObj.action === 'scroll') {
-                this.executeScroll(actionObj.target);
+                const qLower = (originalQuery || '').toLowerCase().trim();
+                const isExplicitScrollReq = /\b(scroll|go to|take me|navigate|section|where is|show me about|show me projects|show me skills|show me contact)\b/i.test(qLower);
+                if (isExplicitScrollReq) {
+                    this.executeScroll(actionObj.target);
+                } else {
+                    console.log('[Raya Guard] Suppressed automatic scroll action for query:', originalQuery);
+                }
             } else if (actionObj.action === 'open_link') {
                 const lnk = (actionObj.target || '').toLowerCase();
                 let url = '';

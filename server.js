@@ -704,9 +704,15 @@ app.post('/api/cmd/record', generalApiLimiter, async (req, res) => {
     try {
         const { query, response } = req.body;
         if (query && response) {
-            // Basic sanitization
             const cleanQuery = String(query).replace(/[<>]/g, '');
-            const cleanResponse = String(response).replace(/[<>]/g, '');
+            let cleanResponse = String(response).replace(/[<>]/g, '');
+
+            // If query does NOT ask to scroll, strip any automatic scroll action JSON from response before caching
+            const isScrollQuery = /\b(scroll|go to|take me|navigate|section|where is|contact|about|skills|projects|education)\b/i.test(cleanQuery);
+            if (!isScrollQuery) {
+                cleanResponse = cleanResponse.replace(/\{[^{}]*"action"\s*:\s*"scroll"[^{}]*\}/gi, '').trim();
+            }
+
             await mem.recordCommand(cleanQuery, cleanResponse);
         }
         res.json({ success: true });
