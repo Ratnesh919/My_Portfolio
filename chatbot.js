@@ -1384,9 +1384,28 @@ class AvatarChatBot {
     }
     executeScroll(target) {
         if (!target) return;
+        target = target.toLowerCase().trim();
+
         const iframeContainer = document.getElementById('iframe-container');
         const iframe = document.querySelector('#iframe-container iframe');
-        target = target.toLowerCase().trim();
+        const isIframeActive = iframe && iframeContainer && (iframeContainer.style.opacity === '1' || iframeContainer.style.display !== 'none');
+
+        // On main theme selection screen (no theme iframe open), DO NOT scroll unless explicitly asking for contact section
+        if (!isIframeActive) {
+            if (target === 'contact' || target === 'email' || target === 'social') {
+                const contactSec = document.querySelector('.contact-section') || document.getElementById('contact');
+                if (contactSec) contactSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            return;
+        }
+
+        // Inside active Theme Iframe: ONLY allow explicit valid scroll targets!
+        const VALID_SCROLL_TARGETS = ['up', 'down', 'home', 'top', 'about', 'education', 'college', 'university', 'skill', 'skills', 'project', 'projects', 'contact', 'email', 'social', 'socials'];
+        const safeTarget = target.split(' ')[0];
+        if (!VALID_SCROLL_TARGETS.includes(target) && !VALID_SCROLL_TARGETS.includes(safeTarget)) {
+            // Reject non-scroll command targets (e.g. songs, avatars, messages) to prevent unwanted scrolling
+            return;
+        }
 
         const postToIframe = (msg) => {
             if (iframe && iframe.contentWindow) {
@@ -1394,88 +1413,56 @@ class AvatarChatBot {
             }
         };
 
-        const isIframeActive = iframe && iframeContainer && (iframeContainer.style.opacity === '1' || iframeContainer.style.display !== 'none');
-
-        // ── Case A: Scroll inside active Theme Iframe ───────────────────────
-        if (isIframeActive) {
-            // Direct scroll up / down inside iframe window & document
-            if (target === 'up' || target === 'down' || target.includes('up') || target.includes('down')) {
-                const isUp = target.includes('up');
-                const distance = isUp ? -650 : 650;
-                try {
-                    const win = iframe.contentWindow;
-                    const doc = iframe.contentDocument || (win ? win.document : null);
-                    if (win) {
-                        win.scrollBy({ top: distance, behavior: 'smooth' });
-                    }
-                    if (doc) {
-                        if (doc.documentElement && typeof doc.documentElement.scrollBy === 'function') {
-                            doc.documentElement.scrollBy({ top: distance, behavior: 'smooth' });
-                        }
-                        if (doc.body && typeof doc.body.scrollBy === 'function') {
-                            doc.body.scrollBy({ top: distance, behavior: 'smooth' });
-                        }
-                    }
-                } catch(e) {
-                    console.warn('[Raya] Direct iframe scroll failed, sending postMessage fallback:', e);
-                }
-                postToIframe({ type: 'raya-scroll', direction: isUp ? 'up' : 'down' });
-                return;
-            }
-
-            // Named section navigation inside iframe
-            const safeTarget = target.split(' ')[0];
-            let elementId = safeTarget;
-            if (safeTarget === 'home' || safeTarget === 'top') elementId = 'home';
-            else if (safeTarget === 'about') elementId = 'about';
-            else if (safeTarget === 'education' || safeTarget === 'college' || safeTarget === 'university') elementId = 'education';
-            else if (safeTarget === 'skill' || safeTarget === 'skills') elementId = 'skills';
-            else if (safeTarget === 'project' || safeTarget === 'projects') elementId = 'projects';
-            else if (safeTarget === 'contact' || safeTarget === 'email' || safeTarget === 'social' || safeTarget === 'socials') elementId = 'contact';
-
+        // Explicit Directional Scroll ('up' or 'down' ONLY)
+        if (target === 'up' || target === 'down' || safeTarget === 'up' || safeTarget === 'down') {
+            const isUp = target === 'up' || safeTarget === 'up';
+            const distance = isUp ? -650 : 650;
             try {
                 const win = iframe.contentWindow;
                 const doc = iframe.contentDocument || (win ? win.document : null);
-                if (doc) {
-                    if (elementId === 'home') {
-                        if (win) win.scrollTo({ top: 0, behavior: 'smooth' });
-                        if (doc.documentElement) doc.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
-                        return;
-                    }
-                    const section = doc.getElementById(elementId) ||
-                                    doc.querySelector(`.${elementId}-section`) ||
-                                    doc.querySelector(`[id*="${elementId}" i]`) ||
-                                    doc.querySelector(`[data-section="${elementId}"]`);
-                    if (section) {
-                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        return;
-                    }
-                    // nav-link click fallback
-                    const navLinks = Array.from(doc.querySelectorAll('nav a, header a, .nav-link, a[href*="#"]'));
-                    const link = navLinks.find(l => (l.innerText || '').toLowerCase().includes(safeTarget) || (l.getAttribute('href') || '').toLowerCase().includes(safeTarget));
-                    if (link) { link.click(); return; }
+                if (win) win.scrollBy({ top: distance, behavior: 'smooth' });
+                if (doc && doc.documentElement && typeof doc.documentElement.scrollBy === 'function') {
+                    doc.documentElement.scrollBy({ top: distance, behavior: 'smooth' });
                 }
             } catch(e) {
-                console.warn('[Raya] Direct section scroll failed, sending postMessage fallback:', e);
+                console.warn('[Raya] Direct iframe scroll failed, sending postMessage fallback:', e);
             }
-
-            postToIframe({ type: 'raya-scroll', section: elementId });
+            postToIframe({ type: 'raya-scroll', direction: isUp ? 'up' : 'down' });
             return;
         }
 
-        // ── Case B: Main Landing Page (No Theme Iframe Open) ─────────────────
-        // The main landing page is a fixed theme selector. Only scroll if user explicitly asks for up/down or contact!
-        if (target === 'contact' || target === 'email' || target === 'social') {
-            const contactSec = document.querySelector('.contact-section') || document.getElementById('contact');
-            if (contactSec) {
-                contactSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                return;
+        // Named Section Scroll inside Iframe
+        let elementId = safeTarget;
+        if (safeTarget === 'home' || safeTarget === 'top') elementId = 'home';
+        else if (safeTarget === 'about') elementId = 'about';
+        else if (safeTarget === 'education' || safeTarget === 'college' || safeTarget === 'university') elementId = 'education';
+        else if (safeTarget === 'skill' || safeTarget === 'skills') elementId = 'skills';
+        else if (safeTarget === 'project' || safeTarget === 'projects') elementId = 'projects';
+        else if (safeTarget === 'contact' || safeTarget === 'email' || safeTarget === 'social' || safeTarget === 'socials') elementId = 'contact';
+
+        try {
+            const win = iframe.contentWindow;
+            const doc = iframe.contentDocument || (win ? win.document : null);
+            if (doc) {
+                if (elementId === 'home') {
+                    if (win) win.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (doc.documentElement) doc.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+                const section = doc.getElementById(elementId) ||
+                                doc.querySelector(`.${elementId}-section`) ||
+                                doc.querySelector(`[id*="${elementId}" i]`) ||
+                                doc.querySelector(`[data-section="${elementId}"]`);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
             }
+        } catch(e) {
+            console.warn('[Raya] Direct section scroll failed, sending postMessage fallback:', e);
         }
-        if (target === 'up' || target === 'down') {
-            const amount = target === 'up' ? -600 : 600;
-            window.scrollBy({ top: amount, behavior: 'smooth' });
-        }
+
+        postToIframe({ type: 'raya-scroll', section: elementId });
     }
 
     executeChangeAvatar(target) {
