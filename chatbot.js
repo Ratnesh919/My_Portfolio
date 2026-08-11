@@ -1223,8 +1223,8 @@ class AvatarChatBot {
                     return { speech: `Taking you to the ${sec.target} section!`, actions: [() => this.executeScroll(sec.target)] };
             }
         }
-        if (/scroll down|go down|page down|down/.test(t))         return { speech: 'Scrolling down!',    actions: [() => this.executeScroll('down')] };
-        if (/scroll up|go up|page up|back to top|up/.test(t))     return { speech: 'Scrolling back up!', actions: [() => this.executeScroll('up')] };
+        if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bgo down\b/.test(t)) return { speech: 'Scrolling down!', actions: [() => this.executeScroll('down')] };
+        if (/^scroll up$|^go up$|^page up$|^back to top$|\bscroll up\b|\bgo up\b|\bback to top\b/.test(t)) return { speech: 'Scrolling back up!', actions: [() => this.executeScroll('up')] };
 
         // STOP MUSIC
         if (/stop music|pause music|quiet|shut up|turn off music|stop playing/.test(t))
@@ -1232,11 +1232,11 @@ class AvatarChatBot {
 
         // SIZE CONTROL
         if (/size|bigger|larger|grow|taller|smaller|shrink|tiny|huge|normal size|reset size|default size/.test(t)) {
-            if (/bigger|larger|grow|taller|increase size|make.*big|make.*large|more|up/.test(t))
+            if (/\b(bigger|larger|grow|taller|increase size)\b|make.*big|make.*large/.test(t))
                 return { speech: 'Making the avatar bigger!',           actions: [() => this.adjustAvatarSize(1.20)] };
-            if (/smaller|shrink|tiny|decrease size|make.*small|make.*tiny|less|down/.test(t))
+            if (/\b(smaller|shrink|tiny|decrease size)\b|make.*small|make.*tiny/.test(t))
                 return { speech: 'Making the avatar smaller!',          actions: [() => this.adjustAvatarSize(0.80)] };
-            if (/normal|reset|default|original/.test(t))
+            if (/\b(normal|reset|default|original)\b/.test(t))
                 return { speech: 'Resetting avatar to default size!',   actions: [() => this.setAvatarSize(0.95)] };
         }
 
