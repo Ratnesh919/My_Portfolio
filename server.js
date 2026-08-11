@@ -217,6 +217,38 @@ app.get('/api/insights', checkAdmin, async (req, res) => {
     res.json(await mem.getSiteStats());
 });
 
+app.get('/api/admin/locations', checkAdmin, async (req, res) => {
+    try {
+        const stats = await mem.getLocationStats();
+        res.json(stats);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get('/api/admin/messages', checkAdmin, async (req, res) => {
+    try {
+        const messages = await mem.getVisitorMessages();
+        res.json(messages);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/message', async (req, res) => {
+    try {
+        const { message, contactInfo, name } = req.body;
+        if (!message || message.trim().length === 0) {
+            return res.status(400).json({ error: 'Message content cannot be empty.' });
+        }
+        const userId = req.cookies['raya_user_id'] || 'usr_anonymous';
+        const result = await mem.saveVisitorMessage(userId, message.trim(), name, contactInfo);
+        res.json({ ok: true, isImportant: result.is_important, reason: result.importance_reason });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ── Personality Form Endpoint ──────────────────────────────────────────────────
 app.post('/api/personality', checkAdmin, async (req, res) => {
     try {
@@ -351,6 +383,15 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     if (lc.includes('location') || lc.includes('country') || lc.includes('where') || lc.includes('city') || lc.includes('reach') || lc.includes('world') || lc.includes('geographic') || lc.includes('map') || lc.includes('from where') || lc.includes('globally')) {
                         const locStats = await mem.getLocationStats();
                         sysContent += '\n\n[ADMIN DATA: VISITOR GEOGRAPHIC LOCATIONS & WORLDWIDE REACH]\n' + JSON.stringify(locStats, null, 2);
+                    }
+
+                    // 5. Fetch visitor messages when Ratnesh asks to read messages
+                    if (lc.includes('message') || lc.includes('msg') || lc.includes('inbox') || lc.includes('contacted') || lc.includes('note') || lc.includes('recruiter') || lc.includes('read') || lc.includes('left')) {
+                        const vMessages = await mem.getVisitorMessages();
+                        sysContent += '\n\n[ADMIN DATA: VISITOR MESSAGES FOR RATNESH]\n';
+                        sysContent += 'The following messages were left by visitors for Ratnesh. IMPORTANT messages (job offers, hiring inquiries, or contact info) are marked with is_important=true:\n';
+                        sysContent += JSON.stringify(vMessages, null, 2);
+                        sysContent += '\n\n[INSTRUCTION FOR RAYA]\nWhen presenting messages to Ratnesh, FIRST highlight any IMPORTANT / HIGH PRIORITY messages (such as hiring offers, interview invites, or direct contact info), detailing who left them and why. Then list any casual notes.';
                     }
 
                     if (lc.includes('learn') || lc.includes('know')) {

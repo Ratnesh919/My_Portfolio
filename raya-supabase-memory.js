@@ -351,10 +351,65 @@ async function getAllVerifiedLearnings() {
     return data || [];
 }
 
-async function getUserProfile(userId) {
-    const { data: learnings } = await supabase.from('learnings').select('type, content, status').eq('user_id', userId).limit(20);
-    const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
-    return { learnings: learnings || [], preferences: prefs || [] };
+function classifyMessageImportance(messageText) {
+    const text = (messageText || '').toLowerCase();
+    const urgentJobPattern = /\b(hiring|job|offer|interview|salary|contract|project|freelance|client|hire|collaborate|opportunity|recruiter|hr|position|role|vacancy|budget|paid|rate)\b/i;
+    const contactPattern = /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|(?:\+\d{1,3}[- ]?)?\d{10})\b/;
+    
+    const isJobOrOffer = urgentJobPattern.test(text);
+    const hasContactInfo = contactPattern.test(text);
+
+    if (isJobOrOffer && hasContactInfo) {
+        return { isImportant: true, reason: 'HIGH PRIORITY: Job Offer / Hiring Inquiry with Contact Info' };
+    }
+    if (isJobOrOffer) {
+        return { isImportant: true, reason: 'IMPORTANT: Job / Career / Project Inquiry' };
+    }
+    if (hasContactInfo) {
+        return { isImportant: true, reason: 'IMPORTANT: Visitor provided contact information' };
+    }
+    if (text.length > 40 && (text.includes('ratnesh') || text.includes('contact') || text.includes('message') || text.includes('work'))) {
+        return { isImportant: true, reason: 'NOTE: Direct message left for Ratnesh' };
+    }
+
+    return { isImportant: false, reason: 'General visitor note' };
+}
+
+async function saveVisitorMessage(userId, message, userName = null, contactInfo = null) {
+    const { isImportant, reason } = classifyMessageImportance(message);
+    const payload = {
+        user_id: userId,
+        user_name: userName || '(anonymous)',
+        message: message,
+        contact_info: contactInfo || null,
+        is_important: isImportant,
+        importance_reason: reason,
+        status: 'unread'
+    };
+
+    const { data, error } = await supabase
+        .from('visitor_messages')
+        .insert(payload)
+        .select('id, is_important, importance_reason')
+        .single();
+
+    if (error) {
+        console.error('[Supabase] saveVisitorMessage Error:', error);
+    }
+    return data || { is_important: isImportant, importance_reason: reason };
+}
+
+async function getVisitorMessages() {
+    const { data } = await supabase
+        .from('visitor_messages')
+        .select('id, user_id, user_name, message, contact_info, is_important, importance_reason, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+    return data || [];
+}
+
+async function markMessageRead(id) {
+    await supabase.from('visitor_messages').update({ status: 'read' }).eq('id', id);
 }
 
 module.exports = {
@@ -362,5 +417,6 @@ module.exports = {
     savePendingLearning, getPendingLearnings, verifyLearning, rejectLearning,
     setPreference, getPreference, getCachedCommand, recordCommand, addAdminRule,
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
-    getUserProfile, getLocationStats
+    getUserProfile, getLocationStats, classifyMessageImportance, saveVisitorMessage,
+    getVisitorMessages, markMessageRead
 };
