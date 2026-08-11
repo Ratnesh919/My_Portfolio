@@ -428,10 +428,11 @@ class AvatarChatBot {
         this.infoPanel.style.display = 'none'; // hidden by default
         this.infoPanel.innerHTML = `
             <div class="info-panel-header">
-                <span>💡 Try Saying / Typing:</span>
+                <span>💡 Quick Options & Commands:</span>
                 <button class="info-panel-close">&times;</button>
             </div>
             <ul class="info-panel-commands">
+                <li class="suggest-cmd suggest-cmd-leave-msg">"📩 Leave a message for Ratnesh"</li>
                 <li class="suggest-cmd">"select last theme"</li>
                 <li class="suggest-cmd">"play a song"</li>
                 <li class="suggest-cmd">"scroll down"</li>
@@ -446,10 +447,19 @@ class AvatarChatBot {
         // Suggestions Click Handlers
         this.infoPanel.querySelectorAll('.suggest-cmd').forEach(item => {
             item.addEventListener('click', (e) => {
-                const cmdText = e.target.textContent.replace(/"/g, '').trim();
-                this.textInput.value = cmdText;
+                let cmdText = e.target.textContent.replace(/"/g, '').trim();
                 this.infoPanel.style.display = 'none';
-                this.textInput.focus();
+
+                if (cmdText.includes('Leave a message')) {
+                    const promptMsg = "Sure thing! Please type or speak your message, and I'll deliver it directly to Ratnesh for you.";
+                    this.speakAvatar(promptMsg, false);
+                    this.textInput.placeholder = "Type your message for Ratnesh...";
+                    this.textInput.value = "";
+                    this.textInput.focus();
+                } else {
+                    this.textInput.value = cmdText;
+                    this.textInput.focus();
+                }
             });
         });
 

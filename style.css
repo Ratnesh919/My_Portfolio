@@ -1756,3 +1756,14 @@ header, .container, .contact-section {
     color: #fff;
     transform: translateX(4px);
 }
+.suggest-cmd-leave-msg {
+    background: rgba(255, 65, 108, 0.14) !important;
+    border-color: rgba(255, 65, 108, 0.4) !important;
+    color: #ff416c !important;
+    font-weight: 600;
+}
+.suggest-cmd-leave-msg:hover {
+    background: rgba(255, 65, 108, 0.28) !important;
+    border-color: rgba(255, 65, 108, 0.6) !important;
+    color: #ffffff !important;
+}
