@@ -862,81 +862,66 @@ class AvatarChatBot {
         if (this._awaitingName) {
             // Clear the name timeout since user responded
             if (this._nameTimeoutId) { clearTimeout(this._nameTimeoutId); this._nameTimeoutId = null; }
-            this._awaitingName = false;
 
-            // Try to extract the name from the response
-            const nameCandidates = text.match(/(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i);
-            const extractedName = nameCandidates ? nameCandidates[1] : (text.trim().split(/\s+/)[0]);
-            const name = extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
+            const tLower = text.toLowerCase().trim();
+            const isCommandOrAction = /^(select|open|play|show|go|navigate|what|where|who|how|tell|scroll|help|change|exit|admin|last|first|theme)\b/i.test(tLower);
+            const hasExplicitNamePrefix = /(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i.test(text);
 
-            // Also check if a theme was mentioned in the same message
-            const THEME_MAP_QUICK = [
-                { keys: ['immersive','3d','1st','first','1','one','theme 1','theme one'],    target: 'immersive',  label: 'Immersive' },
-                { keys: ['cosmic','alien','2nd','second','2','two','theme 2','theme two'],    target: 'cosmic',     label: 'Cosmic' },
-                { keys: ['urban','graffiti','street','3rd','third','3','three','theme 3'],    target: 'urban',      label: 'Urban' },
-                { keys: ['essential','minimalist','4th','fourth','4','four','theme 4'],       target: 'essential',  label: 'Essential' },
-                { keys: ['lumen','light','5th','fifth','5','five','theme 5','last','lst'],    target: 'lumen',      label: 'Lumen' },
-            ];
-            const tLower = text.toLowerCase();
-            const inlineTheme = THEME_MAP_QUICK.find(th => th.keys.some(k => tLower.includes(k)));
-
-            if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name)) {
-                this.userName = name;
-                localStorage.setItem('rayaUserName', name);
-                // Save to backend preferences
-                fetch('/api/learn', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'preference', content: `User's name is ${name}`, sessionId: this.sessionId })
-                }).catch(()=>{});
-
-                this.showUserBubble(text);
-                this.messages.push({ role: 'user', content: text });
-
-                if (inlineTheme) {
-                    // User gave name AND theme in one go — handle both!
-                    const greeting = `Nice to meet you, ${name}! Opening the ${inlineTheme.label} theme for you right now!`;
-                    this._awaitingTheme   = false;
-                    this._awaitingCommand = true;
-                    this.messages.push({ role: 'assistant', content: greeting });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(greeting, false);
-                    this.executeNavigation(inlineTheme.target);
-                } else {
-                    // Just the name — ask for theme
-                    const greeting = `Nice to meet you, ${name}! We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which would you like to open?`;
-                    this._awaitingTheme   = true;
-                    this._awaitingCommand = true;
-                    this.messages.push({ role: 'assistant', content: greeting });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(greeting, false);
-                }
-                return;
+            if (isCommandOrAction && !hasExplicitNamePrefix) {
+                // User gave a command (e.g. "select last theme", "open urban") instead of answering name
+                // Do NOT steal the command as a name! Exit onboarding name phase and allow command execution.
+                this._awaitingName = false;
             } else {
-                // Couldn't parse a name
-                if (inlineTheme) {
-                    // But they did mention a theme — open it
-                    this._awaitingTheme   = false;
-                    this._awaitingCommand = true;
+                this._awaitingName = false;
+
+                // Try to extract the name from the response
+                const nameCandidates = text.match(/(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i);
+                const extractedName = nameCandidates ? nameCandidates[1] : (text.trim().split(/\s+/)[0]);
+                const name = extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
+
+                const forbiddenNameVerbs = ['select','open','play','show','go','navigate','what','where','who','how','tell','scroll','help','change','exit','last','first','theme','yes','no','sure','okay','hi','hello','hey'];
+
+                // Also check if a theme was mentioned in the same message
+                const THEME_MAP_QUICK = [
+                    { keys: ['immersive','3d','1st','first','1','one','theme 1','theme one'],    target: 'immersive',  label: 'Immersive' },
+                    { keys: ['cosmic','alien','2nd','second','2','two','theme 2','theme two'],    target: 'cosmic',     label: 'Cosmic' },
+                    { keys: ['urban','graffiti','street','3rd','third','3','three','theme 3'],    target: 'urban',      label: 'Urban' },
+                    { keys: ['essential','minimalist','4th','fourth','4','four','theme 4'],       target: 'essential',  label: 'Essential' },
+                    { keys: ['lumen','light','5th','fifth','5','five','theme 5','last','lst'],    target: 'lumen',      label: 'Lumen' },
+                ];
+                const inlineTheme = THEME_MAP_QUICK.find(th => th.keys.some(k => tLower.includes(k)));
+
+                if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name) && !forbiddenNameVerbs.includes(name.toLowerCase())) {
+                    this.userName = name;
+                    localStorage.setItem('rayaUserName', name);
+                    // Save to backend preferences
+                    fetch('/api/learn', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'preference', content: `User's name is ${name}`, sessionId: this.sessionId })
+                    }).catch(()=>{});
+
                     this.showUserBubble(text);
                     this.messages.push({ role: 'user', content: text });
-                    const msg = `Opening the ${inlineTheme.label} theme!`;
-                    this.messages.push({ role: 'assistant', content: msg });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(msg, false);
-                    this.executeNavigation(inlineTheme.target);
-                } else {
-                    // Couldn't parse anything useful — ask for theme
-                    this._awaitingTheme   = true;
-                    this._awaitingCommand = true;
-                    this.showUserBubble(text);
-                    this.messages.push({ role: 'user', content: text });
-                    const tp = THEME_PROMPT;
-                    this.messages.push({ role: 'assistant', content: tp });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(tp, false);
+
+                    if (inlineTheme) {
+                        const greeting = `Nice to meet you, ${name}! Opening the ${inlineTheme.label} theme for you right now!`;
+                        this._awaitingTheme   = false;
+                        this._awaitingCommand = true;
+                        this.messages.push({ role: 'assistant', content: greeting });
+                        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                        this.speakAvatar(greeting, false);
+                        this.executeNavigation(inlineTheme.target);
+                    } else {
+                        const greeting = `Nice to meet you, ${name}! We have five themes: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which would you like to open?`;
+                        this._awaitingTheme   = true;
+                        this._awaitingCommand = true;
+                        this.messages.push({ role: 'assistant', content: greeting });
+                        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                        this.speakAvatar(greeting, false);
+                    }
+                    return;
                 }
-                return;
             }
         }
 
