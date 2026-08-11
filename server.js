@@ -813,7 +813,7 @@ if (!process.env.VERCEL) {
         console.log('🎵 YouTube direct-play search enabled.');
         console.log('🧠 Supabase Cloud Memory active → PostgreSQL');
         console.log(`🏥 Health check at  /api/health  (admin only)`);
-        console.log(`🔁 Circuit Breaker: ACTIVE (${GROQ_API_KEYS.length} Groq keys in rotation)`);
+        console.log(`🔁 Circuit Breaker: ACTIVE (${getGroqApiKeys().length} Groq keys in rotation)`);
         console.log('======================================================\n');
     });
 }

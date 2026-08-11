@@ -412,6 +412,12 @@ async function markMessageRead(id) {
     await supabase.from('visitor_messages').update({ status: 'read' }).eq('id', id);
 }
 
+async function getUserProfile(userId) {
+    const { data: learnings } = await supabase.from('learnings').select('type, content, status').eq('user_id', userId).limit(20);
+    const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
+    return { learnings: learnings || [], preferences: prefs || [] };
+}
+
 module.exports = {
     initUser, getSiteStats, startSession, endSession, saveMessage, saveLearning,
     savePendingLearning, getPendingLearnings, verifyLearning, rejectLearning,
