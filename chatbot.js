@@ -18,8 +18,9 @@ Example: "Opening the Essential theme for you! {"action":"navigate","target":"es
 - If the user asks you to go back to the main menu, theme picker, or home, append this JSON at the END of your reply:
 {"action":"navigate", "target":"visitor"}
 Example: "Taking you to the main menu! {"action":"navigate","target":"visitor"}"
-- If the user asks you to scroll down, scroll up, or navigate to sections like home, about, education, skills, projects, contact, append this JSON:
+- If the user EXPLICITLY asks to scroll (e.g. "scroll down", "scroll up", "scroll to projects"), append this JSON:
 {"action":"scroll", "target":"<section id or direction>"}
+CRITICAL SCROLL RULE: NEVER output the "scroll" action unless the user explicitly used the word "scroll", "go down", or "scroll up". DO NOT scroll when answering general commands, questions, theme selections, or greetings!
 IMPORTANT: If the user asks for external links (Instagram, LinkedIn, GitHub, etc.), NEVER say you cannot open links. Just say you are taking them to the contact section where the links are, and append the scroll JSON for "contact".
 
 - If the user asks you to change your avatar, append this JSON:
@@ -1463,7 +1464,7 @@ class AvatarChatBot {
         }
 
         // ── Case B: Main Landing Page (No Theme Iframe Open) ─────────────────
-        const amount = (target === 'up' || target.includes('up')) ? -600 : 600;
+        // The main landing page is a fixed theme selector. Only scroll if user explicitly asks for up/down or contact!
         if (target === 'contact' || target === 'email' || target === 'social') {
             const contactSec = document.querySelector('.contact-section') || document.getElementById('contact');
             if (contactSec) {
@@ -1471,10 +1472,9 @@ class AvatarChatBot {
                 return;
             }
         }
-        window.scrollBy({ top: amount, behavior: 'smooth' });
-        const container = document.querySelector('.container') || document.documentElement || document.body;
-        if (container && container.scrollBy) {
-            container.scrollBy({ top: amount, behavior: 'smooth' });
+        if (target === 'up' || target === 'down') {
+            const amount = target === 'up' ? -600 : 600;
+            window.scrollBy({ top: amount, behavior: 'smooth' });
         }
     }
 
