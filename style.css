@@ -1449,29 +1449,33 @@ header, .container, .contact-section {
 /* Input Row */
 #chatbot-input-row {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 #chatbot-text-input {
     flex: 1;
+    min-width: 0;
     background: rgba(12, 12, 18, 0.88);
     border: 1px solid rgba(255, 65, 108, 0.45);
     color: #fff;
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-radius: 12px;
     font-family: 'Outfit', sans-serif;
     font-size: 0.88rem;
     outline: none;
     backdrop-filter: blur(8px);
     transition: border-color 0.25s;
+    box-sizing: border-box;
 }
 #chatbot-text-input::placeholder { color: rgba(255,255,255,0.35); }
 #chatbot-text-input:focus { border-color: rgba(255, 65, 108, 0.9); }
 
 /* Send Button */
 #chatbot-send-btn {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 12px;
     background: rgba(255, 65, 108, 0.25);
     border: 1px solid rgba(255, 65, 108, 0.6);
@@ -1490,8 +1494,8 @@ header, .container, .contact-section {
 
 /* Mic Button */
 #chatbot-mic-btn {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 12px;
     background: rgba(255, 65, 108, 0.15);
     border: 1px solid rgba(255, 65, 108, 0.5);

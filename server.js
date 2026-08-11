@@ -402,6 +402,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     if (lc.includes('location') || lc.includes('country') || lc.includes('where') || lc.includes('city') || lc.includes('reach') || lc.includes('world') || lc.includes('geographic') || lc.includes('map') || lc.includes('from where') || lc.includes('globally')) {
                         const locStats = await mem.getLocationStats();
                         sysContent += '\n\n[ADMIN DATA: VISITOR GEOGRAPHIC LOCATIONS & WORLDWIDE REACH]\n' + JSON.stringify(locStats, null, 2);
+                        sysContent += '\n\n[INSTRUCTION FOR LOCATION RESPONSE]\nWhen Ratnesh asks about visitor locations or cities, check top_cities and recent_visitors from [ADMIN DATA] and explicitly state the specific Cities and Countries (e.g. Kolkata, WB, India). Explain to Ratnesh that location tracking was activated today, so the earlier 95 visitors were recorded before geolocation tracking was enabled, but all new visitors are tracked down to city precision!';
                     }
 
                     // 5. Fetch visitor messages when Ratnesh asks to read messages
