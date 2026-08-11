@@ -55,25 +55,44 @@ app.use(express.static(path.join(__dirname)));
 // Parse the multiple API keys from .env
 const crypto = require('crypto');
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
-const IV_LENGTH = 16;
 
 function decrypt(text) {
-    if (!text || !text.includes(':')) return text; // Not encrypted
-    let textParts = text.split(':');
-    let iv = Buffer.from(textParts.shift(), 'hex');
-    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+    if (!text || typeof text !== 'string' || !text.includes(':')) return text || '';
+    if (!ENCRYPTION_KEY) return text;
+    try {
+        let textParts = text.split(':');
+        let iv = Buffer.from(textParts.shift(), 'hex');
+        let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+        let keyBuf = Buffer.from(ENCRYPTION_KEY, 'hex');
+        if (keyBuf.length !== 32) return text;
+        let decipher = crypto.createDecipheriv('aes-256-cbc', keyBuf, iv);
+        let decrypted = decipher.update(encryptedText);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        return decrypted.toString();
+    } catch (e) {
+        console.error('[Decryption Warning] Failed to decrypt key, using raw value:', e.message);
+        return text;
+    }
 }
 
-const GROQ_API_KEYS = process.env.GROQ_API_KEYS ? process.env.GROQ_API_KEYS.split(',').map(k => decrypt(k.trim())) : [decrypt(process.env.GROQ_API_KEY)];
+function getGroqApiKeys() {
+    const raw = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '';
+    if (!raw || !raw.trim()) return [];
+    
+    const parts = raw.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+    return parts;
+}
+
 let currentKeyIndex = 0;
 async function callGroqWithRetry(payload) {
+    const keys = getGroqApiKeys();
+    if (keys.length === 0) {
+        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY in your environment variables.');
+    }
+
     let attempts = 0;
-    while (attempts < GROQ_API_KEYS.length) {
-        const apiKey = GROQ_API_KEYS[currentKeyIndex];
+    while (attempts < keys.length) {
+        const apiKey = keys[currentKeyIndex % keys.length];
         try {
             const response = await axios.post(
                 'https://api.groq.com/openai/v1/chat/completions',
@@ -88,12 +107,12 @@ async function callGroqWithRetry(payload) {
             return response; // Success
         } catch (err) {
             const status = err.response?.status;
-            if (status === 429 || status === 403) { // Rate limited or Quota exceeded
-                console.warn(`[Groq] Key ${currentKeyIndex} rate limited. Swapping to next key...`);
-                currentKeyIndex = (currentKeyIndex + 1) % GROQ_API_KEYS.length;
+            console.warn(`[Groq API Call Error] Status ${status}:`, err.response?.data || err.message);
+            if (status === 429 || status === 403 || status === 401) { // Rate limited, Quota exceeded, or Invalid Key
+                console.warn(`[Groq] Key ${currentKeyIndex} failed (Status ${status}). Swapping to next key...`);
+                currentKeyIndex = (currentKeyIndex + 1) % keys.length;
                 attempts++;
             } else {
-                // Some other error (e.g. 400 Bad Request), throw it immediately
                 throw err;
             }
         }
@@ -446,18 +465,23 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         });
 
     } catch (err) {
-        // Distinguish between rate-limit exhaustion vs unexpected server errors
+        const isMissingKey = err.message?.includes('MISSING_GROQ_API_KEY');
         const isExhausted = err.message?.includes('rate-limited') || err.message?.includes('exhausted');
-        console.error('[Chat Error]', isExhausted ? 'All keys exhausted' : err.response?.data || err.message);
+        console.error('[Chat Error]', isMissingKey ? 'Missing GROQ_API_KEY env var' : (isExhausted ? 'All keys exhausted' : err.response?.data || err.message));
+
+        let userMsg = "Something went wrong connecting to my brain. Give me a second and try again!";
+        if (isMissingKey) {
+            userMsg = "API Key Notice: The GROQ_API_KEY environment variable is missing or invalid on Vercel. Please add GROQ_API_KEY in Vercel Project Settings -> Environment Variables and redeploy.";
+        } else if (isExhausted) {
+            userMsg = "I'm currently hitting the rate limits of my free API. Please try asking again in a minute!";
+        }
 
         // Return a graceful 200 so the frontend chatbot treats it as a real reply
-        // instead of crashing. This prevents broken "Failed to connect" toasts.
+        // instead of throwing a frontend network error toast.
         res.status(200).json({
             choices: [{
                 message: {
-                    content: isExhausted
-                        ? "I'm currently hitting the rate limits of my free API. Please try asking again in a minute!"
-                        : "Something went wrong connecting to my brain. Give me a second and try again!"
+                    content: userMsg
                 }
             }]
         });
