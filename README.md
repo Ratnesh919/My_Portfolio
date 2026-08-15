@@ -24,35 +24,7 @@ Visitors can seamlessly switch between 5 distinct visual theme experiences:
 - **Integrated Music Player**: Search and stream YouTube music live on demand through voice or text commands.
 - **Interactive Info Panel (`ℹ️`)**: Quick command suggestions including standard portfolio commands and a dedicated `"📩 Leave a message for Ratnesh"` option.
 - **Non-Repetitive Joke Engine**: 24+ tech and programmer jokes with session tracking to prevent repetition.
-
----
-
-### 🔐 3. Admin Mode Features
-
-Raya includes an exclusive **Admin Mode** designed specifically for Ratnesh to monitor portfolio reach, manage visitor messages, and inspect analytics.
-
-#### 🔑 Activating Admin Mode
-To enter Admin Mode, type or speak your admin credentials/password directly to Raya in the chatbot chat:
-> *"Ratnesh@231"* (or your configured `ADMIN_PASSWORD`)
-
-Raya will verify your identity, grant Admin access, and update her persona to Admin Assistant Mode.
-
-#### 📊 Admin Capabilities & Commands
-
-1. **🌍 Worldwide Visitor Geolocation Tracking**:
-   - **Command**: *"Where did the users visit from?"*, *"Show visitor locations"*, or *"From where did users visit?"*
-   - **Function**: Raya queries Supabase and Vercel Edge geolocation headers (`x-vercel-ip-city`, `x-vercel-ip-country-region`, `x-vercel-ip-country`) to summarize exact visitor locations worldwide down to city level (e.g., `Kolkata, WB, India`, `California, US`).
-
-2. **📩 Read Visitor Messages**:
-   - **Command**: *"Read my messages"*, *"Any messages for me?"*, or *"Check visitor messages"*
-   - **Function**: Raya retrieves messages left by visitors using the `"📩 Leave a message for Ratnesh"` feature. Messages are categorized with AI-driven importance flags (`[IMPORTANT]`) for hiring offers, job inquiries, and contact details.
-
-3. **⚙️ Real-time Server Health & API Diagnostics**:
-   - **Endpoint**: `/api/health` (Admin Authenticated)
-   - **Function**: Displays real-time uptime, memory usage, Groq API key rotation index, and circuit breaker status.
-
-4. **🔒 Session & Device Audit**:
-   - **Function**: Tracks active admin sessions across devices (e.g., laptop and mobile phone) to ensure secure administrative access.
+- **Visitor Messaging**: Visitors can leave messages for Ratnesh directly through the chatbot UI.
 
 ---
 
@@ -83,8 +55,7 @@ Raya will verify your identity, grant Admin access, and update her persona to Ad
    ```env
    PORT=3000
    GROQ_API_KEY=your_groq_api_key
-   ENCRYPTION_KEY=613c728b0fd4bbbe677f464f8afb1ab46b763844b3476661a0a16268315cc1c9
-   ADMIN_PASSWORD=your_admin_password
+   ENCRYPTION_KEY=your_encryption_key
    SUPABASE_URL=your_supabase_url
    SUPABASE_KEY=your_supabase_anon_key
    ```
