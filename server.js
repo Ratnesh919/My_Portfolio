@@ -101,9 +101,36 @@ function getGroqApiKeys() {
 
 let currentKeyIndex = 0;
 async function callGroqWithRetry(payload) {
+    // 1. Try NVIDIA NIM API (meta/llama-3.1-8b-instruct) FIRST when NVIDIA_API_KEY is set for ultra-fast response (~425ms)
+    const nvidiaKey = decrypt(process.env.NVIDIA_API_KEY || process.env.NV_API_KEY || '');
+    if (nvidiaKey) {
+        try {
+            const res = await axios.post(
+                'https://integrate.api.nvidia.com/v1/chat/completions',
+                {
+                    model: 'meta/llama-3.1-8b-instruct',
+                    messages: payload.messages,
+                    temperature: payload.temperature || 0.7,
+                    max_tokens: payload.max_tokens || 120
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${nvidiaKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 8000
+                }
+            );
+            return res; // Sub-second NVIDIA NIM Success
+        } catch (nvErr) {
+            console.warn('⚠️ [NVIDIA NIM Primary Attempt Warning] Swapping to Groq keys:', nvErr.response?.data || nvErr.message);
+        }
+    }
+
+    // 2. Groq Multi-Key & Multi-Model Rotation System
     const keys = getGroqApiKeys();
     if (keys.length === 0) {
-        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY or GROQ_API_KEYS in your environment variables.');
+        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY, GROQ_API_KEYS, or NVIDIA_API_KEY in your environment variables.');
     }
 
     // List of active Groq models optimized for ultra-low latency (sub-second response speed)
@@ -165,7 +192,6 @@ async function callGroqWithRetry(payload) {
     }
 
     // Ultimate Fallback: NVIDIA NIM API (if all Groq keys & models fail)
-    const nvidiaKey = decrypt(process.env.NVIDIA_API_KEY || process.env.NV_API_KEY || '');
     if (nvidiaKey) {
         try {
             console.log('🔄 [LLM Fallback] Groq keys exhausted, falling back to NVIDIA NIM API (meta/llama-3.1-8b-instruct)...');

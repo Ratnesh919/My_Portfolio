@@ -178,10 +178,18 @@ async function cleanDatabase() {
 }
 
 async function buildMemoryContext(userId, sessionId) {
-    const { data: learnings } = await supabase.from('learnings').select('type, content').eq('user_id', userId).eq('status', 'verified').order('weight', { ascending: false }).order('id', { ascending: false }).limit(10);
-    const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
-    let { data: recent } = await supabase.from('messages').select('role, content').eq('session_id', sessionId).order('id', { ascending: false }).limit(6);
-    const { data: adminRules } = await supabase.from('admin_rules').select('rule');
+    // Execute all memory database queries concurrently in parallel for sub-second database context building
+    const [learningsRes, prefsRes, recentRes, adminRulesRes] = await Promise.all([
+        supabase.from('learnings').select('type, content').eq('user_id', userId).eq('status', 'verified').order('weight', { ascending: false }).order('id', { ascending: false }).limit(10),
+        supabase.from('preferences').select('key, value').eq('user_id', userId),
+        supabase.from('messages').select('role, content').eq('session_id', sessionId).order('id', { ascending: false }).limit(6),
+        supabase.from('admin_rules').select('rule')
+    ]);
+
+    const learnings = learningsRes.data;
+    const prefs = prefsRes.data;
+    let recent = recentRes.data;
+    const adminRules = adminRulesRes.data;
 
     if (recent) recent.reverse();
 
