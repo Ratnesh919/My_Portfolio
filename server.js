@@ -106,15 +106,14 @@ async function callGroqWithRetry(payload) {
         throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY or GROQ_API_KEYS in your environment variables.');
     }
 
-    // List of active Groq models with independent rate limit buckets
-    const primaryModel = payload.model || 'groq/compound';
+    // List of active Groq models optimized for ultra-low latency (sub-second response speed)
+    const primaryModel = payload.model || 'groq/compound-mini';
     const modelsToTry = [
         primaryModel,
-        'groq/compound',
         'groq/compound-mini',
         'openai/gpt-oss-20b',
-        'openai/gpt-oss-120b',
-        'qwen/qwen3.6-27b'
+        'groq/compound',
+        'openai/gpt-oss-120b'
     ];
 
     let lastError = null;
@@ -487,12 +486,12 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
 
-        // Call the LLM through the Circuit Breaker
+        // Call the LLM through the Circuit Breaker (low-latency mini model)
         const response = await groqBreaker.fire({
-            model: 'groq/compound',
+            model: 'groq/compound-mini',
             messages: enrichedMessages,
             temperature: 0.7,
-            max_tokens: 150
+            max_tokens: 120
         });
 
         const assistantReply = response.data.choices[0]?.message?.content || '';
@@ -546,7 +545,7 @@ app.post('/api/end-session', async (req, res) => {
 
         // Ask Raya to summarize what she learned this session
         const summaryRes = await groqBreaker.fire({
-            model: 'groq/compound',
+            model: 'groq/compound-mini',
             messages: [
                 {
                     role: 'system',

@@ -1067,7 +1067,7 @@ class AvatarChatBot {
         // Fall through to Groq for real conversation
         this.showTyping();
 
-        // -- Safety timeout: if no reply in 15s, reset and prompt user to retry
+        // -- Safety timeout: if no reply in 30s, reset and prompt user to retry
         const thinkingTimeout = setTimeout(() => {
             if (this.isThinking) {
                 this.isThinking = false;
@@ -1076,7 +1076,7 @@ class AvatarChatBot {
                 this.hideTyping();
                 this.speakAvatar("Hmm, I didn't catch that. Could you say it again?", true);
             }
-        }, 15000);
+        }, 30000);
 
         try {
             const res = await fetch('/api/chat', {
