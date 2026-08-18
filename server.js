@@ -75,19 +75,35 @@ function decrypt(text) {
     }
 }
 
+const disabledKeys = new Set();
+
 function getGroqApiKeys() {
-    const raw = process.env.GROQ_API_KEYS || process.env.GROQ_API_KEY || '';
-    if (!raw || !raw.trim()) return [];
-    
-    const parts = raw.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
-    return parts;
+    const rawSources = [
+        process.env.GROQ_API_KEYS,
+        process.env.GROQ_API_KEY,
+        process.env.GROQ_API_KEY_2,
+        process.env.GROQ_API_KEY_3,
+        process.env.GROQ_API_KEY_4,
+        process.env.GROQ_API_KEY_BACKUP,
+        process.env.GROQ_BACKUP_API_KEY
+    ];
+    const keys = [];
+    for (const src of rawSources) {
+        if (!src || typeof src !== 'string') continue;
+        const parts = src.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+        keys.push(...parts);
+    }
+    const uniqueKeys = [...new Set(keys)];
+    // Filter out disabled invalid keys unless all keys are disabled
+    const activeKeys = uniqueKeys.filter(k => !disabledKeys.has(k));
+    return activeKeys.length > 0 ? activeKeys : uniqueKeys;
 }
 
 let currentKeyIndex = 0;
 async function callGroqWithRetry(payload) {
     const keys = getGroqApiKeys();
     if (keys.length === 0) {
-        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY in your environment variables.');
+        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY or GROQ_API_KEYS in your environment variables.');
     }
 
     // List of backup models with independent rate limit buckets
@@ -99,12 +115,16 @@ async function callGroqWithRetry(payload) {
         'gemma2-9b-it'
     ];
 
+    let lastError = null;
+
     for (const modelCandidate of modelsToTry) {
         let attempts = 0;
         const currentPayload = { ...payload, model: modelCandidate };
 
         while (attempts < keys.length) {
-            const apiKey = keys[currentKeyIndex % keys.length];
+            const apiKeyIndex = currentKeyIndex % keys.length;
+            const apiKey = keys[apiKeyIndex];
+            
             try {
                 const response = await axios.post(
                     'https://api.groq.com/openai/v1/chat/completions',
@@ -114,24 +134,36 @@ async function callGroqWithRetry(payload) {
                             Authorization: `Bearer ${apiKey}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 12000
+                        timeout: 15000
                     }
                 );
+
+                if (attempts > 0) {
+                    console.log(`🟢 [Groq Key Failover Success] Request completed using Backup Key #${apiKeyIndex + 1} on model '${modelCandidate}'`);
+                }
                 return response; // Success
             } catch (err) {
+                lastError = err;
                 const status = err.response?.status;
-                console.warn(`[Groq API Call Error] Model '${modelCandidate}', Key ${currentKeyIndex} failed (Status ${status}):`, err.response?.data || err.message);
-                if (status === 429 || status === 403 || status === 401 || status === 413) {
-                    console.warn(`[Groq] Key ${currentKeyIndex} rate-limited on '${modelCandidate}'. Swapping to next key...`);
-                    currentKeyIndex = (currentKeyIndex + 1) % keys.length;
-                    attempts++;
-                } else {
-                    break; // Move to next backup model candidate
+                const errMsg = err.response?.data?.error?.message || err.message;
+                
+                console.warn(`⚠️ [Groq API Key #${apiKeyIndex + 1} Fail] Model '${modelCandidate}' (Status ${status || 'Network'}): ${errMsg}`);
+
+                if (status === 401 || status === 403) {
+                    console.warn(`🚨 [Groq Key Disabled] Key #${apiKeyIndex + 1} returned status ${status}. Temporarily disabling key...`);
+                    disabledKeys.add(apiKey);
                 }
+
+                // Automatically rotate to the next backup API key!
+                currentKeyIndex = (currentKeyIndex + 1) % keys.length;
+                attempts++;
+
+                console.log(`🔄 [Groq Key Failover] Rotating to Backup API Key #${(currentKeyIndex % keys.length) + 1} (Attempt ${attempts}/${keys.length})...`);
             }
         }
     }
-    throw new Error('All Groq API keys and backup models are currently rate-limited or exhausted.');
+
+    throw new Error(`All ${keys.length} Groq API key(s) and backup models failed: ${lastError?.message || 'Rate-limited or exhausted'}`);
 }
 
 // ── Circuit Breaker Setup ──────────────────────────────────────────────────────
