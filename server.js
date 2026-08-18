@@ -164,7 +164,35 @@ async function callGroqWithRetry(payload) {
         }
     }
 
-    throw new Error(`All ${keys.length} Groq API key(s) and backup models failed: ${lastError?.message || 'Rate-limited or exhausted'}`);
+    // Ultimate Fallback: NVIDIA NIM API (if all Groq keys & models fail)
+    const nvidiaKey = decrypt(process.env.NVIDIA_API_KEY || process.env.NV_API_KEY || '');
+    if (nvidiaKey) {
+        try {
+            console.log('🔄 [LLM Fallback] Groq keys exhausted, falling back to NVIDIA NIM API (meta/llama-3.1-8b-instruct)...');
+            const res = await axios.post(
+                'https://integrate.api.nvidia.com/v1/chat/completions',
+                {
+                    model: 'meta/llama-3.1-8b-instruct',
+                    messages: payload.messages,
+                    temperature: payload.temperature || 0.7,
+                    max_tokens: payload.max_tokens || 120
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${nvidiaKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 15000
+                }
+            );
+            console.log('🟢 [NVIDIA NIM Success] Reply received from NVIDIA NIM backup provider!');
+            return res;
+        } catch (nvErr) {
+            console.warn('⚠️ [NVIDIA NIM Fallback Failed]:', nvErr.response?.data || nvErr.message);
+        }
+    }
+
+    throw new Error(`All Groq API key(s) and NVIDIA backup providers failed: ${lastError?.message || 'Rate-limited or exhausted'}`);
 }
 
 // ── Circuit Breaker Setup ──────────────────────────────────────────────────────
