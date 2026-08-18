@@ -90,41 +90,55 @@ async function callGroqWithRetry(payload) {
         throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY in your environment variables.');
     }
 
-    let attempts = 0;
-    while (attempts < keys.length) {
-        const apiKey = keys[currentKeyIndex % keys.length];
-        try {
-            const response = await axios.post(
-                'https://api.groq.com/openai/v1/chat/completions',
-                payload,
-                {
-                    headers: {
-                        Authorization: `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
+    // List of backup models with independent rate limit buckets
+    const primaryModel = payload.model || 'llama-3.3-70b-versatile';
+    const modelsToTry = [
+        primaryModel,
+        'llama3-8b-8192',
+        'mixtral-8x7b-32768',
+        'gemma2-9b-it'
+    ];
+
+    for (const modelCandidate of modelsToTry) {
+        let attempts = 0;
+        const currentPayload = { ...payload, model: modelCandidate };
+
+        while (attempts < keys.length) {
+            const apiKey = keys[currentKeyIndex % keys.length];
+            try {
+                const response = await axios.post(
+                    'https://api.groq.com/openai/v1/chat/completions',
+                    currentPayload,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 12000
                     }
+                );
+                return response; // Success
+            } catch (err) {
+                const status = err.response?.status;
+                console.warn(`[Groq API Call Error] Model '${modelCandidate}', Key ${currentKeyIndex} failed (Status ${status}):`, err.response?.data || err.message);
+                if (status === 429 || status === 403 || status === 401 || status === 413) {
+                    console.warn(`[Groq] Key ${currentKeyIndex} rate-limited on '${modelCandidate}'. Swapping to next key...`);
+                    currentKeyIndex = (currentKeyIndex + 1) % keys.length;
+                    attempts++;
+                } else {
+                    break; // Move to next backup model candidate
                 }
-            );
-            return response; // Success
-        } catch (err) {
-            const status = err.response?.status;
-            console.warn(`[Groq API Call Error] Status ${status}:`, err.response?.data || err.message);
-            if (status === 429 || status === 403 || status === 401) { // Rate limited, Quota exceeded, or Invalid Key
-                console.warn(`[Groq] Key ${currentKeyIndex} failed (Status ${status}). Swapping to next key...`);
-                currentKeyIndex = (currentKeyIndex + 1) % keys.length;
-                attempts++;
-            } else {
-                throw err;
             }
         }
     }
-    throw new Error('All Groq API keys are currently rate-limited or exhausted.');
+    throw new Error('All Groq API keys and backup models are currently rate-limited or exhausted.');
 }
 
 // ── Circuit Breaker Setup ──────────────────────────────────────────────────────
 const groqBreaker = new CircuitBreaker(callGroqWithRetry, {
-    timeout: 25000,               // 25 seconds before Groq times out (allow slower responses)
-    errorThresholdPercentage: 50, // Open circuit if 50% of requests fail
-    resetTimeout: 30000,          // Wait 30s before trying Groq again
+    timeout: 28000,               // 28s timeout before fallback
+    errorThresholdPercentage: 75, // Allow up to 75% error tolerance
+    resetTimeout: 10000,          // Reset breaker quickly in 10s
 });
 
 // Fallback message when the LLM API is completely dead or overloaded
