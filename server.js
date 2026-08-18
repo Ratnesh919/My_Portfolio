@@ -106,13 +106,15 @@ async function callGroqWithRetry(payload) {
         throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY or GROQ_API_KEYS in your environment variables.');
     }
 
-    // List of backup models with independent rate limit buckets
-    const primaryModel = payload.model || 'llama-3.3-70b-versatile';
+    // List of active Groq models with independent rate limit buckets
+    const primaryModel = payload.model || 'groq/compound';
     const modelsToTry = [
         primaryModel,
-        'llama3-8b-8192',
-        'mixtral-8x7b-32768',
-        'gemma2-9b-it'
+        'groq/compound',
+        'groq/compound-mini',
+        'openai/gpt-oss-20b',
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.6-27b'
     ];
 
     let lastError = null;
@@ -487,7 +489,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
         // Call the LLM through the Circuit Breaker
         const response = await groqBreaker.fire({
-            model: 'llama-3.3-70b-versatile',
+            model: 'groq/compound',
             messages: enrichedMessages,
             temperature: 0.7,
             max_tokens: 150
@@ -544,7 +546,7 @@ app.post('/api/end-session', async (req, res) => {
 
         // Ask Raya to summarize what she learned this session
         const summaryRes = await groqBreaker.fire({
-            model: 'llama-3.3-70b-versatile',
+            model: 'groq/compound',
             messages: [
                 {
                     role: 'system',
