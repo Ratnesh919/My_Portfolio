@@ -6,12 +6,10 @@ Ratnesh is your creator. You have deep access to his personal and professional p
 LANGUAGE RULES:
 - UNIVERSAL MULTILINGUAL ABILITY: You are fluent in ALL languages of the world (English, Hindi, Hinglish, Spanish, French, German, Japanese, Chinese, Arabic, Russian, Portuguese, Italian, Korean, Bengali, Tamil, Telugu, Marathi, Punjabi, Gujarati, etc.).
 - LANGUAGE MATCHING RULE: You MUST always reply in the EXACT SAME language that the user writes/speaks to you in:
-  * If the user writes in Spanish, reply in natural, fluent Spanish.
-  * If the user writes in French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Russian, Korean, etc., reply fluently in that language.
-  * If the user writes in Hindi, Hinglish, or casual Indian slang (e.g. "projects batao", "kaise ho", "kya chal raha hai"), reply in natural, casual HINGLISH using the Roman / English alphabet (e.g. "Ratnesh ne kaafi interesting projects banaye hain jaise Smart Antenna aur Portfolio Website!").
-  * If the user writes in Bengali, Tamil, Telugu, Punjabi, etc., reply in that regional language.
+  * If the user writes in Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Russian, Korean, etc., reply fluently in that language.
+  * For ALL Indian regional languages (Hindi, Hinglish, Punjabi, Gujarati, Bengali, Marathi, Tamil, Telugu, Kannada, Malayalam, etc.): ALWAYS reply in natural conversational ROMANIZED script using the standard English/Latin alphabet (e.g., Punjabi: "Ratnesh ne bohot vadia projects banaye ne jaise Smart Antenna...", Gujarati: "Ratnesh e ghana saras projects banavya che jaise Smart Antenna...", Hinglish: "Ratnesh ne kaafi saare cool projects banaye hain..."). NEVER output native Indic scripts (Devanagari, Gurmukhi, Gujarati script) because browser voice synthesizers cannot speak them.
   * Default: Speak in friendly, clear English.
-- Do NOT use markdown, asterisks, hashtags, or emojis in your speech as it will be spoken out loud.
+- CRITICAL EMOJI RULE: NEVER output emojis (e.g. 😊, 🚀, 👍, ✨, 🎉) anywhere in your text. Do NOT use markdown asterisks (*, **) or formatting symbols.
 - CRITICAL: Do NOT use the word 'na' (e.g., ', na?', 'na') at the end of sentences under any circumstances.
 
 - Avoid sounding overly formal or robotic. Sound like a smart, friendly assistant chatting.
@@ -1835,8 +1833,13 @@ class AvatarChatBot {
         if (this.synth.paused) { try { this.synth.resume(); } catch(e) {} }
 
         const doSpeak = () => {
+            // Comprehensive regex to remove all emoji ranges, pictographs, flags, emoticons, and symbols
+            const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{200D}]/gu;
+
             const cleanText = text
-                .replace(/[\[\]*|`~_#>]/g, '')
+                .replace(/\{"action".*?\}/g, '') // remove trailing JSON commands
+                .replace(emojiRegex, '')         // remove ALL emojis so they are never spoken aloud
+                .replace(/[\[\]*|`~_#>\\]/g, '')  // remove markdown formatting symbols
                 .replace(/\s{2,}/g, ' ')
                 .trim();
 
@@ -1867,6 +1870,8 @@ class AvatarChatBot {
                 langCode = 'ta-IN'; voiceSearchLang = 'ta'; // Tamil
             } else if (/[\u0C00-\u0C7F]/.test(cleanText)) {
                 langCode = 'te-IN'; voiceSearchLang = 'te'; // Telugu
+            } else if (/[\u0A80-\u0AFF]/.test(cleanText)) {
+                langCode = 'gu-IN'; voiceSearchLang = 'gu'; // Gujarati
             } else if (/[\u0900-\u097F]/.test(cleanText)) {
                 langCode = 'hi-IN'; voiceSearchLang = 'hi'; // Hindi (Devanagari)
             } else if (/\b(hola|gracias|buenos|buenas|amigo|proyectos|por favor)\b/i.test(cleanText)) {
@@ -1884,22 +1889,20 @@ class AvatarChatBot {
             const voices = this.synth.getVoices();
             let selectedVoice = null;
             if (voiceSearchLang !== 'en') {
-                selectedVoice = voices.find(v => v.lang.startsWith(voiceSearchLang) || v.lang.replace('_', '-').startsWith(voiceSearchLang));
+                selectedVoice = voices.find(v => v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang));
             }
             
+            // If no native voice exists (common for regional Indian languages), safely fall back to Raya's default voice
             if (!selectedVoice) {
-                if (langCode === 'en-IN') {
-                    if (!this.femaleVoice) this.loadVoices();
-                    selectedVoice = this.femaleVoice;
-                } else {
-                    selectedVoice = voices.find(v => v.lang.startsWith(voiceSearchLang) || v.lang.replace('_', '-').startsWith(voiceSearchLang)) || this.femaleVoice;
-                }
+                if (!this.femaleVoice) this.loadVoices();
+                selectedVoice = this.femaleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0];
             }
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
 
             utterance.voice = selectedVoice;
-            utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
+            // CRITICAL: Bind utterance.lang to the voice's supported language to prevent synthesis failure
+            utterance.lang = selectedVoice ? selectedVoice.lang : 'en-IN';
             utterance.rate   = 1.10; // ~165 WPM
             utterance.pitch  = 1.35;
             utterance.volume = 1.0;
