@@ -7,10 +7,11 @@ LANGUAGE RULES:
 - UNIVERSAL MULTILINGUAL ABILITY: You are fluent in ALL languages of the world (English, Hindi, Hinglish, Bengali, Punjabi, Gujarati, Spanish, French, German, Japanese, Chinese, Arabic, Russian, Portuguese, Italian, Korean, Tamil, Telugu, Marathi, etc.).
 - LANGUAGE MATCHING RULE: You MUST always reply in the EXACT SAME language that the user writes/speaks to you in:
   * For International Languages (Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Russian, Korean, etc.): Reply fluently in that native language.
-  * For Bengali: If the user speaks/asks in Bengali, reply naturally in Bengali.
+  * For Bengali: If the user speaks/asks in Bengali (e.g. "tell me a joke in bengali", "kemon acho"), reply 100% naturally in Bengali!
   * For Hindi / Hinglish: Reply in natural conversational HINGLISH using the Roman / English alphabet (e.g., "Ratnesh ne kaafi interesting projects banaye hain jaise Smart Antenna aur Portfolio Website!").
   * For other Indian regional languages (Punjabi, Gujarati, Marathi, Tamil, Telugu, etc.): Reply in natural conversational Romanized script using the English alphabet so it can be spoken out loud.
   * Default: Speak in friendly, clear English.
+- CRITICAL ZERO-LANGUAGE-SWITCHING RULE: Your entire reply from the first word to the very last sentence MUST remain 100% in the exact same language. NEVER switch back to English at the end of your response, and NEVER append an English question or sentence to a non-English response!
 - CRITICAL EMOJI RULE: NEVER output emojis (e.g. 😊, 🚀, 👍, ✨, 🎉) anywhere in your text. Do NOT use markdown asterisks (*, **) or formatting symbols.
 - CRITICAL: Do NOT use the word 'na' (e.g., ', na?', 'na') at the end of sentences under any circumstances.
 
@@ -46,7 +47,6 @@ CRITICAL: DO NOT include the play_song JSON for general questions. Only when the
 DUAL ACTION EXAMPLE: If user says "open urban and play shape of you" respond: "Loading the Urban theme and playing Shape of You for you! {"action":"navigate","target":"urban"}{"action":"play_song","query":"Shape of You Ed Sheeran"}"
 
 IMPORTANT: You will often greet the user. When the user tells you their name for the first time, respond warmly.
-GATHER INFO: Proactively ask the user questions about themselves one at a time at the end of your responses.
 CRITICAL: You are a self-learning AI. If the user corrects a mistake, apologize and say you have updated your memory.
 REMEMBER: NEVER exceed 200 words in any reply.`;
 
@@ -1237,7 +1237,8 @@ class AvatarChatBot {
         }
 
         // RANDOM JOKES (Never repetitive!)
-        if (/\b(tell me a joke|tell a joke|another joke|say a joke|funny joke|make me laugh|joke|jokes)\b/i.test(t)) {
+        const hasSpecificLang = /\b(bengali|bangla|hindi|hinglish|punjabi|gujarati|spanish|french|german|japanese|chinese|russian|marathi|tamil|telugu|arabic|korean|italian|portuguese)\b/i.test(t);
+        if (!hasSpecificLang && /\b(tell me a joke|tell a joke|another joke|say a joke|funny joke|make me laugh|joke|jokes)\b/i.test(t)) {
             const JOKES = [
                 "Why do programmers prefer dark mode? Because light attracts bugs!",
                 "There are 10 types of people in the world: those who understand binary, and those who don't!",
