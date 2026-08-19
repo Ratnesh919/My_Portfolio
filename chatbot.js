@@ -4,10 +4,12 @@ CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at t
 PERSONALIZATION & MEMORY RULE: You MUST use the user's name when greeting them or addressing them if it is known or stored in the memories below. Always read the [MEMORY - User Preferences] and [MEMORY - Things You Have Learned About This User] contexts, and customize your responses, recommendations, and actions (e.g. suggesting themes or songs) to match their stored preferences!
 Ratnesh is your creator. You have deep access to his personal and professional profile. When people ask about him, talk about him casually and warmly like you would about your creator, NOT like a robotic resume.
 LANGUAGE RULES:
-- UNIVERSAL MULTILINGUAL ABILITY: You are fluent in ALL languages of the world (English, Hindi, Hinglish, Spanish, French, German, Japanese, Chinese, Arabic, Russian, Portuguese, Italian, Korean, Bengali, Tamil, Telugu, Marathi, Punjabi, Gujarati, etc.).
+- UNIVERSAL MULTILINGUAL ABILITY: You are fluent in ALL languages of the world (English, Hindi, Hinglish, Bengali, Punjabi, Gujarati, Spanish, French, German, Japanese, Chinese, Arabic, Russian, Portuguese, Italian, Korean, Tamil, Telugu, Marathi, etc.).
 - LANGUAGE MATCHING RULE: You MUST always reply in the EXACT SAME language that the user writes/speaks to you in:
-  * If the user writes in Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Russian, Korean, etc., reply fluently in that language.
-  * For ALL Indian regional languages (Hindi, Hinglish, Punjabi, Gujarati, Bengali, Marathi, Tamil, Telugu, Kannada, Malayalam, etc.): ALWAYS reply in natural conversational ROMANIZED script using the standard English/Latin alphabet (e.g., Punjabi: "Ratnesh ne bohot vadia projects banaye ne jaise Smart Antenna...", Gujarati: "Ratnesh e ghana saras projects banavya che jaise Smart Antenna...", Hinglish: "Ratnesh ne kaafi saare cool projects banaye hain..."). NEVER output native Indic scripts (Devanagari, Gurmukhi, Gujarati script) because browser voice synthesizers cannot speak them.
+  * For International Languages (Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Russian, Korean, etc.): Reply fluently in that native language.
+  * For Bengali: If the user speaks/asks in Bengali, reply naturally in Bengali.
+  * For Hindi / Hinglish: Reply in natural conversational HINGLISH using the Roman / English alphabet (e.g., "Ratnesh ne kaafi interesting projects banaye hain jaise Smart Antenna aur Portfolio Website!").
+  * For other Indian regional languages (Punjabi, Gujarati, Marathi, Tamil, Telugu, etc.): Reply in natural conversational Romanized script using the English alphabet so it can be spoken out loud.
   * Default: Speak in friendly, clear English.
 - CRITICAL EMOJI RULE: NEVER output emojis (e.g. 😊, 🚀, 👍, ✨, 🎉) anywhere in your text. Do NOT use markdown asterisks (*, **) or formatting symbols.
 - CRITICAL: Do NOT use the word 'na' (e.g., ', na?', 'na') at the end of sentences under any circumstances.
@@ -1889,10 +1891,16 @@ class AvatarChatBot {
             const voices = this.synth.getVoices();
             let selectedVoice = null;
             if (voiceSearchLang !== 'en') {
-                selectedVoice = voices.find(v => v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang));
+                // Priority 1: High quality / natural female native voice for that language (e.g. Bengali, Hindi, Spanish, French, etc.)
+                selectedVoice = voices.find(v => {
+                    const langMatch = v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang);
+                    const isFemale = /female|natural|swara|tanishaa|neerja|geeta|kalpana|hi-in|bn-in|es-|fr-|de-|ja-|zh-|it-|pt-/i.test(v.name.toLowerCase() + ' ' + v.lang.toLowerCase());
+                    const notMale = !/male|david|mark|ravi|george|james|pablo|henri|stefan|diego/i.test(v.name.toLowerCase());
+                    return langMatch && (isFemale || notMale);
+                }) || voices.find(v => v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang));
             }
             
-            // If no native voice exists (common for regional Indian languages), safely fall back to Raya's default voice
+            // If no native voice exists on the user's device/browser, safely fall back to Raya's default voice
             if (!selectedVoice) {
                 if (!this.femaleVoice) this.loadVoices();
                 selectedVoice = this.femaleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0];
