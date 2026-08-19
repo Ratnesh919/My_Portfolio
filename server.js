@@ -463,17 +463,24 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                 // Dynamic Admin Queries
                 if (lastUser) {
                     const lc = lastUser.content.toLowerCase();
+                    let cachedUsers = null;
+
+                    const getUsersOnce = async () => {
+                        if (!cachedUsers) cachedUsers = await mem.getAllUsers();
+                        return cachedUsers || [];
+                    };
                     
                     // 1. Fetch site statistics for insights/stats queries
                     if (lc.includes('insight') || lc.includes('stat') || lc.includes('visit') || lc.includes('traffic') || lc.includes('analytics')) {
                         const stats = await mem.getSiteStats();
-                        sysContent += '\n\n[ADMIN DATA: SITE INSIGHTS & STATS]\n' + JSON.stringify(stats, null, 2);
+                        sysContent += '\n\n[ADMIN DATA: SITE INSIGHTS & STATS]\n' + JSON.stringify(stats);
                     }
 
                     // 2. Fetch list of users
-                    if (lc.includes('users') || lc.includes('visitors') || lc.includes('all user') || lc.includes('all visitor') || lc.includes('user list') || lc.includes('visitor list')) {
-                        const users = await mem.getAllUsers();
-                        sysContent += '\n\n[ADMIN DATA: ALL USERS]\n' + JSON.stringify(users, null, 2);
+                    if (lc.includes('users') || lc.includes('visitors') || lc.includes('all user') || lc.includes('user list') || lc.includes('visitor list')) {
+                        const users = await getUsersOnce();
+                        const compactUsers = users.slice(0, 10).map(u => ({ name: u.name, location: u.location, id: u.cookie_id }));
+                        sysContent += '\n\n[ADMIN DATA: RECENT USERS/VISITORS]\n' + JSON.stringify(compactUsers);
                     }
 
                     // 3. Fetch specific user details by name or cookie_id
@@ -482,9 +489,9 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     if (usrMatch) {
                         matchedUser = { cookie_id: usrMatch[1], name: usrMatch[1] };
                     } else {
-                        const users = await mem.getAllUsers();
+                        const users = await getUsersOnce();
                         for (const u of users) {
-                            if (u.name && u.name !== '(anonymous)') {
+                            if (u.name && u.name !== '(anonymous)' && u.name.length > 2) {
                                 const nameRegex = new RegExp('\\b' + u.name.toLowerCase() + '\\b', 'i');
                                 if (nameRegex.test(lc)) {
                                     matchedUser = u;
@@ -496,28 +503,26 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
                     if (matchedUser) {
                         const profile = await mem.getUserProfile(matchedUser.cookie_id);
-                        sysContent += `\n\n[ADMIN DATA: PROFILE FOR USER ${matchedUser.name} (${matchedUser.cookie_id})]\n` + JSON.stringify(profile, null, 2);
+                        sysContent += `\n\n[ADMIN DATA: PROFILE FOR USER ${matchedUser.name}]\n` + JSON.stringify(profile);
                     }
 
                     // 4. Fetch location & worldwide reach statistics for location/country queries
-                    if (lc.includes('location') || lc.includes('country') || lc.includes('where') || lc.includes('city') || lc.includes('reach') || lc.includes('world') || lc.includes('geographic') || lc.includes('map') || lc.includes('from where') || lc.includes('globally')) {
+                    if (lc.includes('location') || lc.includes('country') || lc.includes('where is') || lc.includes('city') || lc.includes('reach') || lc.includes('geographic') || lc.includes('map') || lc.includes('from where') || lc.includes('globally')) {
                         const locStats = await mem.getLocationStats();
-                        sysContent += '\n\n[ADMIN DATA: VISITOR GEOGRAPHIC LOCATIONS & WORLDWIDE REACH]\n' + JSON.stringify(locStats, null, 2);
-                        sysContent += '\n\n[INSTRUCTION FOR LOCATION RESPONSE]\nWhen Ratnesh asks about visitor locations or cities, check top_cities and recent_visitors from [ADMIN DATA] and explicitly state the specific Cities and Countries (e.g. Kolkata, WB, India). Explain to Ratnesh that location tracking was activated today, so the earlier 95 visitors were recorded before geolocation tracking was enabled, but all new visitors are tracked down to city precision!';
+                        sysContent += '\n\n[ADMIN DATA: VISITOR GEOGRAPHIC LOCATIONS]\n' + JSON.stringify(locStats);
+                        sysContent += '\n\n[INSTRUCTION FOR LOCATION RESPONSE]\nWhen Ratnesh asks about visitor locations or cities, check top_cities and recent_visitors from [ADMIN DATA] and explicitly state the specific Cities and Countries (e.g. Kolkata, WB, India).';
                     }
 
                     // 5. Fetch visitor messages when Ratnesh asks to read messages
-                    if (lc.includes('message') || lc.includes('msg') || lc.includes('inbox') || lc.includes('contacted') || lc.includes('note') || lc.includes('recruiter') || lc.includes('read') || lc.includes('left')) {
+                    if (lc.includes('message') || lc.includes('msg') || lc.includes('inbox') || lc.includes('recruiter') || lc.includes('unread')) {
                         const vMessages = await mem.getVisitorMessages();
-                        sysContent += '\n\n[ADMIN DATA: VISITOR MESSAGES FOR RATNESH]\n';
-                        sysContent += 'The following messages were left by visitors for Ratnesh. IMPORTANT messages (job offers, hiring inquiries, or contact info) are marked with is_important=true:\n';
-                        sysContent += JSON.stringify(vMessages, null, 2);
-                        sysContent += '\n\n[INSTRUCTION FOR RAYA]\nWhen presenting messages to Ratnesh, FIRST highlight any IMPORTANT / HIGH PRIORITY messages (such as hiring offers, interview invites, or direct contact info), detailing who left them and why. Then list any casual notes.';
+                        const compactMsgs = (vMessages || []).slice(0, 10).map(m => ({ from: m.user_name, message: m.message, contact: m.contact_info, important: m.is_important }));
+                        sysContent += '\n\n[ADMIN DATA: VISITOR MESSAGES]\n' + JSON.stringify(compactMsgs);
                     }
 
                     if (lc.includes('learn') || lc.includes('know')) {
                         const allLearnings = await mem.getAllVerifiedLearnings();
-                        sysContent += '\n\n[ADMIN DATA: ALL VERIFIED LEARNINGS ACROSS SYSTEM]\n' + JSON.stringify(allLearnings, null, 2);
+                        sysContent += '\n\n[ADMIN DATA: ALL VERIFIED LEARNINGS]\n' + JSON.stringify((allLearnings || []).slice(0, 15));
                     }
                 }
 
