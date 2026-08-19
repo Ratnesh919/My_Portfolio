@@ -4,9 +4,13 @@ CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at t
 PERSONALIZATION & MEMORY RULE: You MUST use the user's name when greeting them or addressing them if it is known or stored in the memories below. Always read the [MEMORY - User Preferences] and [MEMORY - Things You Have Learned About This User] contexts, and customize your responses, recommendations, and actions (e.g. suggesting themes or songs) to match their stored preferences!
 Ratnesh is your creator. You have deep access to his personal and professional profile. When people ask about him, talk about him casually and warmly like you would about your creator, NOT like a robotic resume.
 LANGUAGE RULES:
-- Default: Speak in natural, friendly English.
-- HINDI & HINGLISH: If the user speaks or asks in Hindi, Hinglish, or casual Indian slang (e.g., "projects batao", "kaise ho", "kya chal raha hai"), you MUST reply back in natural, casual HINGLISH using the Roman / English alphabet (e.g., "Ratnesh ne kaafi interesting projects banaye hain jaise Smart Antenna aur Portfolio Website!"). NEVER write in Devanagari script (like 'प्रोजेक्ट') unless the user specifically asks for Devanagari Hindi.
-- OTHER REGIONAL LANGUAGES: If the user speaks in Bengali or another Indian language in Roman script, reply in Romanized text.
+- UNIVERSAL MULTILINGUAL ABILITY: You are fluent in ALL languages of the world (English, Hindi, Hinglish, Spanish, French, German, Japanese, Chinese, Arabic, Russian, Portuguese, Italian, Korean, Bengali, Tamil, Telugu, Marathi, Punjabi, Gujarati, etc.).
+- LANGUAGE MATCHING RULE: You MUST always reply in the EXACT SAME language that the user writes/speaks to you in:
+  * If the user writes in Spanish, reply in natural, fluent Spanish.
+  * If the user writes in French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Russian, Korean, etc., reply fluently in that language.
+  * If the user writes in Hindi, Hinglish, or casual Indian slang (e.g. "projects batao", "kaise ho", "kya chal raha hai"), reply in natural, casual HINGLISH using the Roman / English alphabet (e.g. "Ratnesh ne kaafi interesting projects banaye hain jaise Smart Antenna aur Portfolio Website!").
+  * If the user writes in Bengali, Tamil, Telugu, Punjabi, etc., reply in that regional language.
+  * Default: Speak in friendly, clear English.
 - Do NOT use markdown, asterisks, hashtags, or emojis in your speech as it will be spoken out loud.
 - CRITICAL: Do NOT use the word 'na' (e.g., ', na?', 'na') at the end of sentences under any circumstances.
 
@@ -1841,22 +1845,40 @@ class AvatarChatBot {
                 this._awaitingCommand = true;
             }
 
-            const isBengali = /[\u0980-\u09FF]/.test(cleanText);
-            const isPunjabi = /[\u0A00-\u0A7F]/.test(cleanText);
-            const isHindi = /[\u0900-\u097F]/.test(cleanText);
-            
+            // Universal multi-language script and vocabulary detection for TTS voice selection
             let langCode = 'en-IN';
             let voiceSearchLang = 'en';
 
-            if (isBengali) {
-                langCode = 'bn-IN';
-                voiceSearchLang = 'bn';
-            } else if (isPunjabi) {
-                langCode = 'pa-IN';
-                voiceSearchLang = 'pa';
-            } else if (isHindi) {
-                langCode = 'hi-IN';
-                voiceSearchLang = 'hi';
+            if (/[\u3040-\u30FF\u31F0-\u31FF\uFF66-\uFF9F]/.test(cleanText)) {
+                langCode = 'ja-JP'; voiceSearchLang = 'ja'; // Japanese
+            } else if (/[\u4E00-\u9FFF]/.test(cleanText)) {
+                langCode = 'zh-CN'; voiceSearchLang = 'zh'; // Chinese
+            } else if (/[\uAC00-\uD7AF\u1100-\u11FF]/.test(cleanText)) {
+                langCode = 'ko-KR'; voiceSearchLang = 'ko'; // Korean
+            } else if (/[\u0600-\u06FF]/.test(cleanText)) {
+                langCode = 'ar-SA'; voiceSearchLang = 'ar'; // Arabic
+            } else if (/[\u0400-\u04FF]/.test(cleanText)) {
+                langCode = 'ru-RU'; voiceSearchLang = 'ru'; // Russian
+            } else if (/[\u0980-\u09FF]/.test(cleanText)) {
+                langCode = 'bn-IN'; voiceSearchLang = 'bn'; // Bengali
+            } else if (/[\u0A00-\u0A7F]/.test(cleanText)) {
+                langCode = 'pa-IN'; voiceSearchLang = 'pa'; // Punjabi
+            } else if (/[\u0B80-\u0BFF]/.test(cleanText)) {
+                langCode = 'ta-IN'; voiceSearchLang = 'ta'; // Tamil
+            } else if (/[\u0C00-\u0C7F]/.test(cleanText)) {
+                langCode = 'te-IN'; voiceSearchLang = 'te'; // Telugu
+            } else if (/[\u0900-\u097F]/.test(cleanText)) {
+                langCode = 'hi-IN'; voiceSearchLang = 'hi'; // Hindi (Devanagari)
+            } else if (/\b(hola|gracias|buenos|buenas|amigo|proyectos|por favor)\b/i.test(cleanText)) {
+                langCode = 'es-ES'; voiceSearchLang = 'es'; // Spanish
+            } else if (/\b(bonjour|merci|salut|comment|projets|s'il vous plaît)\b/i.test(cleanText)) {
+                langCode = 'fr-FR'; voiceSearchLang = 'fr'; // French
+            } else if (/\b(hallo|danke|guten|projekte|wie geht's|bitte)\b/i.test(cleanText)) {
+                langCode = 'de-DE'; voiceSearchLang = 'de'; // German
+            } else if (/\b(ciao|grazie|progetti|buongiorno|per favore)\b/i.test(cleanText)) {
+                langCode = 'it-IT'; voiceSearchLang = 'it'; // Italian
+            } else if (/\b(olá|obrigado|projetos|tudo bem|por favor)\b/i.test(cleanText)) {
+                langCode = 'pt-BR'; voiceSearchLang = 'pt'; // Portuguese
             }
 
             const voices = this.synth.getVoices();

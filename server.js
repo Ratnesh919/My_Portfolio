@@ -540,7 +540,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             }
 
             // Global constraints
-            sysContent += '\n\n[GLOBAL CONSTRAINTS]\n1. LANGUAGE RULE: If the user speaks in Hindi, Hinglish, or casual Indian slang, you MUST reply in natural conversational HINGLISH using the Roman/English alphabet (e.g. "Ratnesh ne kaafi interesting projects banaye hain..."). NEVER output pure Devanagari script unless the user explicitly requests it.\n2. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances (e.g., do not say "hai na?", "hai na.", "karu na", "na"). Just end the sentence normally.';
+            sysContent += '\n\n[GLOBAL CONSTRAINTS]\n1. UNIVERSAL MULTILINGUAL ABILITY: You are fluent in ALL languages of the world (English, Hindi/Hinglish, Spanish, French, German, Japanese, Chinese, Arabic, Russian, Portuguese, Italian, Korean, Bengali, Tamil, Telugu, Marathi, Punjabi, Gujarati, etc.). You MUST reply in the SAME language the user writes or speaks to you in. If the user speaks in Hindi, Hinglish, or casual Indian slang, reply in natural conversational HINGLISH using the Roman/English alphabet (e.g. "Ratnesh ne kaafi interesting projects banaye hain..."). If the user speaks in Spanish, French, Japanese, or other languages, reply fluently in that language.\n2. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances (e.g., do not say "hai na?", "hai na.", "karu na", "na"). Just end the sentence normally.';
 
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
