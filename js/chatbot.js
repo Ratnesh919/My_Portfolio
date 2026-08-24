@@ -678,24 +678,7 @@ class AvatarChatBot {
 
         this.femaleVoice = edgeNeuralFemale || neuralIndianFemale || googleFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
 
-        // Specific high-quality Hindi female voices (Edge Swara / Kalpana / Google हिन्दी)
-        this.hindiVoice =
-            voices.find(v => /swara.*natural/i.test(v.name)) ||
-            voices.find(v => /swara/i.test(v.name)) ||
-            voices.find(v => /kalpana/i.test(v.name)) ||
-            voices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
-            voices.find(v => (v.lang === 'hi-IN' || v.lang === 'hi_IN' || v.lang.startsWith('hi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
-            voices.find(v => v.lang.startsWith('hi'));
-
-        // Specific high-quality Bengali female voices (Edge Tanishaa / Google বাংলা)
-        this.bengaliVoice =
-            voices.find(v => /tanishaa.*natural/i.test(v.name)) ||
-            voices.find(v => /tanishaa/i.test(v.name)) ||
-            voices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
-            voices.find(v => (v.lang === 'bn-IN' || v.lang === 'bn_IN' || v.lang.startsWith('bn')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
-            voices.find(v => v.lang.startsWith('bn'));
-
-        console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Hindi:', this.hindiVoice?.name, '| Bengali:', this.bengaliVoice?.name);
+        console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
     }
 
 
@@ -1873,90 +1856,46 @@ class AvatarChatBot {
                 this._awaitingCommand = true;
             }
 
-            // Universal multi-language script and vocabulary detection for TTS voice selection
+            // Universal multi-language script detection
+            const isBengali = /[\u0980-\u09FF]/.test(cleanText);
+            const isPunjabi = /[\u0A00-\u0A7F]/.test(cleanText);
+            const isHindi = /[\u0900-\u097F]/.test(cleanText);
+            
             let langCode = 'en-IN';
             let voiceSearchLang = 'en';
 
-            if (/[\u3040-\u30FF\u31F0-\u31FF\uFF66-\uFF9F]/.test(cleanText)) {
-                langCode = 'ja-JP'; voiceSearchLang = 'ja'; // Japanese
-            } else if (/[\u4E00-\u9FFF]/.test(cleanText)) {
-                langCode = 'zh-CN'; voiceSearchLang = 'zh'; // Chinese
-            } else if (/[\uAC00-\uD7AF\u1100-\u11FF]/.test(cleanText)) {
-                langCode = 'ko-KR'; voiceSearchLang = 'ko'; // Korean
-            } else if (/[\u0600-\u06FF]/.test(cleanText)) {
-                langCode = 'ar-SA'; voiceSearchLang = 'ar'; // Arabic
-            } else if (/[\u0400-\u04FF]/.test(cleanText)) {
-                langCode = 'ru-RU'; voiceSearchLang = 'ru'; // Russian
-            } else if (/[\u0980-\u09FF]/.test(cleanText)) {
-                langCode = 'bn-IN'; voiceSearchLang = 'bn'; // Bengali
-            } else if (/[\u0A00-\u0A7F]/.test(cleanText)) {
-                langCode = 'pa-IN'; voiceSearchLang = 'pa'; // Punjabi
-            } else if (/[\u0B80-\u0BFF]/.test(cleanText)) {
-                langCode = 'ta-IN'; voiceSearchLang = 'ta'; // Tamil
-            } else if (/[\u0C00-\u0C7F]/.test(cleanText)) {
-                langCode = 'te-IN'; voiceSearchLang = 'te'; // Telugu
-            } else if (/[\u0A80-\u0AFF]/.test(cleanText)) {
-                langCode = 'gu-IN'; voiceSearchLang = 'gu'; // Gujarati
-            } else if (/[\u0900-\u097F]/.test(cleanText)) {
-                langCode = 'hi-IN'; voiceSearchLang = 'hi'; // Hindi (Devanagari)
-            } else if (/\b(hola|gracias|buenos|buenas|amigo|proyectos|por favor)\b/i.test(cleanText)) {
-                langCode = 'es-ES'; voiceSearchLang = 'es'; // Spanish
-            } else if (/\b(bonjour|merci|salut|comment|projets|s'il vous plaît)\b/i.test(cleanText)) {
-                langCode = 'fr-FR'; voiceSearchLang = 'fr'; // French
-            } else if (/\b(hallo|danke|guten|projekte|wie geht's|bitte)\b/i.test(cleanText)) {
-                langCode = 'de-DE'; voiceSearchLang = 'de'; // German
-            } else if (/\b(ciao|grazie|progetti|buongiorno|per favore)\b/i.test(cleanText)) {
-                langCode = 'it-IT'; voiceSearchLang = 'it'; // Italian
-            } else if (/\b(olá|obrigado|projetos|tudo bem|por favor)\b/i.test(cleanText)) {
-                langCode = 'pt-BR'; voiceSearchLang = 'pt'; // Portuguese
+            if (isBengali) {
+                langCode = 'bn-IN';
+                voiceSearchLang = 'bn';
+            } else if (isPunjabi) {
+                langCode = 'pa-IN';
+                voiceSearchLang = 'pa';
+            } else if (isHindi) {
+                langCode = 'hi-IN';
+                voiceSearchLang = 'hi';
             }
 
             const voices = this.synth.getVoices();
             let selectedVoice = null;
-
-            if (voiceSearchLang === 'hi') {
-                selectedVoice = this.hindiVoice ||
-                    voices.find(v => /swara.*natural/i.test(v.name)) ||
-                    voices.find(v => /swara/i.test(v.name)) ||
-                    voices.find(v => /kalpana/i.test(v.name)) ||
-                    voices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
-                    voices.find(v => (v.lang === 'hi-IN' || v.lang === 'hi_IN' || v.lang.startsWith('hi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
-                    voices.find(v => v.lang.startsWith('hi')) ||
-                    this.femaleVoice;
-            } else if (voiceSearchLang === 'bn') {
-                selectedVoice = this.bengaliVoice ||
-                    voices.find(v => /tanishaa.*natural/i.test(v.name)) ||
-                    voices.find(v => /tanishaa/i.test(v.name)) ||
-                    voices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
-                    voices.find(v => (v.lang === 'bn-IN' || v.lang === 'bn_IN' || v.lang.startsWith('bn')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
-                    voices.find(v => v.lang.startsWith('bn')) ||
-                    this.femaleVoice;
-            } else if (voiceSearchLang !== 'en') {
-                // Priority 1: High quality / natural female native voice for that language (e.g. Spanish, French, etc.)
-                selectedVoice = voices.find(v => {
-                    const langMatch = v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang);
-                    const isFemale = /female|natural|swara|tanishaa|neerja|geeta|kalpana|hi-in|bn-in|es-|fr-|de-|ja-|zh-|it-|pt-/i.test(v.name.toLowerCase() + ' ' + v.lang.toLowerCase());
-                    const notMale = !/male|david|mark|ravi|george|james|pablo|henri|stefan|diego/i.test(v.name.toLowerCase());
-                    return langMatch && (isFemale || notMale);
-                }) || voices.find(v => v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang));
+            if (voiceSearchLang !== 'en') {
+                selectedVoice = voices.find(v => v.lang.startsWith(voiceSearchLang) || v.lang.replace('_', '-').startsWith(voiceSearchLang));
             }
             
-            // If no native voice exists on the user's device/browser, safely fall back to Raya's default voice
             if (!selectedVoice) {
-                if (!this.femaleVoice) this.loadVoices();
-                selectedVoice = this.femaleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0];
+                if (langCode === 'en-IN') {
+                    if (!this.femaleVoice) this.loadVoices();
+                    selectedVoice = this.femaleVoice;
+                } else {
+                    selectedVoice = voices.find(v => v.lang.startsWith(voiceSearchLang) || v.lang.replace('_', '-').startsWith(voiceSearchLang)) || this.femaleVoice;
+                }
             }
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
 
             utterance.voice = selectedVoice;
-            // CRITICAL: Bind utterance.lang to the voice's supported language to prevent synthesis failure
-            utterance.lang = selectedVoice ? selectedVoice.lang : (langCode || 'en-IN');
-            
-            // Microsoft Edge Neural voices (Swara / Tanishaa / Ava / Jenny) and non-English voices require pitch 1.0 to avoid dropped synthesis
-            const isNeuralOrNonEn = selectedVoice && (/natural|online|swara|tanishaa|kalpana/i.test(selectedVoice.name) || voiceSearchLang !== 'en');
-            utterance.rate   = isNeuralOrNonEn ? 1.0 : 1.10;
-            utterance.pitch  = isNeuralOrNonEn ? 1.0 : 1.35;
+            utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
+            utterance.rate   = 1.10; // ~165 WPM
+            utterance.pitch  = 1.35; // Characteristic lively high-pitched Raya tone
             utterance.volume = 1.0;
 
             // -- Safety watchdog ----------------------------------------------
