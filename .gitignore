@@ -17,6 +17,12 @@ prompt.txt
 # Note: raya-supabase-memory.js is safe to track (uses env vars only, no hardcoded keys)
 creator-profile.txt
 
-# Test/debug images
+# Test/debug images & temporary files
 media__*.png
 .vercel
+*.tsbuildinfo
+tsc_output.txt
+tsc2.txt
+*.docx
+BACKUP/
+scratch/
