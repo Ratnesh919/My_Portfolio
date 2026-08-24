@@ -39,10 +39,34 @@ if (supabaseUrl && supabaseKey) {
     };
 }
 
+// ── Strict Input Sanitization & SQL Defense Helpers ──────────────────────────
+function sanitizeId(id, defaultPrefix = 'usr') {
+    if (!id || typeof id !== 'string') return `${defaultPrefix}_${Date.now()}`;
+    const cleaned = id.replace(/[^a-zA-Z0-9_\-]/g, '').slice(0, 64);
+    return cleaned.length > 0 ? cleaned : `${defaultPrefix}_${Date.now()}`;
+}
 
-async function initUser(userId, isNewUser, ipAddress, location = null) {
+function sanitizeText(input, maxLen = 2000) {
+    if (input === null || input === undefined) return '';
+    return String(input)
+        .replace(/\0/g, '')
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+        .slice(0, maxLen)
+        .trim();
+}
+
+function sanitizeKey(key, maxLen = 64) {
+    if (!key || typeof key !== 'string') return 'unknown_key';
+    return key.replace(/[^a-zA-Z0-9_\-\.]/g, '').slice(0, maxLen);
+}
+
+async function initUser(rawUserId, isNewUser, ipAddress, rawLocation = null) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const location = rawLocation ? sanitizeText(rawLocation, 120) : null;
+    const safeIp = ipAddress ? sanitizeText(ipAddress, 64) : null;
+
     // Upsert User
-    const userPayload = { cookie_id: userId, ip_address: ipAddress, last_active_at: new Date() };
+    const userPayload = { cookie_id: userId, ip_address: safeIp, last_active_at: new Date() };
     if (location) userPayload.location = location;
 
     const { error: userErr } = await supabase
@@ -81,25 +105,41 @@ async function getSiteStats() {
     };
 }
 
-async function startSession(userId, sessionId) {
+async function startSession(rawUserId, rawSessionId) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const sessionId = sanitizeId(rawSessionId, 'ses');
     const { error } = await supabase.from('sessions').upsert({ user_id: userId, session_id: sessionId }, { onConflict: 'session_id' });
     if (error) console.error('[Supabase] startSession Error:', error);
 }
 
-async function endSession(sessionId, messages, summary) {
+async function endSession(rawSessionId, messages, rawSummary) {
+    const sessionId = sanitizeId(rawSessionId, 'ses');
+    const summary = sanitizeText(rawSummary, 1000);
+    const msgCount = Array.isArray(messages) ? messages.length : 0;
     const { error } = await supabase
         .from('sessions')
-        .update({ ended_at: new Date(), msg_count: messages.length, summary: summary || null })
+        .update({ ended_at: new Date(), msg_count: msgCount, summary: summary || null })
         .eq('session_id', sessionId);
     if (error) console.error('[Supabase] endSession Error:', error);
 }
 
-async function saveMessage(sessionId, role, content, lang = 'en') {
+async function saveMessage(rawSessionId, rawRole, rawContent, rawLang = 'en') {
+    const sessionId = sanitizeId(rawSessionId, 'ses');
+    const role = ['user', 'assistant', 'system'].includes(rawRole) ? rawRole : 'user';
+    const content = sanitizeText(rawContent, 4000);
+    const lang = sanitizeKey(rawLang, 10);
     const { error } = await supabase.from('messages').insert({ session_id: sessionId, role, content, lang });
     if (error) console.error('[Supabase] saveMessage Error:', error);
 }
 
-async function saveLearning(userId, type, content, sessionId = null) {
+async function saveLearning(rawUserId, rawType, rawContent, rawSessionId = null) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const type = sanitizeKey(rawType, 32);
+    const content = sanitizeText(rawContent, 1000);
+    const sessionId = rawSessionId ? sanitizeId(rawSessionId, 'ses') : null;
+
+    if (!content) return;
+
     const { data: existing } = await supabase
         .from('learnings')
         .select('id, weight')
@@ -115,7 +155,13 @@ async function saveLearning(userId, type, content, sessionId = null) {
     }
 }
 
-async function savePendingLearning(userId, type, content, sessionId = null) {
+async function savePendingLearning(rawUserId, rawType, rawContent, rawSessionId = null) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const type = sanitizeKey(rawType, 32);
+    const content = sanitizeText(rawContent, 1000);
+    const sessionId = rawSessionId ? sanitizeId(rawSessionId, 'ses') : null;
+
+    if (!content) return;
     await supabase.from('learnings').insert({ user_id: userId, type, content, source_sid: sessionId, status: 'pending' });
 }
 
@@ -125,24 +171,36 @@ async function getPendingLearnings() {
 }
 
 async function verifyLearning(id) {
-    await supabase.from('learnings').update({ status: 'verified' }).eq('id', id);
+    const safeId = parseInt(id, 10);
+    if (!isNaN(safeId)) {
+        await supabase.from('learnings').update({ status: 'verified' }).eq('id', safeId);
+    }
 }
 
 async function rejectLearning(id) {
-    await supabase.from('learnings').update({ status: 'rejected' }).eq('id', id);
+    const safeId = parseInt(id, 10);
+    if (!isNaN(safeId)) {
+        await supabase.from('learnings').update({ status: 'rejected' }).eq('id', safeId);
+    }
 }
 
-async function setPreference(userId, key, value) {
+async function setPreference(rawUserId, rawKey, rawValue) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const key = sanitizeKey(rawKey, 64);
+    const value = sanitizeText(rawValue, 500);
     await supabase.from('preferences').upsert({ user_id: userId, key, value, updated_at: new Date() });
 }
 
-async function getPreference(userId, key) {
+async function getPreference(rawUserId, rawKey) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const key = sanitizeKey(rawKey, 64);
     const { data } = await supabase.from('preferences').select('value').eq('user_id', userId).eq('key', key).single();
     return data ? data.value : null;
 }
 
-async function getCachedCommand(query) {
-    const q = query.toLowerCase().trim();
+async function getCachedCommand(rawQuery) {
+    const q = sanitizeText(rawQuery, 300).toLowerCase().trim();
+    if (!q) return null;
     const { data } = await supabase.from('command_cache').select('response, hit_count').eq('query', q).single();
     if (data && data.hit_count >= 3) {
         return data.response;
@@ -150,8 +208,11 @@ async function getCachedCommand(query) {
     return null;
 }
 
-async function recordCommand(query, response) {
-    const q = query.toLowerCase().trim();
+async function recordCommand(rawQuery, rawResponse) {
+    const q = sanitizeText(rawQuery, 300).toLowerCase().trim();
+    const response = sanitizeText(rawResponse, 2000);
+    if (!q || !response) return;
+
     const { data: existing } = await supabase.from('command_cache').select('hit_count').eq('query', q).single();
     
     if (existing) {
@@ -161,7 +222,9 @@ async function recordCommand(query, response) {
     }
 }
 
-async function addAdminRule(rule) {
+async function addAdminRule(rawRule) {
+    const rule = sanitizeText(rawRule, 500);
+    if (!rule) return;
     if (rule.toLowerCase() === 'clear all') {
         await supabase.from('admin_rules').delete().neq('id', 0); // Delete all
     } else {
@@ -383,7 +446,14 @@ function classifyMessageImportance(messageText) {
     return { isImportant: false, reason: 'General visitor note' };
 }
 
-async function saveVisitorMessage(userId, message, userName = null, contactInfo = null) {
+async function saveVisitorMessage(rawUserId, rawMessage, rawUserName = null, rawContactInfo = null) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const message = sanitizeText(rawMessage, 2000);
+    const userName = rawUserName ? sanitizeText(rawUserName, 100) : null;
+    const contactInfo = rawContactInfo ? sanitizeText(rawContactInfo, 200) : null;
+
+    if (!message) return { is_important: false, importance_reason: 'Empty message' };
+
     const { isImportant, reason } = classifyMessageImportance(message);
     const payload = {
         user_id: userId,
@@ -417,10 +487,14 @@ async function getVisitorMessages() {
 }
 
 async function markMessageRead(id) {
-    await supabase.from('visitor_messages').update({ status: 'read' }).eq('id', id);
+    const safeId = parseInt(id, 10);
+    if (!isNaN(safeId)) {
+        await supabase.from('visitor_messages').update({ status: 'read' }).eq('id', safeId);
+    }
 }
 
-async function getUserProfile(userId) {
+async function getUserProfile(rawUserId) {
+    const userId = sanitizeId(rawUserId, 'usr');
     const { data: learnings } = await supabase.from('learnings').select('type, content, status').eq('user_id', userId).limit(20);
     const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
     return { learnings: learnings || [], preferences: prefs || [] };

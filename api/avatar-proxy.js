@@ -11,11 +11,17 @@ module.exports = async (req, res) => {
     }
 
     const { file } = req.query;
-    if (!file) {
+    if (!file || typeof file !== 'string') {
         return res.status(400).send('Missing file parameter');
     }
 
     let filename = file.substring(file.lastIndexOf('/') + 1);
+    // Sanitize filename to prevent path traversal or SSRF
+    filename = filename.replace(/[^a-zA-Z0-9_\-\.\(\)\s]/g, '').trim();
+    if (!filename.endsWith('.vrm')) {
+        return res.status(400).send('Invalid file extension');
+    }
+
     if (filename === 'changli(fixed).vrm') {
         filename = 'changli.fixed.vrm';
     } else if (filename === 'Kid changli.vrm') {
