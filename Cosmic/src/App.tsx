@@ -1,6 +1,63 @@
+import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 
+interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  instructor: string;
+  date: string;
+  certId: string;
+  image: string;
+  verifyUrl: string;
+}
+
+const certificatesData: Certificate[] = [
+  {
+    id: "cert-iot",
+    title: "Internet of Things (IoT) Online Course",
+    issuer: "Udemy",
+    instructor: "Makeintern Course, Learntoupgrade Online",
+    date: "July 30, 2026",
+    certId: "UC-45f867df-23bf-440a-b362-0508bfb8d29f",
+    image: "./certificates/cert-iot.jpg",
+    verifyUrl: "https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f",
+  },
+  {
+    id: "cert-prompt-engineering",
+    title: "Prompt Engineering for Everyone (Tool-Agnostic)",
+    issuer: "Udemy",
+    instructor: "Dr. Amar Massoud",
+    date: "May 4, 2025",
+    certId: "UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+    image: "./certificates/cert-prompt-engineering.jpg",
+    verifyUrl: "https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+  },
+  {
+    id: "cert-multi-programming",
+    title: "Master Java, Python, C & C++: All-in-One Programming Course",
+    issuer: "Udemy",
+    instructor: "Knowledge Nest",
+    date: "May 5, 2025",
+    certId: "UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b",
+    image: "./certificates/cert-multi-programming.jpg",
+    verifyUrl: "https://ude.my/UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b",
+  },
+  {
+    id: "cert-cpp",
+    title: "The Complete Introduction to C++ Programming",
+    issuer: "Udemy",
+    instructor: "Yassin Marco MBA",
+    date: "July 14, 2025",
+    certId: "UC-c57ec369-5a17-48e6-a9be-bcf9c0855867",
+    image: "./certificates/cert-cpp.jpg",
+    verifyUrl: "https://ude.my/UC-c57ec369-5a17-48e6-a9be-bcf9c0855867",
+  },
+];
+
 function App() {
+  const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+
   return (
     <div className="relative min-h-screen bg-[#010828] text-cream overflow-x-hidden selection:bg-neon selection:text-[#010828]">
       {/* GLOBAL TEXTURE OVERLAY */}
@@ -157,6 +214,82 @@ function App() {
                 <li className="leading-relaxed text-[12px] sm:text-[14px]">WORKSHOP - CYBER SECURITY AWARENESS</li>
                 <li className="leading-relaxed text-[12px] sm:text-[14px]">INDUSTRIAL VISIT - BSNL TELECOM</li>
               </ul>
+            </div>
+          </div>
+
+          {/* LICENSES & CERTIFICATIONS */}
+          <div className="mt-12">
+            <div className="flex items-center gap-4 mb-8">
+              <h3 className="font-grotesk text-[22px] sm:text-[28px] uppercase tracking-wider text-neon">
+                LICENSES & CERTIFICATIONS
+              </h3>
+              <div className="h-px flex-grow bg-white/10" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {certificatesData.map((cert) => (
+                <div
+                  key={cert.id}
+                  className="liquid-glass rounded-[24px] overflow-hidden flex flex-col border border-white/10 hover:border-neon/50 hover:bg-white/10 transition-all duration-300 group"
+                >
+                  <div
+                    className="relative aspect-[4/3] overflow-hidden bg-black/40 cursor-pointer"
+                    onClick={() => setSelectedCert(cert)}
+                  >
+                    <img
+                      src={cert.image}
+                      alt={cert.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="font-mono text-[11px] uppercase tracking-widest text-neon px-3 py-1.5 rounded-full border border-neon/50 bg-black/60 backdrop-blur-md">
+                        Preview
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-5 flex flex-col flex-grow">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-mono text-[10px] text-neon uppercase tracking-widest px-2 py-0.5 rounded bg-neon/10 border border-neon/30">
+                        {cert.issuer}
+                      </span>
+                      <span className="font-mono text-[11px] text-cream/50">
+                        {cert.date}
+                      </span>
+                    </div>
+
+                    <h4 className="font-grotesk text-[15px] sm:text-[16px] text-cream font-bold leading-snug mt-1 mb-2 group-hover:text-neon transition-colors">
+                      {cert.title}
+                    </h4>
+
+                    <p className="font-mono text-[11px] text-cream/60 uppercase mb-2">
+                      By {cert.instructor}
+                    </p>
+
+                    <p className="font-mono text-[10px] text-cream/30 break-all mb-4 mt-auto">
+                      ID: {cert.certId}
+                    </p>
+
+                    <div className="flex gap-2 pt-2 border-t border-white/10">
+                      <button
+                        onClick={() => setSelectedCert(cert)}
+                        className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/15 text-cream font-mono text-[11px] uppercase tracking-wider transition-colors"
+                      >
+                        View Full
+                      </button>
+                      <a
+                        href={cert.verifyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 px-3 rounded-xl bg-neon/10 hover:bg-neon/25 text-neon font-mono text-[11px] uppercase tracking-wider transition-colors flex items-center justify-center border border-neon/30"
+                      >
+                        Verify ↗
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -405,6 +538,60 @@ function App() {
         {/* Floating Social Icons Removed */}
 
       </section>
+
+      {/* LIGHTBOX MODAL */}
+      {selectedCert && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setSelectedCert(null)}
+        >
+          <div
+            className="relative liquid-glass rounded-[28px] max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-white/20 shadow-2xl bg-[#010828]/95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedCert(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-neon hover:text-[#010828] text-white flex items-center justify-center font-mono text-sm transition-colors"
+            >
+              ✕
+            </button>
+
+            <div className="p-6 border-b border-white/10 pr-16">
+              <span className="font-mono text-[10px] text-neon uppercase tracking-widest px-2 py-0.5 rounded bg-neon/10 border border-neon/30 inline-block mb-2">
+                {selectedCert.issuer}
+              </span>
+              <h3 className="font-grotesk text-xl sm:text-2xl text-cream font-bold">
+                {selectedCert.title}
+              </h3>
+              <p className="font-mono text-xs text-cream/50 mt-1">
+                Issued {selectedCert.date} &bull; ID: {selectedCert.certId}
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-6 overflow-y-auto flex items-center justify-center bg-black/60">
+              <img
+                src={selectedCert.image}
+                alt={selectedCert.title}
+                className="max-h-[60vh] max-w-full object-contain rounded-xl border border-white/10"
+              />
+            </div>
+
+            <div className="p-4 sm:p-6 border-t border-white/10 flex justify-between items-center bg-[#010828]">
+              <span className="font-mono text-xs text-cream/40 hidden sm:inline">
+                Verified Credential
+              </span>
+              <a
+                href={selectedCert.verifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-6 rounded-full bg-neon text-[#010828] font-grotesk text-xs uppercase tracking-wider font-bold hover:scale-105 transition-transform"
+              >
+                Verify on Udemy ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

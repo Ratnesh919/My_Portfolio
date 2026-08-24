@@ -1,6 +1,61 @@
+import { useState } from 'react';
 import './tailwind.css';
 import { motion } from 'framer-motion';
-import { MapPin, GraduationCap, Code2, Cpu, Wrench, Gamepad2, Layers, ExternalLink, FileText, Sparkles, ChevronRight } from 'lucide-react';
+import { MapPin, GraduationCap, Code2, Cpu, Wrench, Gamepad2, Layers, ExternalLink, FileText, Sparkles, ChevronRight, Award } from 'lucide-react';
+
+interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  instructor: string;
+  date: string;
+  certId: string;
+  image: string;
+  verifyUrl: string;
+}
+
+const certificatesData: Certificate[] = [
+  {
+    id: "cert-iot",
+    title: "Internet of Things (IoT) Online Course",
+    issuer: "Udemy",
+    instructor: "Makeintern Course, Learntoupgrade Online",
+    date: "July 30, 2026",
+    certId: "UC-45f867df-23bf-440a-b362-0508bfb8d29f",
+    image: "./certificates/cert-iot.jpg",
+    verifyUrl: "https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f",
+  },
+  {
+    id: "cert-prompt-engineering",
+    title: "Prompt Engineering for Everyone (Tool-Agnostic)",
+    issuer: "Udemy",
+    instructor: "Dr. Amar Massoud",
+    date: "May 4, 2025",
+    certId: "UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+    image: "./certificates/cert-prompt-engineering.jpg",
+    verifyUrl: "https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+  },
+  {
+    id: "cert-multi-programming",
+    title: "Master Java, Python, C & C++: All-in-One Programming Course",
+    issuer: "Udemy",
+    instructor: "Knowledge Nest",
+    date: "May 5, 2025",
+    certId: "UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b",
+    image: "./certificates/cert-multi-programming.jpg",
+    verifyUrl: "https://ude.my/UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b",
+  },
+  {
+    id: "cert-cpp",
+    title: "The Complete Introduction to C++ Programming",
+    issuer: "Udemy",
+    instructor: "Yassin Marco MBA",
+    date: "July 14, 2025",
+    certId: "UC-c57ec369-5a17-48e6-a9be-bcf9c0855867",
+    image: "./certificates/cert-cpp.jpg",
+    verifyUrl: "https://ude.my/UC-c57ec369-5a17-48e6-a9be-bcf9c0855867",
+  },
+];
 
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
@@ -16,6 +71,8 @@ const staggerContainer = {
 };
 
 export default function Portfolio() {
+  const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#ffffff_0%,#f4f5f8_100%)] text-[#1f2937] selection:bg-[#5438dc]/20 font-sans overflow-x-hidden">
       {/* Dynamic Background */}
@@ -168,9 +225,9 @@ export default function Portfolio() {
             </motion.div>
 
             <motion.div variants={fadeIn} className="group rounded-[30px] border border-black/5 bg-gradient-to-br from-[#ffffff] to-[#f8f9fa] p-8 md:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-[#2563eb]/20 transition-all duration-300 relative overflow-hidden">
-              <h3 className="text-2xl font-extrabold mb-6 text-[#2563eb]">Certificates & Training</h3>
+              <h3 className="text-2xl font-extrabold mb-6 text-[#2563eb]">Workshops & Training</h3>
               <ul className="space-y-4 text-[#4b5563] font-medium relative z-10">
-                {['Python course (1 month)', 'C language course (1 month)', 'EV Service Technician (1 month)', 'GIS training (2 weeks)'].map((cert, i) => (
+                {['Python course (1 month)', 'C language course (1 month)', 'EV Service Technician (1 month)', 'GIS training (2 weeks)', 'HAM Radio Innovation Workshop (2025)', 'Cyber Awareness Workshop (2025)', 'BSNL Telecom Industrial Visit (2025)'].map((cert, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <ChevronRight size={18} className="text-[#2563eb]" /> {cert}
                   </li>
@@ -178,6 +235,82 @@ export default function Portfolio() {
               </ul>
             </motion.div>
           </div>
+
+          {/* Licenses & Certifications Grid */}
+          <motion.div variants={fadeIn} className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-extrabold text-[#111827] flex items-center gap-2">
+                <Award className="text-[#5438dc]" size={24} /> Licenses &amp; Certifications
+              </h3>
+              <span className="text-sm font-semibold text-[#5438dc] hidden sm:inline">Verified Udemy Credentials</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {certificatesData.map((cert) => (
+                <div
+                  key={cert.id}
+                  className="rounded-3xl border border-black/5 bg-white overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-[#5438dc]/30 transition-all duration-300 flex flex-col group"
+                >
+                  <div
+                    className="relative aspect-[4/3] bg-[#f4f5f8] overflow-hidden cursor-pointer"
+                    onClick={() => setSelectedCert(cert)}
+                  >
+                    <img
+                      src={cert.image}
+                      alt={cert.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-xs font-bold text-white uppercase tracking-wider px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md">
+                        Preview
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-6 flex flex-col flex-grow">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#5438dc] bg-[#5438dc]/10 px-2.5 py-0.5 rounded-full">
+                        {cert.issuer}
+                      </span>
+                      <span className="text-xs text-[#6b7280] font-medium">
+                        {cert.date}
+                      </span>
+                    </div>
+
+                    <h4 className="text-base font-bold text-[#111827] leading-snug mb-2 group-hover:text-[#5438dc] transition-colors">
+                      {cert.title}
+                    </h4>
+
+                    <p className="text-xs text-[#6b7280] mb-2 font-medium">
+                      By {cert.instructor}
+                    </p>
+
+                    <p className="text-[10px] font-mono text-[#9ca3af] break-all mb-4 mt-auto">
+                      ID: {cert.certId}
+                    </p>
+
+                    <div className="flex gap-2 pt-3 border-t border-black/5">
+                      <button
+                        onClick={() => setSelectedCert(cert)}
+                        className="flex-1 py-2 px-3 rounded-xl bg-[#f4f5f8] hover:bg-[#e5e7eb] text-[#1f2937] text-xs font-bold transition-colors"
+                      >
+                        Preview
+                      </button>
+                      <a
+                        href={cert.verifyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 px-3 rounded-xl bg-[#5438dc]/10 hover:bg-[#5438dc] hover:text-white text-[#5438dc] text-xs font-bold transition-colors flex items-center justify-center border border-[#5438dc]/20"
+                      >
+                        Verify ↗
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
           {/* Education Cards */}
           <motion.div variants={fadeIn} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -265,6 +398,60 @@ export default function Portfolio() {
           <p>&copy; {new Date().getFullYear()} Ratnesh Kumar Singh. Built with modern web tech.</p>
         </footer>
       </main>
+
+      {/* Lightbox Modal */}
+      {selectedCert && (
+        <div
+          className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setSelectedCert(null)}
+        >
+          <div
+            className="relative rounded-[28px] max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden bg-white shadow-2xl border border-black/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedCert(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 text-[#1f2937] flex items-center justify-center font-bold text-sm transition-colors"
+            >
+              ✕
+            </button>
+
+            <div className="p-6 border-b border-black/5 pr-16 bg-[#fafafa]">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#5438dc] bg-[#5438dc]/10 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                {selectedCert.issuer}
+              </span>
+              <h3 className="text-xl sm:text-2xl text-[#111827] font-extrabold">
+                {selectedCert.title}
+              </h3>
+              <p className="text-xs text-[#6b7280] mt-1 font-medium">
+                Issued {selectedCert.date} &bull; ID: {selectedCert.certId}
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-6 overflow-y-auto flex items-center justify-center bg-[#f4f5f8]">
+              <img
+                src={selectedCert.image}
+                alt={selectedCert.title}
+                className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-lg border border-black/5"
+              />
+            </div>
+
+            <div className="p-4 sm:p-6 border-t border-black/5 flex justify-between items-center bg-white">
+              <span className="text-xs text-[#6b7280] font-medium hidden sm:inline">
+                Verified Udemy Credential
+              </span>
+              <a
+                href={selectedCert.verifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-6 rounded-full bg-[#5438dc] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#432bb5] transition-colors"
+              >
+                Verify on Udemy ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

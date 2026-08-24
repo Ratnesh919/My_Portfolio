@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import './tailwind.css';
 import { motion } from 'framer-motion';
 import { 
@@ -7,12 +8,68 @@ import {
   Layers, MousePointer2 
 } from 'lucide-react';
 
+interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  instructor: string;
+  date: string;
+  certId: string;
+  image: string;
+  verifyUrl: string;
+}
+
+const certificatesData: Certificate[] = [
+  {
+    id: "cert-iot",
+    title: "Internet of Things (IoT) Online Course",
+    issuer: "Udemy",
+    instructor: "Makeintern Course, Learntoupgrade Online",
+    date: "July 30, 2026",
+    certId: "UC-45f867df-23bf-440a-b362-0508bfb8d29f",
+    image: "./certificates/cert-iot.jpg",
+    verifyUrl: "https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f",
+  },
+  {
+    id: "cert-prompt-engineering",
+    title: "Prompt Engineering for Everyone (Tool-Agnostic)",
+    issuer: "Udemy",
+    instructor: "Dr. Amar Massoud",
+    date: "May 4, 2025",
+    certId: "UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+    image: "./certificates/cert-prompt-engineering.jpg",
+    verifyUrl: "https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+  },
+  {
+    id: "cert-multi-programming",
+    title: "Master Java, Python, C & C++: All-in-One Programming Course",
+    issuer: "Udemy",
+    instructor: "Knowledge Nest",
+    date: "May 5, 2025",
+    certId: "UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b",
+    image: "./certificates/cert-multi-programming.jpg",
+    verifyUrl: "https://ude.my/UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b",
+  },
+  {
+    id: "cert-cpp",
+    title: "The Complete Introduction to C++ Programming",
+    issuer: "Udemy",
+    instructor: "Yassin Marco MBA",
+    date: "July 14, 2025",
+    certId: "UC-c57ec369-5a17-48e6-a9be-bcf9c0855867",
+    image: "./certificates/cert-cpp.jpg",
+    verifyUrl: "https://ude.my/UC-c57ec369-5a17-48e6-a9be-bcf9c0855867",
+  },
+];
+
 const fadeIn = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
 };
 
 export default function Portfolio() {
+  const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+
   const scrollTo = (id: string) => {
     const elem = document.getElementById(id.toLowerCase());
     if (elem) {
@@ -272,9 +329,9 @@ export default function Portfolio() {
                    whileHover={{ scale: 1.02 }}
                    className="p-8 rounded-[40px] border border-white/10 bg-white/5 flex-grow group"
                 >
-                   <h4 className="text-xs font-black text-white/30 tracking-[.4em] mb-6 uppercase">Certifications</h4>
-                   <ul className="space-y-4">
-                     {["Python Advanced Training", "Electric Vehicle Service Tech", "GIS Training Specialist", "Cyber Awareness Lead"].map((cert, i) => (
+                   <h4 className="text-xs font-black text-[#00ffff] tracking-[.4em] mb-6 uppercase">Workshops & Training</h4>
+                   <ul className="space-y-3">
+                     {["Python Advanced Training (1 Month)", "Electric Vehicle Service Tech (1 Month)", "GIS Training Specialist (2 Weeks)", "HAM Radio Innovation Workshop", "Cyber Awareness Lead (2025)", "BSNL Telecom Industrial Visit"].map((cert, i) => (
                        <li key={i} className="flex items-center gap-3 text-xs font-bold text-white/60 group-hover:text-white transition-colors">
                          <ChevronRight size={14} className="text-[#00ffff]" /> {cert}
                        </li>
@@ -282,6 +339,86 @@ export default function Portfolio() {
                    </ul>
                 </motion.div>
              </div>
+          </div>
+        </section>
+
+        {/* Certifications Section */}
+        <section id="certifications" className="py-20 mb-20 scroll-mt-32">
+          <div className="mb-16">
+            <div className="mb-4 flex items-center gap-4">
+              <span className="text-[#00ffff] font-black tracking-[.4em] uppercase text-[10px]">03 / CREDENTIALS</span>
+              <div className="h-[1px] w-20 bg-[#00ffff]/30" />
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-white tracking-[0.2em] leading-[1.8] py-4" style={{ fontFamily: '"Next Ups", sans-serif' }}>
+              LICENSES &amp; CERTIFICATIONS.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {certificatesData.map((cert, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: -8, scale: 1.02 }}
+                className="rounded-[32px] border border-white/10 bg-white/5 overflow-hidden flex flex-col group hover:border-[#ff00ff]/50 hover:bg-white/[0.08] transition-all duration-300"
+              >
+                <div 
+                  className="relative aspect-[4/3] bg-black/60 overflow-hidden cursor-pointer"
+                  onClick={() => setSelectedCert(cert)}
+                >
+                  <img 
+                    src={cert.image} 
+                    alt={cert.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-[10px] font-black tracking-widest text-[#00ffff] uppercase px-3 py-1.5 rounded-full border border-[#00ffff]/50 bg-black/80 backdrop-blur-md">
+                      View Cert
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[9px] font-black text-[#ff00ff] uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#ff00ff]/10 border border-[#ff00ff]/30">
+                      {cert.issuer}
+                    </span>
+                    <span className="text-[10px] font-bold text-white/40">
+                      {cert.date}
+                    </span>
+                  </div>
+
+                  <h4 className="text-base font-black text-white leading-snug mb-2 group-hover:text-[#00ffff] transition-colors">
+                    {cert.title}
+                  </h4>
+
+                  <p className="text-xs font-semibold text-white/50 mb-2">
+                    By {cert.instructor}
+                  </p>
+
+                  <p className="text-[10px] font-mono text-white/30 break-all mb-5 mt-auto">
+                    ID: {cert.certId}
+                  </p>
+
+                  <div className="flex gap-2 pt-3 border-t border-white/10">
+                    <button
+                      onClick={() => setSelectedCert(cert)}
+                      className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider transition-colors"
+                    >
+                      Full View
+                    </button>
+                    <a
+                      href={cert.verifyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2 px-3 rounded-xl bg-[#00ffff]/10 hover:bg-[#00ffff]/20 text-[#00ffff] font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center border border-[#00ffff]/30"
+                    >
+                      Verify ↗
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </section>
 
@@ -409,6 +546,59 @@ export default function Portfolio() {
 
       </main>
 
+      {/* LIGHTBOX MODAL */}
+      {selectedCert && (
+        <div
+          className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setSelectedCert(null)}
+        >
+          <div
+            className="relative rounded-[32px] max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-white/20 shadow-2xl bg-[#0a0a0a]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedCert(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-[#ff00ff] hover:text-black text-white flex items-center justify-center font-black text-sm transition-colors"
+            >
+              ✕
+            </button>
+
+            <div className="p-6 border-b border-white/10 pr-16">
+              <span className="text-[9px] font-black text-[#ff00ff] uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#ff00ff]/10 border border-[#ff00ff]/30 inline-block mb-2">
+                {selectedCert.issuer}
+              </span>
+              <h3 className="text-xl sm:text-2xl text-white font-black">
+                {selectedCert.title}
+              </h3>
+              <p className="text-xs text-white/50 mt-1">
+                Issued {selectedCert.date} &bull; ID: {selectedCert.certId}
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-6 overflow-y-auto flex items-center justify-center bg-black/80">
+              <img
+                src={selectedCert.image}
+                alt={selectedCert.title}
+                className="max-h-[60vh] max-w-full object-contain rounded-xl border border-white/10"
+              />
+            </div>
+
+            <div className="p-4 sm:p-6 border-t border-white/10 flex justify-between items-center bg-[#0a0a0a]">
+              <span className="text-xs text-white/40 hidden sm:inline font-mono">
+                Authentic Udemy Credential
+              </span>
+              <a
+                href={selectedCert.verifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-6 rounded-full bg-[#00ffff] text-black font-black text-xs uppercase tracking-wider hover:scale-105 transition-transform"
+              >
+                Verify on Udemy ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

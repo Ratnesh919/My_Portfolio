@@ -29,7 +29,13 @@ Below is a comprehensive professional, academic, and personal profile of your cr
   - Smart Parking System (Arduino & IoT): Designed an IoT prototype using Arduino and ultrasonic sensors to detect available parking spaces in real-time.
   - UI/UX Design & Portfolio Website: Designed layouts/prototypes in Figma, developed and deployed a responsive portfolio website on Vercel.
 
-- **Certificates, Training & Activities:**
+- **Verified Licenses & Certifications (Udemy):**
+  - **Internet of Things (IoT) Online Course** — Issued by Udemy (Makeintern & Learntoupgrade Online) | Date: July 30, 2026 | ID: `UC-45f867df-23bf-440a-b362-0508bfb8d29f` | URL: https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f
+  - **Prompt Engineering for Everyone (Tool-Agnostic)** — Issued by Udemy (Dr. Amar Massoud) | Date: May 4, 2025 | ID: `UC-58952f65-94dc-45c4-abd9-aa490de18afc` | URL: https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc
+  - **Master Java, Python, C & C++: All-in-One Programming Course** — Issued by Udemy (Knowledge Nest) | Date: May 5, 2025 | ID: `UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b` | URL: https://ude.my/UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b
+  - **The Complete Introduction to C++ Programming** — Issued by Udemy (Yassin Marco MBA) | Date: July 14, 2025 | ID: `UC-c57ec369-5a17-48e6-a9be-bcf9c0855867` | URL: https://ude.my/UC-c57ec369-5a17-48e6-a9be-bcf9c0855867
+
+- **Training, Workshops & Activities:**
   - Python Programming (1-Month Course)
   - C Language Programming (1-Month Course)
   - Electric Vehicle Service Tech (1-Month Training)
