@@ -674,7 +674,24 @@ class AvatarChatBot {
 
         this.femaleVoice = edgeNeuralFemale || neuralIndianFemale || googleFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
 
-        console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
+        // Specific high-quality Hindi female voices (Edge Swara / Kalpana / Google हिन्दी)
+        this.hindiVoice =
+            voices.find(v => /swara.*natural/i.test(v.name)) ||
+            voices.find(v => /swara/i.test(v.name)) ||
+            voices.find(v => /kalpana/i.test(v.name)) ||
+            voices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
+            voices.find(v => (v.lang === 'hi-IN' || v.lang === 'hi_IN' || v.lang.startsWith('hi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
+            voices.find(v => v.lang.startsWith('hi'));
+
+        // Specific high-quality Bengali female voices (Edge Tanishaa / Google বাংলা)
+        this.bengaliVoice =
+            voices.find(v => /tanishaa.*natural/i.test(v.name)) ||
+            voices.find(v => /tanishaa/i.test(v.name)) ||
+            voices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
+            voices.find(v => (v.lang === 'bn-IN' || v.lang === 'bn_IN' || v.lang.startsWith('bn')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
+            voices.find(v => v.lang.startsWith('bn'));
+
+        console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Hindi:', this.hindiVoice?.name, '| Bengali:', this.bengaliVoice?.name);
     }
 
 
@@ -1891,8 +1908,26 @@ class AvatarChatBot {
 
             const voices = this.synth.getVoices();
             let selectedVoice = null;
-            if (voiceSearchLang !== 'en') {
-                // Priority 1: High quality / natural female native voice for that language (e.g. Bengali, Hindi, Spanish, French, etc.)
+
+            if (voiceSearchLang === 'hi') {
+                selectedVoice = this.hindiVoice ||
+                    voices.find(v => /swara.*natural/i.test(v.name)) ||
+                    voices.find(v => /swara/i.test(v.name)) ||
+                    voices.find(v => /kalpana/i.test(v.name)) ||
+                    voices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
+                    voices.find(v => (v.lang === 'hi-IN' || v.lang === 'hi_IN' || v.lang.startsWith('hi')) && !v.name.toLowerCase().match(/male|madhur/)) ||
+                    voices.find(v => v.lang.startsWith('hi')) ||
+                    this.femaleVoice;
+            } else if (voiceSearchLang === 'bn') {
+                selectedVoice = this.bengaliVoice ||
+                    voices.find(v => /tanishaa.*natural/i.test(v.name)) ||
+                    voices.find(v => /tanishaa/i.test(v.name)) ||
+                    voices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
+                    voices.find(v => (v.lang === 'bn-IN' || v.lang === 'bn_IN' || v.lang.startsWith('bn')) && !v.name.toLowerCase().match(/male|bashkar/)) ||
+                    voices.find(v => v.lang.startsWith('bn')) ||
+                    this.femaleVoice;
+            } else if (voiceSearchLang !== 'en') {
+                // Priority 1: High quality / natural female native voice for that language (e.g. Spanish, French, etc.)
                 selectedVoice = voices.find(v => {
                     const langMatch = v.lang.toLowerCase().startsWith(voiceSearchLang) || v.lang.replace('_', '-').toLowerCase().startsWith(voiceSearchLang);
                     const isFemale = /female|natural|swara|tanishaa|neerja|geeta|kalpana|hi-in|bn-in|es-|fr-|de-|ja-|zh-|it-|pt-/i.test(v.name.toLowerCase() + ' ' + v.lang.toLowerCase());
@@ -1911,9 +1946,12 @@ class AvatarChatBot {
 
             utterance.voice = selectedVoice;
             // CRITICAL: Bind utterance.lang to the voice's supported language to prevent synthesis failure
-            utterance.lang = selectedVoice ? selectedVoice.lang : 'en-IN';
-            utterance.rate   = 1.10; // ~165 WPM
-            utterance.pitch  = 1.35;
+            utterance.lang = selectedVoice ? selectedVoice.lang : (langCode || 'en-IN');
+            
+            // Microsoft Edge Neural voices (Swara / Tanishaa / Ava / Jenny) and non-English voices require pitch 1.0 to avoid dropped synthesis
+            const isNeuralOrNonEn = selectedVoice && (/natural|online|swara|tanishaa|kalpana/i.test(selectedVoice.name) || voiceSearchLang !== 'en');
+            utterance.rate   = isNeuralOrNonEn ? 1.0 : 1.10;
+            utterance.pitch  = isNeuralOrNonEn ? 1.0 : 1.35;
             utterance.volume = 1.0;
 
             // -- Safety watchdog ----------------------------------------------
