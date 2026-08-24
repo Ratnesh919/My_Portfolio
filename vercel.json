@@ -1,13 +1,13 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" },
+    { "src": "server/server.js", "use": "@vercel/node" },
     { "src": "api/avatar-proxy.js", "use": "@vercel/node" },
     { "src": "**", "use": "@vercel/static" }
   ],
   "rewrites": [
     { "source": "/api/avatar-proxy", "destination": "/api/avatar-proxy.js" },
-    { "source": "/api/(.*)", "destination": "/server.js" }
+    { "source": "/api/(.*)", "destination": "/server/server.js" }
   ],
   "headers": [
     {

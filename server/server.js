@@ -6,7 +6,7 @@ const fs      = require('fs');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const CircuitBreaker = require('opossum');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const mem = require('./raya-supabase-memory');
 
@@ -37,8 +37,8 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
     const reqPath = req.path.toLowerCase();
     
-    // Explicitly allow chatbot.js for the frontend
-    if (reqPath === '/chatbot.js') return next();
+    // Explicitly allow client assets for the frontend
+    if (reqPath.startsWith('/js/') || reqPath.startsWith('/css/') || reqPath.startsWith('/assets/')) return next();
 
     // Regex to block hidden files (/.something) and sensitive extensions
     const isSensitive = /(?:^\/|\/)\.[^\/]+$|\.(db|db-wal|db-shm|sql|env|md|txt)$|^package(-lock)?\.json$/i;
@@ -50,7 +50,7 @@ app.use(async (req, res, next) => {
     next();
 });
 
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '..')));
 
 // Parse the multiple API keys from .env
 const crypto = require('crypto');
