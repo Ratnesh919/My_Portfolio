@@ -3,6 +3,7 @@ const cors    = require('cors');
 const axios   = require('axios');
 const path    = require('path');
 const fs      = require('fs');
+const crypto  = require('crypto');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const CircuitBreaker = require('opossum');
@@ -14,6 +15,19 @@ const app = express();
 app.use(cors({ origin: true, credentials: true })); // Allow cookies
 app.use(express.json({ limit: '64kb' }));
 app.use(cookieParser());
+
+// ── Timing-Safe Secret Comparison Helper ──────────────────────────────────────
+function safeCompare(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string' || a.length === 0 || b.length === 0) {
+        return false;
+    }
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) {
+        return false;
+    }
+    return crypto.timingSafeEqual(bufA, bufB);
+}
 
 // ── Strict Input & ID Sanitization Helpers ────────────────────────────────────
 function sanitizeId(id, defaultPrefix = 'usr') {
@@ -92,15 +106,15 @@ app.use((req, res, next) => {
 });
 
 // ── Security Middleware to Prevent Path Traversal / Info Disclosure ───────
-// Blocks access to .env, .git, SQLite files (.db, .db-wal, .db-shm), etc.
+// Blocks access to .env, .git, SQLite files (.db, .db-wal, .db-shm), server source files, etc.
 app.use(async (req, res, next) => {
     const reqPath = req.path.toLowerCase();
     
     // Explicitly allow client assets for the frontend
     if (reqPath.startsWith('/js/') || reqPath.startsWith('/css/') || reqPath.startsWith('/assets/')) return next();
 
-    // Regex to block hidden files (/.something) and sensitive extensions
-    const isSensitive = /(?:^\/|\/)\.[^\/]+$|\.(db|db-wal|db-shm|sql|env|md|txt)$|^package(-lock)?\.json$/i;
+    // Regex to block hidden files (/.something), backend source files, and sensitive extensions
+    const isSensitive = /(?:^\/|\/)\.[^\/]+$|\.(db|db-wal|db-shm|sql|env|md|txt|bak|conf|config|key|pem|cert|crt)$|^package(-lock)?\.json$|^\/server\/|^\/api\/[^\/]+\.js$|^\/(?:wp-admin|wp-includes|phpmyadmin|actuator|\.aws|\.git)/i;
     
     if (isSensitive.test(reqPath)) {
         console.warn(`[Security] Blocked unauthorized access attempt to: ${reqPath}`);
@@ -112,7 +126,6 @@ app.use(async (req, res, next) => {
 app.use(express.static(path.join(__dirname, '..')));
 
 // Parse the multiple API keys from .env
-const crypto = require('crypto');
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
 function decrypt(text) {
@@ -345,12 +358,17 @@ if (!ADMIN_TOKEN) {
 }
 
 const checkAdmin = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    if (authHeader === `Bearer ${ADMIN_TOKEN}`) {
-        next();
-    } else {
-        res.status(403).json({ error: 'Forbidden: Invalid Admin Token' });
+    if (!ADMIN_TOKEN || ADMIN_TOKEN.trim().length === 0) {
+        return res.status(403).json({ error: 'Forbidden: Admin access not configured' });
     }
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.slice(7).trim();
+        if (safeCompare(token, ADMIN_TOKEN.trim())) {
+            return next();
+        }
+    }
+    res.status(403).json({ error: 'Forbidden: Invalid Admin Token' });
 };
 
 function extractLocation(req) {
@@ -494,7 +512,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
         // ── Admin Verification Logic ──
         let isAdmin = await mem.getPreference(uid, 'is_admin') === 'true';
-        if (lastUser && lastUser.content.trim() === ADMIN_TOKEN) {
+        if (lastUser && ADMIN_TOKEN && safeCompare(lastUser.content.trim(), ADMIN_TOKEN.trim())) {
             isAdmin = true;
             await mem.setPreference(uid, 'is_admin', 'true');
             // Hide the password from the LLM prompt
