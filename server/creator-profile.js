@@ -6,6 +6,7 @@ Below is a comprehensive professional, academic, and personal profile of your cr
 ### **1. Professional & Academic Background**
 - **Name:** Ratnesh Kumar Singh
 - **Email:** kumarsinghratnesh3@gmail.com
+- **GitHub:** https://github.com/Ratnesh919
 - **Languages Known:** English, Hindi, Bengali
 - **Professional Summary:** Motivated Electronics and Communication Engineering graduate (2026) with a versatile skillset spanning networking, IT infrastructure, AI automation, and UI/UX design. Experienced in developing embedded hardware prototypes, designing user interfaces in Figma, and programming in Python/C++. Proactive self-learner who keeps learning new things on his own.
 - **Education:**

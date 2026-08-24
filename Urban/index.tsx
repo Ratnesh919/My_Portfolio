@@ -3,7 +3,7 @@ import './tailwind.css';
 import { motion } from 'framer-motion';
 import { 
   Mail, MapPin, GraduationCap, Code2, Cpu, Wrench, 
-  Sparkles, ChevronRight, Linkedin, Instagram, Facebook,
+  Sparkles, ChevronRight, Linkedin, Instagram, Facebook, Github,
   Layers, MousePointer2 
 } from 'lucide-react';
 
@@ -376,9 +376,12 @@ export default function Portfolio() {
                 </p>
 
                 <div className="flex flex-col items-center gap-8 relative z-10">
-                  <div className="flex gap-8">
+                  <div className="flex gap-8 flex-wrap justify-center">
                     <a href="mailto:kumarsinghratnesh3@gmail.com" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#ff00ff] hover:bg-[#ff00ff]/10 transition-all hover:scale-110">
                       <Mail size={24} />
+                    </a>
+                    <a href="https://github.com/Ratnesh919" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-white hover:bg-white/10 transition-all hover:scale-110">
+                      <Github size={24} />
                     </a>
                     <a href="https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==" target="_blank" rel="noreferrer" className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-[#E4405F] hover:bg-[#E4405F]/10 transition-all hover:scale-110">
                       <Instagram size={24} />

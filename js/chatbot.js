@@ -35,7 +35,7 @@ IMPORTANT: If the user asks for external links (Instagram, LinkedIn, GitHub, etc
 Available characters: changli, camellya, carlotta, chixia, jinshi, kid changli, pinkshi, roccia, rover, sanhua, shorekeeper, verina, yangyang, yinlin.
 If the user does NOT specify a character name, output the action with an empty target.
 
-- If the user asks you to open or show Ratnesh's email, Instagram, Facebook, or LinkedIn, append this JSON:
+- If the user asks you to open or show Ratnesh's GitHub, email, Instagram, Facebook, or LinkedIn, append this JSON:
 {"action":"open_link", "target":"<platform_name>"}
 
 MUSIC RULES - READ CAREFULLY:
@@ -1374,8 +1374,9 @@ class AvatarChatBot {
                 const lnk = (actionObj.target || '').toLowerCase();
                 let url = '';
                 if (lnk.includes('email') || lnk.includes('mail')) url = 'mailto:kumarsinghratnesh3@gmail.com';
+                else if (lnk.includes('git'))   url = 'https://github.com/Ratnesh919';
                 else if (lnk.includes('insta')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
-                else if (lnk.includes('face'))  url = 'https://www.facebook.com/ratnesh';
+                else if (lnk.includes('face'))  url = 'https://www.facebook.com/share/1De11Vypsn/';
                 else if (lnk.includes('link'))  url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android';
                 if (url) setTimeout(() => window.open(url, '_blank'), 1500);
             } else if (actionObj.action === 'change_avatar') {
