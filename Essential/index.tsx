@@ -27,6 +27,14 @@ interface ProjectItem {
 
 const liveProjectsData: ProjectItem[] = [
   {
+    id: "smart-antenna",
+    title: "Smart Antenna (V2X)",
+    tagline: "Low-Profile Monopole Antenna for Vehicular Communications",
+    type: "ECE Hardware / Simulation",
+    desc: "Designed and simulated a dielectric-loaded capacitive monopole antenna in Ansys HFSS. Achieved 74% size reduction at 535.57 MHz with -31.87 dB return loss and 98.34% radiation efficiency, verified with Vector Network Analyzer (VNA).",
+    tags: ["Ansys HFSS", "VNA Testing", "Dielectric Sleeve", "V2X Comms", "RF Simulation"]
+  },
+  {
     id: "syncpulse",
     title: "SyncPulse",
     tagline: "Real-Time Synchronized Spatial Audio Network",
@@ -35,6 +43,15 @@ const liveProjectsData: ProjectItem[] = [
     tags: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
     liveUrl: "https://syncpulse-1igt.onrender.com",
     githubUrl: "https://github.com/Ratnesh919/SyncPulse"
+  },
+  {
+    id: "pak-converter",
+    title: "PAK Video Converter",
+    tagline: "Pro-Grade Android Media Extractor & Transcoder",
+    type: "Android / Hardware Transcoding",
+    desc: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
+    tags: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Coroutines"],
+    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"
   },
   {
     id: "mediflow",
@@ -47,25 +64,6 @@ const liveProjectsData: ProjectItem[] = [
     githubUrl: "https://github.com/Ratnesh919/Medi_Flow"
   },
   {
-    id: "shopkart",
-    title: "ShopKart",
-    tagline: "Modern E-Commerce Shopping Platform",
-    type: "E-Commerce / Full-Stack",
-    desc: "Full-featured online shopping platform featuring dynamic product catalog, category filters, responsive cart management, and seamless modern design.",
-    tags: ["React", "JavaScript", "REST APIs", "CSS3", "Netlify"],
-    liveUrl: "https://shopkart919.netlify.app",
-    githubUrl: "https://github.com/Ratnesh919/Shop_Kart-"
-  },
-  {
-    id: "pak-converter",
-    title: "PAK Video Converter",
-    tagline: "Pro-Grade Android Media Extractor & Transcoder",
-    type: "Android / Hardware Transcoding",
-    desc: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
-    tags: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Gemini Vision"],
-    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"
-  },
-  {
     id: "jobpilot",
     title: "JobPilot AI",
     tagline: "Autonomous AI Job Search & Application Automation",
@@ -76,6 +74,16 @@ const liveProjectsData: ProjectItem[] = [
     githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI"
   },
   {
+    id: "shopkart",
+    title: "ShopKart",
+    tagline: "Modern E-Commerce Shopping Platform",
+    type: "E-Commerce / Full-Stack",
+    desc: "Full-featured online shopping platform featuring dynamic product catalog, category filters, responsive cart management, and seamless modern design.",
+    tags: ["React", "JavaScript", "REST APIs", "CSS3", "Netlify"],
+    liveUrl: "https://shopkart919.netlify.app",
+    githubUrl: "https://github.com/Ratnesh919/Shop_Kart-"
+  },
+  {
     id: "bmw-m3",
     title: "BMW M3 GTR 3D",
     tagline: "Interactive WebGL 3D Automotive Showcase",
@@ -83,14 +91,6 @@ const liveProjectsData: ProjectItem[] = [
     desc: "Interactive 3D vehicle showcase with real-time lighting, reflection environment maps, orbit inspection controls, and GLSL shaders in Three.js.",
     tags: ["Three.js", "WebGL", "GLSL", "JavaScript"],
     githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR"
-  },
-  {
-    id: "smart-antenna",
-    title: "Smart Antenna (V2X)",
-    tagline: "Low-Profile Monopole Antenna for Vehicular Communications",
-    type: "ECE Hardware / Simulation",
-    desc: "Designed and simulated a dielectric-loaded capacitive monopole antenna in Ansys HFSS. Achieved 74% size reduction at 535.57 MHz with -31.87 dB return loss and 98.34% efficiency.",
-    tags: ["Ansys HFSS", "VNA Testing", "Dielectric Sleeve", "V2X Comms"]
   }
 ];
 

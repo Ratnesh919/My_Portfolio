@@ -26,26 +26,47 @@ interface ProjectItem {
 
 const liveProjectsData: ProjectItem[] = [
   {
+    id: "jobpilot",
+    title: "JOBPILOT AI",
+    tagline: "Autonomous AI Job Search & Application Automation",
+    description: "Production n8n automation matched with Google Gemini to discover jobs, evaluate fit against resumes, generate tailored applications, and track dispatches.",
+    category: "AI WORKFLOWS & AUTOMATION",
+    tech: ["n8n Cloud", "Google Gemini API", "Webhooks", "TypeScript", "Python"],
+    liveUrl: "https://ratnesh919.app.n8n.cloud",
+    githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4"
+  },
+  {
+    id: "mediflow",
+    title: "MEDIFLOW",
+    tagline: "Smart Hospital Queue & ML Wait-Time Forecasting",
+    description: "Outpatient queue platform combining Random Forest ML wait-time forecasting, real-time WebSocket token broadcasts, emergency triage preemption, and executive analytics.",
+    category: "HEALTHCARE & MACHINE LEARNING",
+    tech: ["FastAPI", "React 18", "TypeScript", "PostgreSQL", "Scikit-Learn", "WebSockets"],
+    liveUrl: "https://github.com/Ratnesh919/Medi_Flow",
+    githubUrl: "https://github.com/Ratnesh919/Medi_Flow",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4"
+  },
+  {
     id: "syncpulse",
     title: "SYNCPULSE",
-    tagline: "Synchronized Spatial Audio Network",
-    description: "Multi-device real-time audio sync using Cristian's NTP algorithm (±5ms accuracy), 8D binaural 360° soundstage, and 3D WebGL atmosphere visualizer.",
-    category: "REAL-TIME WEB & AUDIO DSP",
+    tagline: "Real-Time Synchronized Spatial Audio Network",
+    description: "Sub-millisecond multi-device synchronized audio playback over WebSockets using Cristian's NTP clock sync (±5ms accuracy), 8D binaural 360° soundstage, and interactive Three.js 3D visualizer.",
+    category: "REAL-TIME WEB & DSP",
     tech: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
     liveUrl: "https://syncpulse-1igt.onrender.com",
     githubUrl: "https://github.com/Ratnesh919/SyncPulse",
     video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4"
   },
   {
-    id: "mediflow",
-    title: "MEDIFLOW",
-    tagline: "Smart Hospital Queue & ML Wait-Time Forecasting",
-    description: "Enterprise outpatient queue platform combining Random Forest ML wait-time forecasting, real-time WebSocket token broadcasts, emergency triage preemption, and executive analytics.",
-    category: "FULL-STACK & MACHINE LEARNING",
-    tech: ["FastAPI", "React 18", "TypeScript", "PostgreSQL", "Scikit-Learn", "WebSockets"],
-    liveUrl: "https://github.com/Ratnesh919/Medi_Flow",
-    githubUrl: "https://github.com/Ratnesh919/Medi_Flow",
-    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4"
+    id: "pak-converter",
+    title: "PAK VIDEO CONVERTER",
+    tagline: "Pro-Grade Android Media Extractor & Transcoder",
+    description: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
+    category: "ANDROID & HARDWARE TRANSCODING",
+    tech: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Coroutines"],
+    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4"
   },
   {
     id: "shopkart",
@@ -57,27 +78,6 @@ const liveProjectsData: ProjectItem[] = [
     liveUrl: "https://shopkart919.netlify.app",
     githubUrl: "https://github.com/Ratnesh919/Shop_Kart-",
     video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_054411_511c1b7a-fb2f-42ef-bf6c-32c0b1a06e79.mp4"
-  },
-  {
-    id: "pak-converter",
-    title: "PAK VIDEO CONVERTER",
-    tagline: "Pro-Grade Android Media Extractor & Transcoder",
-    description: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
-    category: "ANDROID & HARDWARE TRANSCODING",
-    tech: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Gemini Vision"],
-    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App",
-    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4"
-  },
-  {
-    id: "jobpilot",
-    title: "JOBPILOT AI",
-    tagline: "Autonomous AI Job Search & Application Automation",
-    description: "Production n8n automation matched with Google Gemini to discover jobs, evaluate fit against resumes, generate tailored applications, and track dispatches.",
-    category: "AI WORKFLOWS & AUTOMATION",
-    tech: ["n8n", "Google Gemini API", "Webhooks", "TypeScript"],
-    liveUrl: "https://ratnesh919.app.n8n.cloud",
-    githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI",
-    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4"
   },
   {
     id: "bmw-m3",
@@ -102,6 +102,16 @@ const liveProjectsData: ProjectItem[] = [
 
 const certificatesData: Certificate[] = [
   {
+    id: "cert-prompt-engineering",
+    title: "Prompt Engineering for Everyone (Tool-Agnostic)",
+    issuer: "Udemy",
+    instructor: "Dr. Amar Massoud",
+    date: "July 24, 2025",
+    certId: "UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+    image: "./certificates/cert-prompt-engineering.jpg",
+    verifyUrl: "https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc",
+  },
+  {
     id: "cert-iot",
     title: "Internet of Things (IoT) Online Course",
     issuer: "Udemy",
@@ -110,16 +120,6 @@ const certificatesData: Certificate[] = [
     certId: "UC-45f867df-23bf-440a-b362-0508bfb8d29f",
     image: "./certificates/cert-iot.jpg",
     verifyUrl: "https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f",
-  },
-  {
-    id: "cert-prompt-engineering",
-    title: "Prompt Engineering for Everyone (Tool-Agnostic)",
-    issuer: "Udemy",
-    instructor: "Dr. Amar Massoud",
-    date: "May 4, 2025",
-    certId: "UC-58952f65-94dc-45c4-abd9-aa490de18afc",
-    image: "./certificates/cert-prompt-engineering.jpg",
-    verifyUrl: "https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc",
   },
   {
     id: "cert-multi-programming",
@@ -168,14 +168,14 @@ function App() {
           <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_045634_e1c98c76-1265-4f5c-882a-4276f2080894.mp4" type="video/mp4" />
         </video>
         
-        {/* Overlay gradient to ensure text readability if needed */}
+        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
 
         <div className="relative w-full h-full max-w-[1831px] mx-auto px-6 sm:px-8 lg:px-12 pt-8 flex flex-col">
           {/* Header */}
           <header className="flex justify-between items-center w-full">
             <div className="font-grotesk text-[16px] uppercase tracking-widest leading-none mt-1">
-              RATNESH.PORTFOLIO
+              RATNESH.AI-HUB
             </div>
 
             {/* Navbar (Hidden on mobile) */}
@@ -196,24 +196,23 @@ function App() {
               onClick={() => setIsProjectsModalOpen(true)}
               className="py-2.5 px-6 rounded-full bg-neon text-[#010828] font-grotesk text-xs uppercase tracking-wider font-bold hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_25px_rgba(0,255,255,0.4)]"
             >
-              <Sparkles size={14} /> EXPLORE WORK
+              <Sparkles size={14} /> EXPLORE AI WORK
             </button>
             
-            {/* Desktop Socials Removed */}
           </header>
 
           {/* Hero Content */}
           <div className="flex-grow flex flex-col justify-center pb-20">
             <div className="relative lg:ml-32 max-w-[780px]">
               <h1 className="font-grotesk text-[40px] sm:text-[50px] md:text-[60px] lg:text-[70px] uppercase leading-[1.05] sm:leading-[1] relative z-10 break-words">
-                ELECTRONICS & COMMUNICATION
+                AI AGENTS &
                 <br />
-                ENGINEERING STUDENT
+                WORKFLOW AUTOMATION
               </h1>
               
               <div className="absolute top-[-10%] right-[-5%] sm:top-[-5%] sm:right-[-10%] md:right-0 lg:right-[-20%]">
                 <span className="font-condiment text-neon text-[24px] sm:text-[36px] md:text-[42px] lg:text-[48px] mix-blend-exclusion opacity-90 block -rotate-1 transform">
-                  Portfolio
+                  Automation
                 </span>
               </div>
 
@@ -222,13 +221,13 @@ function App() {
                   onClick={() => setIsProjectsModalOpen(true)}
                   className="py-3 px-8 rounded-full bg-gradient-to-r from-neon to-[#00c8ff] text-[#010828] font-grotesk text-sm uppercase tracking-wider font-extrabold hover:scale-105 transition-all shadow-[0_0_30px_rgba(0,255,255,0.4)] flex items-center gap-2"
                 >
-                  <Sparkles size={16} /> Explore My Work
+                  <Sparkles size={16} /> Explore AI Pipelines
                 </button>
                 <a
                   href="#projects"
                   className="py-3 px-8 rounded-full liquid-glass border border-white/20 text-cream font-grotesk text-sm uppercase tracking-wider hover:bg-white/10 transition-all"
                 >
-                  Featured Projects
+                  View Workflows
                 </a>
               </div>
             </div>
@@ -257,9 +256,9 @@ function App() {
             {/* Left Heading */}
             <div className="relative">
               <h2 className="font-grotesk text-[32px] sm:text-[48px] lg:text-[60px] uppercase leading-none z-10 relative">
-                HELLO!
+                AUTONOMOUS
                 <br />
-                I'M RATNESH
+                PIPELINES
               </h2>
               <span className="font-condiment text-neon text-[36px] sm:text-[52px] lg:text-[68px] mix-blend-exclusion absolute bottom-[-15%] right-[-20%] sm:right-[-40%] lg:-right-32 -rotate-1">
                 Ratnesh
@@ -267,12 +266,10 @@ function App() {
             </div>
 
             {/* Right paragraph */}
-            <p className="font-mono text-[14px] lg:text-[16px] uppercase max-w-[280px] leading-relaxed text-cream mt-8 lg:mt-0">
-              ECE STUDENT BUILDING EMBEDDED HARDWARE, RF ANTENNAS, AND CLEAN FULL-STACK WEB SOFTWARE.
+            <p className="font-mono text-[14px] lg:text-[16px] uppercase max-w-[320px] leading-relaxed text-cream mt-8 lg:mt-0">
+              BUILDING AUTONOMOUS AGENTS IN N8N, DISPATCHING RESUME MATCHES WITH GOOGLE GEMINI, AND DEVELOPING MACHINE LEARNING QUEUE FORECASTING PLATFORMS.
             </p>
           </div>
-
-
         </div>
       </section>
 

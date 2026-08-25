@@ -190,77 +190,92 @@
 
     <!-- ─── Page content (z-index above canvas) ─────────────────────────── -->
     <header style="text-align: center;">
-        <h1>Select A Theme.</h1>
-        <a href="./assets/Ratnesh_Kumar_Singh_CV.pdf" download="Ratnesh_Kumar_Singh_CV.pdf" class="shiny-glass-btn" style="margin-top: 15px;">
-            <i data-lucide="download"></i> Download CV
-        </a>
+        <h1 style="font-family: 'Syne', sans-serif; letter-spacing: -0.02em;">Explore By Skill Track</h1>
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase;">Full-Stack Web &bull; Android Mobile &bull; AI Agents &bull; Embedded &amp; RF &bull; UI/UX 3D</p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
+            <a href="./assets/Ratnesh_Kumar_Singh_CV.pdf" download="Ratnesh_Kumar_Singh_CV.pdf" class="shiny-glass-btn">
+                <i data-lucide="download"></i> Download CV
+            </a>
+            <a href="mailto:kumarsinghratnesh3@gmail.com" class="shiny-glass-btn">
+                <i data-lucide="mail"></i> Contact Me
+            </a>
+        </div>
     </header>
     
     <main class="container">
+        <!-- Pillar 1: Full-Stack & Real-Time Web -->
         <a href="./Immersive/dist/index.html" class="card" id="card-1">
-            <div class="card-icon"><i data-lucide="box"></i></div>
-            <div class="card-vertical-title">IMMERSIVE</div>
+            <div class="card-icon"><i data-lucide="globe"></i></div>
+            <div class="card-vertical-title">WEB &amp; DSP</div>
             <div class="card-content">
-                <div class="card-title">Immersive</div>
-                <div class="card-subtitle">3D room environment with interactive WebGL controls.</div>
+                <div class="card-title">Full-Stack Web</div>
+                <div class="card-subtitle">Real-time spatial audio (SyncPulse), hospital triage (MediFlow), and e-commerce.</div>
                 <div class="view-project">
-                    <span>View Portfolio</span>
+                    <span>Explore Web Track</span>
                     <span class="arrow">→</span>
                 </div>
             </div>
         </a>
-        <a href="./Cosmic/dist/index.html" class="card" id="card-2">
-            <div class="card-icon"><i data-lucide="ghost"></i></div>
-            <div class="card-vertical-title">COSMIC</div>
+
+        <!-- Pillar 2: Android Mobile App Development -->
+        <a href="./Urban/dist/index.html" class="card" id="card-2">
+            <div class="card-icon"><i data-lucide="smartphone"></i></div>
+            <div class="card-vertical-title">ANDROID</div>
             <div class="card-content">
-                <div class="card-title">Cosmic</div>
-                <div class="card-subtitle">Space-glass theme with glowing interactive cards.</div>
+                <div class="card-title">Mobile Dev</div>
+                <div class="card-subtitle">Native Kotlin &amp; Jetpack Compose apps with MediaCodec hardware video engine.</div>
                 <div class="view-project">
-                    <span>View Portfolio</span>
+                    <span>Explore Mobile Track</span>
                     <span class="arrow">→</span>
                 </div>
             </div>
         </a>
-        <a href="./Urban/dist/index.html" class="card" id="card-3">
-            <div class="card-icon"><i data-lucide="palette"></i></div>
-            <div class="card-vertical-title">URBAN</div>
+
+        <!-- Pillar 3: AI Agents & Automation -->
+        <a href="./Cosmic/dist/index.html" class="card" id="card-3">
+            <div class="card-icon"><i data-lucide="bot"></i></div>
+            <div class="card-vertical-title">AI AGENTS</div>
             <div class="card-content">
-                <div class="card-title">Urban</div>
-                <div class="card-subtitle">Street-art graffiti aesthetic with custom motion physics.</div>
+                <div class="card-title">AI &amp; Automation</div>
+                <div class="card-subtitle">Autonomous n8n cloud agent pipelines, Google Gemini matching, and custom bots.</div>
                 <div class="view-project">
-                    <span>View Portfolio</span>
+                    <span>Explore AI Track</span>
                     <span class="arrow">→</span>
                 </div>
             </div>
         </a>
+
+        <!-- Pillar 4: Embedded Systems & RF Hardware -->
         <a href="./Essential/dist/index.html" class="card" id="card-4">
-            <div class="card-icon"><i data-lucide="layers"></i></div>
-            <div class="card-vertical-title">ESSENTIAL</div>
+            <div class="card-icon"><i data-lucide="radio"></i></div>
+            <div class="card-vertical-title">HARDWARE</div>
             <div class="card-content">
-                <div class="card-title">Essential</div>
-                <div class="card-subtitle">Clean minimalist light layout with structured cards.</div>
+                <div class="card-title">Embedded &amp; RF</div>
+                <div class="card-subtitle">V2X antennas in Ansys HFSS (74% size reduction), Arduino IoT, and VNA tests.</div>
                 <div class="view-project">
-                    <span>View Portfolio</span>
+                    <span>Explore Hardware Track</span>
                     <span class="arrow">→</span>
                 </div>
             </div>
         </a>
+
+        <!-- Pillar 5: UI/UX & Interactive 3D -->
         <a href="./Lumen/dist/index.html" class="card" id="card-5">
-            <div class="card-icon"><i data-lucide="sun"></i></div>
-            <div class="card-vertical-title">LUMEN</div>
+            <div class="card-icon"><i data-lucide="box"></i></div>
+            <div class="card-vertical-title">UI/UX &amp; 3D</div>
             <div class="card-content">
-                <div class="card-title">Lumen</div>
-                <div class="card-subtitle">Editorial dark glass layout with refined typography.</div>
+                <div class="card-title">UI/UX &amp; 3D</div>
+                <div class="card-subtitle">Three.js WebGL automotive visualizers, Figma systems, and interactive UI.</div>
                 <div class="view-project">
-                    <span>View Portfolio</span>
+                    <span>Explore Design Track</span>
                     <span class="arrow">→</span>
                 </div>
             </div>
         </a>
     </main>
 
-    <!-- ─── Theme Switcher / Iframe Container ───────────────────────────── -->
-    <button id="change-theme-btn">Change Theme <i data-lucide="refresh-cw" style="width:18px;height:18px;margin-left:5px;display:inline-block;vertical-align:middle;"></i></button>
+    <!-- ─── Domain Switcher / Iframe Container ───────────────────────────── -->
+    <button id="change-theme-btn">Switch Skill Track <i data-lucide="refresh-cw" style="width:18px;height:18px;margin-left:5px;display:inline-block;vertical-align:middle;"></i></button>
     <div id="iframe-container"></div>
 
     <script src="https://unpkg.com/lucide@latest"></script>

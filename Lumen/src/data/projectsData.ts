@@ -12,6 +12,16 @@ export interface ProjectItem {
 
 export const projectsData: ProjectItem[] = [
   {
+    id: "bmw-m3",
+    title: "BMW M3 GTR 3D",
+    tagline: "Interactive WebGL 3D Automotive Showcase",
+    description: "Interactive 3D vehicle showcase with real-time lighting, reflection environment maps, orbit inspection controls, and GLSL shaders in Three.js.",
+    category: "3D Graphics & WebGL",
+    tech: ["Three.js", "WebGL", "GLSL", "JavaScript", "OrbitControls"],
+    githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4"
+  },
+  {
     id: "syncpulse",
     title: "SyncPulse",
     tagline: "Real-Time Synchronized Spatial Audio Network",
@@ -20,6 +30,16 @@ export const projectsData: ProjectItem[] = [
     tech: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
     liveUrl: "https://syncpulse-1igt.onrender.com",
     githubUrl: "https://github.com/Ratnesh919/SyncPulse",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4"
+  },
+  {
+    id: "pak-converter",
+    title: "PAK Video Converter",
+    tagline: "Pro-Grade Android Media Extractor & Transcoder",
+    description: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
+    category: "Android & Hardware Transcoding",
+    tech: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Coroutines"],
+    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App",
     video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4"
   },
   {
@@ -45,16 +65,6 @@ export const projectsData: ProjectItem[] = [
     video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4"
   },
   {
-    id: "pak-converter",
-    title: "PAK Video Converter",
-    tagline: "Pro-Grade Android Media Extractor & Transcoder",
-    description: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
-    category: "Android & Hardware Transcoding",
-    tech: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Gemini Vision"],
-    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App",
-    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4"
-  },
-  {
     id: "jobpilot",
     title: "JobPilot AI",
     tagline: "Autonomous AI Job Search & Application Automation",
@@ -64,16 +74,6 @@ export const projectsData: ProjectItem[] = [
     liveUrl: "https://ratnesh919.app.n8n.cloud",
     githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI",
     video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4"
-  },
-  {
-    id: "bmw-m3",
-    title: "BMW M3 GTR 3D",
-    tagline: "Interactive WebGL 3D Automotive Showcase",
-    description: "Interactive 3D vehicle showcase with real-time lighting, reflection environment maps, orbit inspection controls, and GLSL shaders in Three.js.",
-    category: "3D Graphics & WebGL",
-    tech: ["Three.js", "WebGL", "GLSL", "JavaScript"],
-    githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR",
-    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4"
   },
   {
     id: "smart-antenna",

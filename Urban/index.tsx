@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Mail, MapPin, GraduationCap, Code2, Cpu, Wrench, 
   Sparkles, ChevronRight, Linkedin, Instagram, Facebook, Github,
-  Layers, MousePointer2, ExternalLink, X
+  MousePointer2, ExternalLink, X
 } from 'lucide-react';
 
 interface Certificate {
@@ -33,11 +33,21 @@ interface ProjectItem {
 
 const liveProjectsData: ProjectItem[] = [
   {
+    id: "pak-converter",
+    title: "PAK Video Converter",
+    tagline: "Pro-Grade Android Media Extractor & Transcoder",
+    type: "ANDROID / HARDWARE CODEC",
+    desc: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads in Kotlin & Jetpack Compose.",
+    tags: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Coroutines"],
+    accent: "#ffaa00",
+    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"
+  },
+  {
     id: "syncpulse",
     title: "SyncPulse",
-    tagline: "Synchronized Spatial Audio Network",
-    type: "REAL-TIME WEB / AUDIO DSP",
-    desc: "Multi-device real-time audio synchronization using Cristian's NTP algorithm (±5ms accuracy), 8D spatial binaural soundstage, and 3D WebGL frequency visualizer.",
+    tagline: "Real-Time Synchronized Spatial Audio Network",
+    type: "REAL-TIME WEB / DSP",
+    desc: "Sub-millisecond multi-device synchronized audio playback over WebSockets using Cristian's NTP clock sync (±5ms accuracy), 8D binaural 360° soundstage, and interactive Three.js 3D visualizer.",
     tags: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
     accent: "#00ffff",
     liveUrl: "https://syncpulse-1igt.onrender.com",
@@ -64,16 +74,6 @@ const liveProjectsData: ProjectItem[] = [
     accent: "#00ff88",
     liveUrl: "https://shopkart919.netlify.app",
     githubUrl: "https://github.com/Ratnesh919/Shop_Kart-"
-  },
-  {
-    id: "pak-converter",
-    title: "PAK Video Converter",
-    tagline: "Pro-Grade Android Media Extractor & Transcoder",
-    type: "ANDROID / HARDWARE CODEC",
-    desc: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
-    tags: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Gemini Vision"],
-    accent: "#ffaa00",
-    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"
   },
   {
     id: "jobpilot",
@@ -230,15 +230,15 @@ export default function Portfolio() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[#00ffff] mb-8 shadow-sm backdrop-blur-md">
               <Sparkles size={14} className="animate-pulse" />
-              <span className="text-[10px] font-black tracking-[0.3em] uppercase">Hardware & Software Developer</span>
+              <span className="text-[10px] font-black tracking-[0.3em] uppercase">Mobile App &amp; Android Engineer</span>
             </div>
             
             <h1 className="relative mb-12 mt-8">
               <div className="text-4xl md:text-[70px] lg:text-[90px] font-black leading-tight tracking-[0.1em] text-white/5 select-none absolute left-1/2 -translate-x-1/2 -top-3/4 whitespace-nowrap opacity-20 pointer-events-none" style={{ fontFamily: '"Abraham Outline", sans-serif' }}>
-                 RATNESH SINGH
+                 ANDROID DEV
               </div>
               <div className="text-5xl md:text-[80px] lg:text-[100px] font-black leading-[1.8] tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/70 relative z-10 py-12" style={{ fontFamily: '"Next Ups", sans-serif' }}>
-                RATNESH SINGH
+                MOBILE &amp; ANDROID
               </div>
             </h1>
 
@@ -248,7 +248,7 @@ export default function Portfolio() {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-lg md:text-2xl text-white/60 max-w-2xl mx-auto font-medium tracking-tight mb-12"
             >
-              Building <span className="text-white">embedded hardware</span>, RF antenna designs, and <span className="text-[#ff00ff]">full-stack web</span> applications.
+              Building native Android applications with <span className="text-white">Kotlin</span>, Jetpack Compose, and <span className="text-[#ff00ff]">MediaCodec</span> hardware transcoding.
             </motion.p>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -256,13 +256,13 @@ export default function Portfolio() {
                 onClick={() => setIsProjectsModalOpen(true)}
                 className="px-8 py-4 bg-gradient-to-r from-[#ff00ff] to-[#00ffff] text-black font-black text-sm tracking-widest rounded-full hover:scale-105 transition-transform active:scale-95 shadow-[0_0_40px_rgba(255,0,255,0.4)] flex items-center gap-2"
               >
-                <Sparkles size={16} /> EXPLORE MY WORK
+                <Sparkles size={16} /> EXPLORE MOBILE APPS
               </button>
               <button 
                 onClick={() => scrollTo('projects')}
                 className="px-8 py-4 bg-white text-black font-black text-sm tracking-widest rounded-full hover:scale-105 transition-transform active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.2)]"
               >
-                VIEW PROJECTS
+                VIEW CODE
               </button>
               <button 
                 onClick={() => scrollTo('contact')}
@@ -284,24 +284,24 @@ export default function Portfolio() {
               variants={fadeIn}
             >
               <div className="mb-10 flex items-center gap-4">
-                <span className="text-[#ff00ff] font-black tracking-[.4em] uppercase text-[10px]">01 / THE BUILDER</span>
+                <span className="text-[#ff00ff] font-black tracking-[.4em] uppercase text-[10px]">01 / THE ANDROID ENGINE</span>
                 <div className="h-[1px] w-20 bg-[#ff00ff]/30" />
               </div>
               <h2 className="text-4xl md:text-6xl font-black text-white mb-12 tracking-[0.2em] py-6 flex flex-col gap-6 md:gap-10 leading-[1.8]" style={{ fontFamily: '"Next Ups", sans-serif' }}>
-                 <span>HARDWARE</span>
-                 <span>MEETS</span>
+                 <span>NATIVE</span>
+                 <span>ANDROID</span>
                  <span>CODE.</span>
               </h2>
               <p className="text-xl text-white/50 leading-relaxed font-medium mb-10 max-w-xl">
-                I study Electronics and Communication Engineering with hands-on work in microcontrollers, RF antenna simulation, and full-stack software. I enjoy taking ideas from circuit schematics to working hardware and writing clean code that connects them.
+                I build high-performance Android applications with clean architecture in Kotlin. My focus includes low-latency hardware video/audio processing using Android's MediaCodec subsystem, responsive declarative UIs in Jetpack Compose, and SQLite offline databases.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[
+                  { label: "Focus", value: "Kotlin & Compose", icon: Code2 },
+                  { label: "Hardware", value: "MediaCodec / NDK", icon: Cpu },
                   { label: "Location", value: "Kolkata, India", icon: MapPin },
                   { label: "Education", value: "B.Tech ECE '26", icon: GraduationCap },
-                  { label: "Languages", value: "Eng, Hin, Ben", icon: Layers },
-                  { label: "Email", value: "kumarsinghratnesh3@gmail.com", icon: Mail },
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col gap-2 p-6 rounded-3xl bg-white/5 border border-white/5 group hover:border-[#ff00ff]/30 transition-all">
                     <item.icon size={18} className="text-[#ff00ff]" />
@@ -324,13 +324,13 @@ export default function Portfolio() {
                   <Sparkles size={160} />
                 </div>
                 <h3 className="text-2xl font-black text-white mb-10 tracking-widest uppercase" style={{ fontFamily: '"Abraham Outline", sans-serif' }}>
-                  CORE FOCUS
+                  MOBILE STACK
                 </h3>
                 <div className="grid grid-cols-1 gap-8 relative z-10">
                   {[
-                    { title: "Embedded Systems", desc: "Building functional hardware with microcontrollers, sensor arrays, and circuit design.", icon: Cpu },
-                    { title: "Web Development", desc: "Building fast, responsive user interfaces with modern React, TypeScript, and CSS.", icon: Code2 },
-                    { title: "RF & Simulation", desc: "Modeling and testing antennas and circuits in HFSS, MATLAB, and Tinkercad.", icon: Wrench },
+                    { title: "Jetpack Compose & Kotlin", desc: "Building fluid declarative interfaces with reactive state handling and Kotlin Coroutines.", icon: Code2 },
+                    { title: "Hardware MediaCodec Engine", desc: "Direct hardware decoding and transcoding of raw video streams, dashcam footage, and game assets.", icon: Cpu },
+                    { title: "Offline Storage & APIs", desc: "Room SQLite databases, WorkManager tasks, and secure RESTful backend communication.", icon: Wrench },
                   ].map((focus, i) => (
                     <div key={i} className="flex gap-6 group">
                       <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-[#ff00ff]/20 group-hover:border-[#ff00ff]/30 transition-all">
@@ -350,7 +350,7 @@ export default function Portfolio() {
                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                  className="absolute -bottom-10 -right-10 px-8 py-4 rounded-2xl bg-[#ff00ff] text-black font-black text-xs tracking-widest shadow-2xl"
               >
-                OPEN TO WORK
+                ANDROID &amp; HARDWARE
               </motion.div>
             </div>
           </div>
