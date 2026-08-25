@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Mail, MapPin, GraduationCap, Code2, Cpu, Wrench, 
   Sparkles, ChevronRight, Linkedin, Instagram, Facebook, Github,
-  Layers, MousePointer2 
+  Layers, MousePointer2, ExternalLink, X
 } from 'lucide-react';
 
 interface Certificate {
@@ -18,6 +18,94 @@ interface Certificate {
   image: string;
   verifyUrl: string;
 }
+
+interface ProjectItem {
+  id: string;
+  title: string;
+  tagline: string;
+  desc: string;
+  type: string;
+  tags: string[];
+  accent: string;
+  liveUrl?: string;
+  githubUrl?: string;
+}
+
+const liveProjectsData: ProjectItem[] = [
+  {
+    id: "syncpulse",
+    title: "SyncPulse",
+    tagline: "Synchronized Spatial Audio Network",
+    type: "REAL-TIME WEB / AUDIO DSP",
+    desc: "Multi-device real-time audio synchronization using Cristian's NTP algorithm (±5ms accuracy), 8D spatial binaural soundstage, and 3D WebGL frequency visualizer.",
+    tags: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
+    accent: "#00ffff",
+    liveUrl: "https://syncpulse-1igt.onrender.com",
+    githubUrl: "https://github.com/Ratnesh919/SyncPulse"
+  },
+  {
+    id: "mediflow",
+    title: "MediFlow",
+    tagline: "Hospital Queue & ML Wait-Time Forecasting",
+    type: "HEALTHCARE / MACHINE LEARNING",
+    desc: "Outpatient queue platform combining Random Forest ML wait-time forecasting, real-time WebSocket token broadcasts, emergency triage preemption, and executive analytics.",
+    tags: ["FastAPI", "React 18", "TypeScript", "PostgreSQL", "Scikit-Learn"],
+    accent: "#ff00ff",
+    liveUrl: "https://github.com/Ratnesh919/Medi_Flow",
+    githubUrl: "https://github.com/Ratnesh919/Medi_Flow"
+  },
+  {
+    id: "shopkart",
+    title: "ShopKart",
+    tagline: "Modern E-Commerce Shopping Platform",
+    type: "E-COMMERCE / FULL-STACK",
+    desc: "Full-featured online shopping platform featuring dynamic product catalog, category filters, responsive cart management, and seamless modern design.",
+    tags: ["React", "JavaScript", "REST APIs", "CSS3", "Netlify"],
+    accent: "#00ff88",
+    liveUrl: "https://shopkart919.netlify.app",
+    githubUrl: "https://github.com/Ratnesh919/Shop_Kart-"
+  },
+  {
+    id: "pak-converter",
+    title: "PAK Video Converter",
+    tagline: "Pro-Grade Android Media Extractor & Transcoder",
+    type: "ANDROID / HARDWARE CODEC",
+    desc: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
+    tags: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Gemini Vision"],
+    accent: "#ffaa00",
+    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"
+  },
+  {
+    id: "jobpilot",
+    title: "JobPilot AI",
+    tagline: "Autonomous AI Job Search & Application Automation",
+    type: "AI WORKFLOWS / AUTOMATION",
+    desc: "Production n8n automation matched with Google Gemini to discover jobs, evaluate fit against resumes, generate tailored applications, and track dispatches.",
+    tags: ["n8n", "Google Gemini API", "Webhooks", "TypeScript"],
+    accent: "#a855f7",
+    liveUrl: "https://ratnesh919.app.n8n.cloud",
+    githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI"
+  },
+  {
+    id: "bmw-m3",
+    title: "BMW M3 GTR 3D",
+    tagline: "Interactive WebGL 3D Automotive Showcase",
+    type: "3D GRAPHICS / WEBGL",
+    desc: "Interactive 3D vehicle showcase with real-time lighting, reflection environment maps, orbit inspection controls, and GLSL shaders in Three.js.",
+    tags: ["Three.js", "WebGL", "GLSL", "JavaScript"],
+    accent: "#38bdf8",
+    githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR"
+  },
+  {
+    id: "smart-antenna",
+    title: "Smart Antenna (V2X)",
+    tagline: "Low-Profile Monopole Antenna for Vehicular Communications",
+    type: "ECE HARDWARE / SIMULATION",
+    desc: "Designed and simulated a dielectric-loaded capacitive monopole antenna in Ansys HFSS. Achieved 74% size reduction at 535.57 MHz with -31.87 dB return loss and 98.34% efficiency.",
+    tags: ["Ansys HFSS", "VNA Testing", "Dielectric Sleeve", "V2X Comms"],
+    accent: "#00ff88"
+  }
+];
 
 const certificatesData: Certificate[] = [
   {
@@ -69,6 +157,7 @@ const fadeIn = {
 
 export default function Portfolio() {
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+  const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
 
   const scrollTo = (id: string) => {
     const elem = document.getElementById(id.toLowerCase());
@@ -97,7 +186,7 @@ export default function Portfolio() {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-[850px] rounded-full border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5"
+            className="w-full max-w-[950px] rounded-full border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl ring-1 ring-white/5"
           >
             <div className="flex h-[64px] items-center justify-between px-6 md:px-10">
               <div 
@@ -121,8 +210,11 @@ export default function Portfolio() {
                 ))}
               </div>
 
-              <button className="md:hidden text-white/50 hover:text-white transition-colors">
-                <span className="text-[10px] font-black tracking-widest leading-none">MENU</span>
+              <button 
+                onClick={() => setIsProjectsModalOpen(true)}
+                className="px-4 py-1.5 rounded-full bg-[#ff00ff] text-black font-black text-[10px] tracking-widest uppercase hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,0,255,0.4)] flex items-center gap-1.5"
+              >
+                <Sparkles size={12} /> EXPLORE WORK
               </button>
             </div>
           </motion.nav>
@@ -161,6 +253,12 @@ export default function Portfolio() {
 
             <div className="flex flex-wrap justify-center gap-4">
               <button 
+                onClick={() => setIsProjectsModalOpen(true)}
+                className="px-8 py-4 bg-gradient-to-r from-[#ff00ff] to-[#00ffff] text-black font-black text-sm tracking-widest rounded-full hover:scale-105 transition-transform active:scale-95 shadow-[0_0_40px_rgba(255,0,255,0.4)] flex items-center gap-2"
+              >
+                <Sparkles size={16} /> EXPLORE MY WORK
+              </button>
+              <button 
                 onClick={() => scrollTo('projects')}
                 className="px-8 py-4 bg-white text-black font-black text-sm tracking-widest rounded-full hover:scale-105 transition-transform active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.2)]"
               >
@@ -174,9 +272,6 @@ export default function Portfolio() {
               </button>
             </div>
           </motion.div>
-
-
-
         </section>
 
         {/* About Section */}
@@ -427,66 +522,87 @@ export default function Portfolio() {
             <div>
               <span className="text-[#ff00ff] font-black tracking-[.4em] text-[10px] uppercase block mb-6">03 / Selected Works</span>
               <h2 className="text-4xl md:text-6xl font-black text-white tracking-[0.2em] leading-[1.8] py-6" style={{ fontFamily: '"Next Ups", sans-serif' }}>
-                 LAB PROJECTS.
+                 LIVE PROJECTS.
               </h2>
             </div>
+
+            <button
+              onClick={() => setIsProjectsModalOpen(true)}
+              className="px-8 py-4 bg-transparent border-2 border-[#ff00ff] text-[#ff00ff] hover:bg-[#ff00ff] hover:text-black font-black text-xs tracking-widest uppercase rounded-full transition-all shadow-[0_0_30px_rgba(255,0,255,0.2)] flex items-center gap-2 self-start md:self-auto"
+            >
+              <Sparkles size={14} /> EXPLORE ALL PROJECTS ↗
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { 
-                title: "Smart Antenna", 
-                type: "ECE / SIMULATION", 
-                desc: "Low-profile dielectric-loaded capacitive monopole antenna designed in HFSS. Achieved 74% size reduction and 98.34% radiation efficiency.",
-                tags: ["HFSS", "VNA", "V2X"],
-                accent: "#00ff88"
-              },
-              { 
-                title: "Smart Parking System", 
-                type: "IoT / ARDUINO", 
-                desc: "Real-time parking space detection built with Arduino and ultrasonic distance sensors.",
-                tags: ["Arduino", "Sensors", "Automation"],
-                accent: "#ff00ff"
-              },
-              { 
-                title: "AI Voice Assistant", 
-                type: "SOFTWARE / API", 
-                desc: "Voice-enabled assistant built with Python and APIs for real-time speech processing and command execution.",
-                tags: ["Python", "APIs", "NLP"],
-                accent: "#00ffff"
-              },
-            ].map((proj, i) => (
+            {liveProjectsData.slice(0, 6).map((proj, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -10 }}
-                className="group p-8 rounded-[40px] border border-white/10 bg-white/5 hover:border-white/20 transition-all h-[400px] flex flex-col relative overflow-hidden"
+                className="group p-8 rounded-[40px] border border-white/10 bg-white/5 hover:border-white/20 transition-all min-h-[420px] flex flex-col justify-between relative overflow-hidden"
               >
                  <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-10 transition-opacity">
                     <MousePointer2 size={120} />
                  </div>
-                 <div 
-                   className="w-12 h-1 bg-white mb-8" 
-                   style={{ backgroundColor: proj.accent }}
-                 />
-                 <span className="text-[10px] font-black text-white/30 tracking-[.3em] mb-2">{proj.type}</span>
-                 <h3 className="text-3xl font-black text-white mb-6 leading-tight tracking-tight group-hover:text-[#ff00ff] transition-colors">
-                    {proj.title}
-                 </h3>
-                 <p className="text-sm text-white/40 leading-relaxed font-medium mb-auto">
-                    {proj.desc}
-                 </p>
-                 <div className="flex flex-wrap gap-2 mt-8">
-                   {proj.tags.map((tag, j) => (
-                     <span key={j} className="text-[10px] font-bold text-white/30 px-3 py-1 rounded-full border border-white/5 uppercase tracking-widest whitespace-nowrap">
-                       {tag}
-                     </span>
-                   ))}
+                 
+                 <div>
+                   <div 
+                     className="w-12 h-1 mb-6 rounded-full" 
+                     style={{ backgroundColor: proj.accent }}
+                   />
+                   <span className="text-[10px] font-black text-white/40 tracking-[.3em] uppercase block mb-2">{proj.type}</span>
+                   <h3 className="text-2xl font-black text-white mb-2 leading-tight tracking-tight group-hover:text-[#ff00ff] transition-colors">
+                      {proj.title}
+                   </h3>
+                   <p className="text-xs font-bold text-[#00ffff] tracking-wide mb-3">{proj.tagline}</p>
+                   <p className="text-sm text-white/50 leading-relaxed font-medium mb-6">
+                      {proj.desc}
+                   </p>
+                   <div className="flex flex-wrap gap-2 mb-6">
+                     {proj.tags.slice(0, 4).map((tag, j) => (
+                       <span key={j} className="text-[10px] font-bold text-white/50 px-3 py-1 rounded-full bg-white/5 border border-white/10 uppercase tracking-widest whitespace-nowrap">
+                         {tag}
+                       </span>
+                     ))}
+                   </div>
+                 </div>
+
+                 <div className="pt-4 border-t border-white/10 flex gap-2 relative z-10">
+                   {proj.liveUrl && (
+                     <a
+                       href={proj.liveUrl}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="flex-1 py-2.5 px-4 rounded-xl bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#00ffff] transition-colors"
+                     >
+                       <ExternalLink size={14} /> Live Demo
+                     </a>
+                   )}
+                   {proj.githubUrl && (
+                     <a
+                       href={proj.githubUrl}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white/15 transition-colors"
+                     >
+                       <Github size={14} /> Repo
+                     </a>
+                   )}
                  </div>
               </motion.div>
             ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <button
+              onClick={() => setIsProjectsModalOpen(true)}
+              className="px-10 py-4 rounded-full bg-gradient-to-r from-[#ff00ff] via-[#3400f1] to-[#00ffff] text-white font-black text-sm tracking-widest uppercase hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,0,255,0.3)]"
+            >
+              ✨ Full Live Portfolio & Code Directory
+            </button>
           </div>
         </section>
 
@@ -594,6 +710,97 @@ export default function Portfolio() {
               >
                 Verify on Udemy ↗
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EXPLORE MY WORK / LIVE PROJECTS MODAL */}
+      {isProjectsModalOpen && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setIsProjectsModalOpen(false)}
+        >
+          <div
+            className="relative rounded-[32px] max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-white/20 shadow-2xl bg-[#0a0a0a]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-start">
+              <div>
+                <span className="text-[9px] font-black text-[#ff00ff] uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#ff00ff]/10 border border-[#ff00ff]/30 inline-block mb-2">
+                  LIVE CODE & PRODUCTION APPS
+                </span>
+                <h3 className="text-2xl sm:text-3xl text-white font-black">
+                  Explore My <span className="text-[#00ffff]">Work</span>
+                </h3>
+                <p className="text-xs text-white/50 mt-1">
+                  Full list of live interactive web apps, ML pipelines, Android tools, and antenna designs.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsProjectsModalOpen(false)}
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#ff00ff] hover:text-black text-white flex items-center justify-center font-black text-sm transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content List */}
+            <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/60">
+              {liveProjectsData.map((project) => (
+                <div
+                  key={project.id}
+                  className="p-6 rounded-2xl bg-[#111] border border-white/10 hover:border-[#ff00ff]/40 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#00ffff] bg-[#00ffff]/10 px-2 py-0.5 rounded border border-[#00ffff]/20">
+                        {project.type}
+                      </span>
+                    </div>
+
+                    <h4 className="text-xl font-black text-white">{project.title}</h4>
+                    <p className="text-xs font-bold text-white/70 mt-1">{project.tagline}</p>
+                    <p className="text-xs text-white/50 mt-2 leading-relaxed">{project.desc}</p>
+
+                    <div className="flex flex-wrap gap-1.5 mt-4">
+                      {project.tags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="text-[10px] font-bold text-white/50 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 uppercase tracking-widest"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-4 border-t border-white/10 flex gap-2">
+                    {project.liveUrl && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 px-4 rounded-xl bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#00ffff] transition-colors"
+                      >
+                        <ExternalLink size={14} /> Live Demo
+                      </a>
+                    )}
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white/15 transition-colors"
+                      >
+                        <Github size={14} /> Source Code
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -1,6 +1,10 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onOpenProjects?: () => void;
+}
+
+export default function HeroSection({ onOpenProjects }: HeroSectionProps) {
   return (
     <section id="home" className="min-h-screen overflow-hidden relative flex flex-col w-full h-full">
       <video
@@ -40,9 +44,17 @@ export default function HeroSection() {
           Electronics and Communication Engineering student building embedded hardware, RF antenna prototypes, and modern software tools.
         </p>
 
-        <a href="#projects" className="mt-6 sm:mt-8 liquid-glass rounded-full px-6 sm:px-8 py-2.5 sm:py-3 text-white text-sm font-medium hover:bg-white/5 transition-colors pointer-events-auto inline-block">
-          Explore My Work
-        </a>
+        <div className="mt-6 sm:mt-8 flex flex-wrap gap-4 justify-center pointer-events-auto">
+          <button
+            onClick={onOpenProjects}
+            className="liquid-glass rounded-full px-6 sm:px-8 py-2.5 sm:py-3 text-white text-sm font-medium hover:bg-white/15 transition-all flex items-center gap-2 border border-white/20 shadow-lg cursor-pointer"
+          >
+            <Sparkles size={16} /> Explore My Work
+          </button>
+          <a href="#projects" className="rounded-full px-6 sm:px-8 py-2.5 sm:py-3 text-white/70 text-sm font-medium hover:text-white transition-colors">
+            Featured Projects ↓
+          </a>
+        </div>
       </div>
     </section>
   );

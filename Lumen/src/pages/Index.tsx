@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
 import PhilosophySection from '../components/PhilosophySection';
@@ -8,18 +9,21 @@ import ExperienceSection from '../components/ExperienceSection';
 import LinksSection from '../components/LinksSection';
 import Navbar from '../components/Navbar';
 import ContactSection from '../components/ContactSection';
+import ExploreProjectsModal from '../components/ExploreProjectsModal';
 
 export default function Index() {
+  const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
+
   return (
     <main className="bg-black min-h-screen text-white font-sans selection:bg-white/20">
-      <Navbar />
-      <HeroSection />
+      <Navbar onOpenProjects={() => setIsProjectsModalOpen(true)} />
+      <HeroSection onOpenProjects={() => setIsProjectsModalOpen(true)} />
       <div id="about">
          <AboutSection />
       </div>
       <PhilosophySection />
       <div id="projects">
-         <ServicesSection />
+         <ServicesSection onOpenProjects={() => setIsProjectsModalOpen(true)} />
       </div>
       <div id="skills">
          <SkillsSection />
@@ -38,6 +42,12 @@ export default function Index() {
         <p className="text-white/20 text-xs">© {new Date().getFullYear()} Ratnesh Kumar Singh. Built with Innovation & Passion.</p>
         <p className="text-white/40 text-[10px] mt-2">Languages: English, Hindi, Bengali</p>
       </footer>
+
+      {/* Global Explore Projects Modal */}
+      <ExploreProjectsModal 
+        isOpen={isProjectsModalOpen} 
+        onClose={() => setIsProjectsModalOpen(false)} 
+      />
     </main>
   );
 }

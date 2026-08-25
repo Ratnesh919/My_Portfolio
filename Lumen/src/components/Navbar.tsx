@@ -1,7 +1,11 @@
-import { Globe, Menu, X } from 'lucide-react';
+import { Globe, Menu, X, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Navbar() {
+interface NavbarProps {
+  onOpenProjects?: () => void;
+}
+
+export default function Navbar({ onOpenProjects }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
@@ -37,6 +41,12 @@ export default function Navbar() {
 
         {/* Desktop right side */}
         <div className="hidden md:flex items-center gap-4">
+          <button
+            onClick={onOpenProjects}
+            className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-semibold uppercase tracking-wider hover:bg-gray-200 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <Sparkles size={12} /> Explore Work
+          </button>
           <a href="#contact" className="text-white text-sm font-medium hover:text-white/80 transition-colors">
             Contact
           </a>

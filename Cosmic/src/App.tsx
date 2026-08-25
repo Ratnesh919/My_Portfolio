@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ExternalLink, Code2, X, Sparkles } from 'lucide-react';
 
 interface Certificate {
   id: string;
@@ -11,6 +11,94 @@ interface Certificate {
   image: string;
   verifyUrl: string;
 }
+
+interface ProjectItem {
+  id: string;
+  title: string;
+  tagline: string;
+  description: string;
+  category: string;
+  tech: string[];
+  liveUrl?: string;
+  githubUrl?: string;
+  video?: string;
+}
+
+const liveProjectsData: ProjectItem[] = [
+  {
+    id: "syncpulse",
+    title: "SYNCPULSE",
+    tagline: "Synchronized Spatial Audio Network",
+    description: "Multi-device real-time audio sync using Cristian's NTP algorithm (±5ms accuracy), 8D binaural 360° soundstage, and 3D WebGL atmosphere visualizer.",
+    category: "REAL-TIME WEB & AUDIO DSP",
+    tech: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
+    liveUrl: "https://syncpulse-1igt.onrender.com",
+    githubUrl: "https://github.com/Ratnesh919/SyncPulse",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4"
+  },
+  {
+    id: "mediflow",
+    title: "MEDIFLOW",
+    tagline: "Smart Hospital Queue & ML Wait-Time Forecasting",
+    description: "Enterprise outpatient queue platform combining Random Forest ML wait-time forecasting, real-time WebSocket token broadcasts, emergency triage preemption, and executive analytics.",
+    category: "FULL-STACK & MACHINE LEARNING",
+    tech: ["FastAPI", "React 18", "TypeScript", "PostgreSQL", "Scikit-Learn", "WebSockets"],
+    liveUrl: "https://github.com/Ratnesh919/Medi_Flow",
+    githubUrl: "https://github.com/Ratnesh919/Medi_Flow",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4"
+  },
+  {
+    id: "shopkart",
+    title: "SHOPKART",
+    tagline: "Modern E-Commerce Web Application",
+    description: "Full-featured online shopping platform featuring dynamic product catalog, category filters, responsive cart management, and seamless modern design.",
+    category: "E-COMMERCE & FRONTEND",
+    tech: ["React", "JavaScript", "REST APIs", "CSS3", "Netlify"],
+    liveUrl: "https://shopkart919.netlify.app",
+    githubUrl: "https://github.com/Ratnesh919/Shop_Kart-",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_054411_511c1b7a-fb2f-42ef-bf6c-32c0b1a06e79.mp4"
+  },
+  {
+    id: "pak-converter",
+    title: "PAK VIDEO CONVERTER",
+    tagline: "Pro-Grade Android Media Extractor & Transcoder",
+    description: "Modern Android application using low-latency MediaCodec & MediaMuxer hardware pipelines to extract, transcode, and play video game assets, dashcam archives, and raw stream payloads.",
+    category: "ANDROID & HARDWARE TRANSCODING",
+    tech: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Gemini Vision"],
+    githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4"
+  },
+  {
+    id: "jobpilot",
+    title: "JOBPILOT AI",
+    tagline: "Autonomous AI Job Search & Application Automation",
+    description: "Production n8n automation matched with Google Gemini to discover jobs, evaluate fit against resumes, generate tailored applications, and track dispatches.",
+    category: "AI WORKFLOWS & AUTOMATION",
+    tech: ["n8n", "Google Gemini API", "Webhooks", "TypeScript"],
+    liveUrl: "https://ratnesh919.app.n8n.cloud",
+    githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4"
+  },
+  {
+    id: "bmw-m3",
+    title: "BMW M3 GTR 3D VISUALIZER",
+    tagline: "Interactive WebGL 3D Automotive Experience",
+    description: "Interactive 3D vehicle showcase with real-time lighting, reflection environment maps, orbit inspection controls, and GLSL shaders in Three.js.",
+    category: "3D GRAPHICS & WEBGL",
+    tech: ["Three.js", "WebGL", "GLSL", "JavaScript"],
+    githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR",
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_054411_511c1b7a-fb2f-42ef-bf6c-32c0b1a06e79.mp4"
+  },
+  {
+    id: "smart-antenna",
+    title: "SMART ANTENNA (V2X)",
+    tagline: "Low-Profile Monopole Antenna for Vehicular Communications",
+    description: "Designed and simulated a dielectric-loaded capacitive monopole antenna in Ansys HFSS. Achieved 74% size reduction at 535.57 MHz with -31.87 dB return loss and 98.34% efficiency.",
+    category: "ECE HARDWARE & SIMULATION",
+    tech: ["Ansys HFSS", "VNA Testing", "Dielectric Sleeve", "V2X Comms"],
+    video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4"
+  }
+];
 
 const certificatesData: Certificate[] = [
   {
@@ -57,6 +145,7 @@ const certificatesData: Certificate[] = [
 
 function App() {
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+  const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen bg-[#010828] text-cream overflow-x-hidden selection:bg-neon selection:text-[#010828]">
@@ -102,8 +191,13 @@ function App() {
               ))}
             </nav>
 
-            {/* Empty div to balance flex space on mobile, or just standard flex between */}
-            <div className="w-[100px] lg:hidden"></div>
+            {/* Explore My Work Top Button */}
+            <button 
+              onClick={() => setIsProjectsModalOpen(true)}
+              className="py-2.5 px-6 rounded-full bg-neon text-[#010828] font-grotesk text-xs uppercase tracking-wider font-bold hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_25px_rgba(0,255,255,0.4)]"
+            >
+              <Sparkles size={14} /> EXPLORE WORK
+            </button>
             
             {/* Desktop Socials Removed */}
           </header>
@@ -122,9 +216,22 @@ function App() {
                   Portfolio
                 </span>
               </div>
-            </div>
 
-            {/* Mobile Socials Removed */}
+              <div className="mt-8 flex flex-wrap gap-4">
+                <button
+                  onClick={() => setIsProjectsModalOpen(true)}
+                  className="py-3 px-8 rounded-full bg-gradient-to-r from-neon to-[#00c8ff] text-[#010828] font-grotesk text-sm uppercase tracking-wider font-extrabold hover:scale-105 transition-all shadow-[0_0_30px_rgba(0,255,255,0.4)] flex items-center gap-2"
+                >
+                  <Sparkles size={16} /> Explore My Work
+                </button>
+                <a
+                  href="#projects"
+                  className="py-3 px-8 rounded-full liquid-glass border border-white/20 text-cream font-grotesk text-sm uppercase tracking-wider hover:bg-white/10 transition-all"
+                >
+                  Featured Projects
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -388,11 +495,14 @@ function App() {
               </h2>
             </div>
             
-            <button className="group relative flex flex-col items-end hover:opacity-80 transition-opacity">
+            <button 
+              onClick={() => setIsProjectsModalOpen(true)}
+              className="group relative flex flex-col items-end hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div className="flex items-baseline gap-3 md:gap-4">
                 <span className="font-grotesk text-[32px] sm:text-[48px] lg:text-[60px] uppercase leading-none">SEE</span>
                 <div className="flex flex-col items-start leading-none gap-1 sm:gap-2">
-                  <span className="font-grotesk text-[20px] sm:text-[28px] lg:text-[36px] uppercase block tracking-wide">ALL</span>
+                  <span className="font-grotesk text-[20px] sm:text-[28px] lg:text-[36px] uppercase block tracking-wide text-neon">ALL</span>
                   <span className="font-grotesk text-[20px] sm:text-[28px] lg:text-[36px] uppercase block tracking-wide">PROJECTS</span>
                 </div>
               </div>
@@ -402,91 +512,71 @@ function App() {
 
           {/* NFT Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* Card 1: Smart Antenna */}
-            <div className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300">
-              <div className="relative w-full pb-[100%] rounded-[24px] overflow-hidden bg-black/50">
-                <video 
-                  autoPlay loop muted playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4" type="video/mp4" />
-                </video>
-              </div>
-              <div className="mt-[18px] liquid-glass rounded-[20px] px-5 py-4 flex justify-between items-center bg-white/5">
-                <div className="flex flex-col">
-                  <span className="font-mono text-[11px] text-cream/70 uppercase tracking-wider">PROJECT:</span>
-                  <span className="font-grotesk text-[16px] mt-1 track-widest">SMART ANTENNA</span>
-                </div>
-                <button className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b724ff] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-purple-500/50 hover:scale-110 transition-transform cursor-pointer">
-                  <ChevronRight className="text-white w-6 h-6" />
-                </button>
-              </div>
-            </div>
+            {liveProjectsData.slice(0, 6).map((proj) => (
+              <div key={proj.id} className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300 flex flex-col justify-between">
+                <div>
+                  <div className="relative w-full pb-[85%] rounded-[24px] overflow-hidden bg-black/50">
+                    {proj.video && (
+                      <video 
+                        autoPlay loop muted playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                      >
+                        <source src={proj.video} type="video/mp4" />
+                      </video>
+                    )}
+                    <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-neon font-mono text-[10px] uppercase">
+                      {proj.category}
+                    </div>
+                  </div>
 
-            {/* Card 2 */}
-            <div className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300">
-              <div className="relative w-full pb-[100%] rounded-[24px] overflow-hidden bg-black/50">
-                <video 
-                  autoPlay loop muted playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_053923_22c0a6a5-313c-474c-85ff-3b50d25e944a.mp4" type="video/mp4" />
-                </video>
-              </div>
-              <div className="mt-[18px] liquid-glass rounded-[20px] px-5 py-4 flex justify-between items-center bg-white/5">
-                <div className="flex flex-col">
-                  <span className="font-mono text-[11px] text-cream/70 uppercase tracking-wider">PROJECT:</span>
-                  <span className="font-grotesk text-[16px] mt-1 track-widest">SMART PARKING</span>
+                  <div className="mt-4 px-2">
+                    <h3 className="font-grotesk text-[20px] tracking-wide uppercase text-white font-bold">{proj.title}</h3>
+                    <p className="font-mono text-[11px] text-cream/70 mt-1 uppercase">{proj.tagline}</p>
+                    <p className="font-mono text-[12px] text-cream/50 mt-2 line-clamp-2 leading-relaxed">{proj.description}</p>
+                    
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {proj.tech.slice(0, 4).map((t, idx) => (
+                        <span key={idx} className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-cream/80">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <button className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b724ff] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-purple-500/50 hover:scale-110 transition-transform cursor-pointer">
-                  <ChevronRight className="text-white w-6 h-6" />
-                </button>
-              </div>
-            </div>
 
-            {/* Card 2 */}
-            <div className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300">
-              <div className="relative w-full pb-[100%] rounded-[24px] overflow-hidden bg-black/50">
-                <video 
-                  autoPlay loop muted playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_054411_511c1b7a-fb2f-42ef-bf6c-32c0b1a06e79.mp4" type="video/mp4" />
-                </video>
-              </div>
-              <div className="mt-[18px] liquid-glass rounded-[20px] px-5 py-4 flex justify-between items-center bg-white/5">
-                <div className="flex flex-col">
-                  <span className="font-mono text-[11px] text-cream/70 uppercase tracking-wider">PROJECT:</span>
-                  <span className="font-grotesk text-[16px] mt-1 track-widest">TEXT HUMANIZER</span>
+                <div className="mt-5 pt-3 border-t border-white/10 flex gap-2">
+                  {proj.liveUrl && (
+                    <a
+                      href={proj.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-neon text-[#010828] font-grotesk text-xs uppercase font-extrabold flex items-center justify-center gap-1.5 hover:scale-105 transition-transform"
+                    >
+                      <ExternalLink size={14} /> Live Demo
+                    </a>
+                  )}
+                  {proj.githubUrl && (
+                    <a
+                      href={proj.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-grotesk text-xs uppercase font-bold flex items-center justify-center gap-1.5 border border-white/15 transition-colors"
+                    >
+                      <Code2 size={14} /> Repo
+                    </a>
+                  )}
                 </div>
-                <button className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b724ff] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-purple-500/50 hover:scale-110 transition-transform cursor-pointer">
-                  <ChevronRight className="text-white w-6 h-6" />
-                </button>
               </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Card 3 */}
-            <div className="liquid-glass rounded-[32px] p-[18px] hover:bg-white/10 transition duration-300">
-              <div className="relative w-full pb-[100%] rounded-[24px] overflow-hidden bg-black/50">
-                <video 
-                  autoPlay loop muted playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260331_055427_ac7035b5-9f3b-4289-86fc-941b2432317d.mp4" type="video/mp4" />
-                </video>
-              </div>
-              <div className="mt-[18px] liquid-glass rounded-[20px] px-5 py-4 flex justify-between items-center bg-white/5">
-                <div className="flex flex-col">
-                  <span className="font-mono text-[11px] text-cream/70 uppercase tracking-wider">PROJECT:</span>
-                  <span className="font-grotesk text-[16px] mt-1 track-widest">AI ASSISTANT</span>
-                </div>
-                <button className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b724ff] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-purple-500/50 hover:scale-110 transition-transform cursor-pointer">
-                  <ChevronRight className="text-white w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
+          <div className="mt-12 text-center">
+            <button
+              onClick={() => setIsProjectsModalOpen(true)}
+              className="py-3.5 px-10 rounded-full bg-gradient-to-r from-neon via-[#a855f7] to-[#ec4899] text-white font-grotesk text-sm uppercase tracking-widest font-extrabold hover:scale-105 transition-transform shadow-[0_0_40px_rgba(168,85,247,0.4)]"
+            >
+              ✨ Explore All Live Projects & Repositories
+            </button>
           </div>
         </div>
       </section>
@@ -588,6 +678,99 @@ function App() {
               >
                 Verify on Udemy ↗
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EXPLORE MY WORK / LIVE PROJECTS MODAL */}
+      {isProjectsModalOpen && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6"
+          onClick={() => setIsProjectsModalOpen(false)}
+        >
+          <div
+            className="relative liquid-glass rounded-[28px] max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-white/20 shadow-2xl bg-[#010828]/95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-neon uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-neon/10 border border-neon/30 inline-block">
+                    LIVE PORTFOLIO DIRECTORY
+                  </span>
+                </div>
+                <h3 className="font-grotesk text-2xl sm:text-3xl text-cream font-bold mt-2">
+                  Live <span className="text-neon">Projects</span> & Repositories
+                </h3>
+                <p className="font-mono text-xs text-cream/60 mt-1">
+                  Direct access to deployed applications, AI workflows, and hardware projects.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsProjectsModalOpen(false)}
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-neon hover:text-[#010828] text-white flex items-center justify-center font-mono text-sm transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Grid */}
+            <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/40">
+              {liveProjectsData.map((project) => (
+                <div
+                  key={project.id}
+                  className="liquid-glass rounded-2xl p-5 border border-white/10 hover:border-neon/40 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-mono text-[10px] text-neon uppercase tracking-wider bg-neon/10 px-2 py-0.5 rounded border border-neon/20">
+                        {project.category}
+                      </span>
+                    </div>
+
+                    <h4 className="font-grotesk text-lg text-white font-bold">{project.title}</h4>
+                    <p className="font-mono text-[11px] text-cream/70 mt-0.5">{project.tagline}</p>
+                    <p className="font-mono text-xs text-cream/50 mt-2 leading-relaxed">{project.description}</p>
+
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {project.tech.map((t, idx) => (
+                        <span
+                          key={idx}
+                          className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-cream/80"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-white/10 flex gap-2">
+                    {project.liveUrl && (
+                      <a
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 px-4 rounded-xl bg-neon text-[#010828] font-grotesk text-xs uppercase font-extrabold flex items-center justify-center gap-1.5 hover:scale-105 transition-transform"
+                      >
+                        <ExternalLink size={14} /> Live Demo
+                      </a>
+                    )}
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-grotesk text-xs uppercase font-bold flex items-center justify-center gap-1.5 border border-white/15 transition-colors"
+                      >
+                        <Code2 size={14} /> Source Code
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
