@@ -142,7 +142,7 @@ export default function Portfolio() {
               </span>
             </motion.h2>
             <motion.p variants={fadeIn} className="text-lg lg:text-xl text-[#4b5563] leading-relaxed mb-10 max-w-xl font-medium">
-              Motivated Electronics and Communication Engineering student with a strong foundation in programming, embedded systems, and AI. Passionate about developing innovative solutions in smart and software-driven technology.
+              Electronics and Communication Engineering student based in Kolkata. I build embedded hardware, RF antenna designs, and full-stack web software with a focus on practical, working tools.
             </motion.p>
 
             {/* Contact Card */}

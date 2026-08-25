@@ -37,7 +37,7 @@ export default function HeroSection() {
         </div>
 
         <p className="text-white/90 text-xs sm:text-sm leading-relaxed px-4 max-w-xs sm:max-w-lg mx-auto">
-          Electronics and Communication Engineering student passionate about developing innovative solutions in smart and software-driven technology.
+          Electronics and Communication Engineering student building embedded hardware, RF antenna prototypes, and modern software tools.
         </p>
 
         <a href="#projects" className="mt-6 sm:mt-8 liquid-glass rounded-full px-6 sm:px-8 py-2.5 sm:py-3 text-white text-sm font-medium hover:bg-white/5 transition-colors pointer-events-auto inline-block">

@@ -25,16 +25,16 @@ export default function PhilosophySection() {
             className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10"
           >
             <div className="liquid-glass rounded-3xl p-8 md:p-10 border border-white/5">
-              <span className="text-white/40 text-xs tracking-widest uppercase mb-6 block border-b border-white/10 pb-4">Choose your space</span>
+              <span className="text-white/40 text-xs tracking-widest uppercase mb-6 block border-b border-white/10 pb-4">Hands-on Engineering</span>
               <p className="text-white/70 text-lg md:text-xl leading-relaxed font-serif">
-                From C++ and Python automation to smart hardware integration, I operate at the intersection of logical problem-solving and rapid prototyping. I translate technical challenges into functional, real-world solutions.
+                From C++ and Python automation to microcontroller circuit assembly, I focus on building working hardware prototypes and writing clean, reliable software that connects to them.
               </p>
             </div>
 
             <div className="liquid-glass rounded-3xl p-8 md:p-10 border border-white/5">
-              <span className="text-white/40 text-xs tracking-widest uppercase mb-6 block border-b border-white/10 pb-4">Shape the future</span>
+              <span className="text-white/40 text-xs tracking-widest uppercase mb-6 block border-b border-white/10 pb-4">Continuous Practice</span>
               <p className="text-white/70 text-lg md:text-xl leading-relaxed font-serif">
-                As a B.Tech student, my process involves learning modern frameworks and experimenting with IoT devices. I believe that an engineer's best work emerges when hands-on experimentation meets solid theoretical knowledge.
+                I balance academic engineering theory with lab work—testing circuits on breadboards, verifying antenna frequencies with VNAs, and learning modern web frameworks to ship projects.
               </p>
             </div>
           </motion.div>

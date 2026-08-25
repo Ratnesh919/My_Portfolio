@@ -15,21 +15,21 @@ export default function ServicesSection() {
     },
     {
       video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4",
-      tag: "Software",
-      title: "Simple AI Assistant",
-      description: "Created an intelligent assistant using Python and API integrations. Implemented features like command understanding, conversational responses, and real-time information retrieval."
+      tag: "Software & APIs",
+      title: "AI Voice Assistant",
+      description: "Built a voice-enabled assistant using Python and REST APIs with command execution, natural speech synthesis, and real-time query handling."
     },
     {
       video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4",
-      tag: "Hardware",
+      tag: "IoT & Hardware",
       title: "Smart Parking System",
-      description: "Designed a prototype using Arduino and ultrasonic sensors to detect available parking spaces efficiently. Demonstrated bridging hardware with software loops."
+      description: "Built an Arduino-based prototype using ultrasonic sensor arrays to track and display vacant parking spaces in real time."
     },
     {
         video: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4",
-        tag: "Software",
+        tag: "Python Tool",
         title: "Text Humanizer",
-        description: "Developed a text humanizer using Python for NLP tasks to make machine-generated text more natural and human-like."
+        description: "Developed a Python text processing utility that refines phrasing, cleans up robotic patterns, and improves overall sentence flow."
     }
   ];
 

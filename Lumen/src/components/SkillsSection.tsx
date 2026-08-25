@@ -23,8 +23,8 @@ const skillCategories = [
     skills: ["Figma", "Wireframing", "Prototyping", "Visual Design", "Canva"]
   },
   {
-    title: "Soft Skills",
-    skills: ["Problem-solving", "Fast learner", "Dedicated", "Disciplined", "Adaptable"]
+    title: "Engineering Practices",
+    skills: ["Circuit Debugging", "Hardware Testing", "Self-Taught", "Technical Documentation", "Cross-Platform Delivery"]
   }
 ];
 

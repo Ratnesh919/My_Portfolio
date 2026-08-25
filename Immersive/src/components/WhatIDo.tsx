@@ -88,9 +88,9 @@ const WhatIDo = () => {
 
             <div className="what-content-in">
               <h3>EMBEDDED SYSTEMS</h3>
-              <h4>Building Smart Hardware Solutions</h4>
+              <h4>Circuits & Microcontrollers</h4>
               <p>
-                Passionate about developing innovative solutions in smart and software-driven technology using microcontrollers and sensors.
+                Designing and assembling microcontroller circuits, sensor networks, and RF hardware prototypes with Arduino, C, and C++.
               </p>
               <h5>Skillset & tools</h5>
               <div className="what-content-flex">
@@ -124,19 +124,19 @@ const WhatIDo = () => {
             </div>
             <div className="what-corner"></div>
             <div className="what-content-in">
-              <h3>SOFTWARE & AI</h3>
-              <h4>Programming & Machine Learning</h4>
+              <h3>SOFTWARE & WEB</h3>
+              <h4>Programming & Applications</h4>
               <p>
-                Good foundation in programming, creating intelligent assistants, and learning AI and Machine Learning technologies.
+                Writing Python scripts, integrating backend APIs, creating automated tools, and building responsive web interfaces with modern frontend stacks.
               </p>
               <h5>Skillset & tools</h5>
               <div className="what-content-flex">
                 <div className="what-tags">Python</div>
-                <div className="what-tags">AI</div>
-                <div className="what-tags">Machine Learning</div>
-                <div className="what-tags">HTML</div>
-                <div className="what-tags">CSS</div>
+                <div className="what-tags">AI & Automation</div>
+                <div className="what-tags">HTML / CSS</div>
+                <div className="what-tags">REST APIs</div>
                 <div className="what-tags">Figma</div>
+                <div className="what-tags">Git & GitHub</div>
                 <div className="what-tags">VS Code</div>
               </div>
               <div className="what-arrow"></div>

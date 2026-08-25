@@ -138,7 +138,7 @@ export default function Portfolio() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[#00ffff] mb-8 shadow-sm backdrop-blur-md">
               <Sparkles size={14} className="animate-pulse" />
-              <span className="text-[10px] font-black tracking-[0.3em] uppercase">Digital Alchemist & Builder</span>
+              <span className="text-[10px] font-black tracking-[0.3em] uppercase">Hardware & Software Developer</span>
             </div>
             
             <h1 className="relative mb-12 mt-8">
@@ -156,8 +156,7 @@ export default function Portfolio() {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-lg md:text-2xl text-white/60 max-w-2xl mx-auto font-medium tracking-tight mb-12"
             >
-              Blending <span className="text-white">Electronics</span> with <span className="text-[#ff00ff]">AI</span> to create 
-              the next generation of software-driven hardware experiences.
+              Building <span className="text-white">embedded hardware</span>, RF antenna designs, and <span className="text-[#ff00ff]">full-stack web</span> applications.
             </motion.p>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -194,12 +193,12 @@ export default function Portfolio() {
                 <div className="h-[1px] w-20 bg-[#ff00ff]/30" />
               </div>
               <h2 className="text-4xl md:text-6xl font-black text-white mb-12 tracking-[0.2em] py-6 flex flex-col gap-6 md:gap-10 leading-[1.8]" style={{ fontFamily: '"Next Ups", sans-serif' }}>
-                 <span>CRAFTING</span>
-                 <span>THE</span>
-                 <span>FUTURE.</span>
+                 <span>HARDWARE</span>
+                 <span>MEETS</span>
+                 <span>CODE.</span>
               </h2>
               <p className="text-xl text-white/50 leading-relaxed font-medium mb-10 max-w-xl">
-                Electronics engineer by day, experimental builder by night. I specialize in merging raw hardware potential with sophisticated AI algorithms. My goal is to build tools that feel as natural as they are powerful.
+                I study Electronics and Communication Engineering with hands-on work in microcontrollers, RF antenna simulation, and full-stack software. I enjoy taking ideas from circuit schematics to working hardware and writing clean code that connects them.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -234,9 +233,9 @@ export default function Portfolio() {
                 </h3>
                 <div className="grid grid-cols-1 gap-8 relative z-10">
                   {[
-                    { title: "Embedded Intelligence", desc: "Developing low-latency AI models for microcontrollers and edge devices.", icon: Cpu },
-                    { title: "Visual Storytelling", desc: "Crafting immersive digital interfaces through modern web technologies.", icon: Code2 },
-                    { title: "Hardware Prototypes", desc: "From theoretical designs to functional hardware via Arduino and MATLAB.", icon: Wrench },
+                    { title: "Embedded Systems", desc: "Building functional hardware with microcontrollers, sensor arrays, and circuit design.", icon: Cpu },
+                    { title: "Web Development", desc: "Building fast, responsive user interfaces with modern React, TypeScript, and CSS.", icon: Code2 },
+                    { title: "RF & Simulation", desc: "Modeling and testing antennas and circuits in HFSS, MATLAB, and Tinkercad.", icon: Wrench },
                   ].map((focus, i) => (
                     <div key={i} className="flex gap-6 group">
                       <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-[#ff00ff]/20 group-hover:border-[#ff00ff]/30 transition-all">
@@ -283,9 +282,9 @@ export default function Portfolio() {
                 <h3 className="text-2xl font-black text-white mb-8">Academic Journey</h3>
                 <div className="space-y-8">
                   {[
-                    { year: "2022 - 2026", inst: "Swami Vivekananda Institute", degree: "B.Tech in ECE", detail: "Focusing on digital signal processing and embedded AI." },
-                    { year: "2018 - 2020", inst: "P.B.S College", degree: "Higher Secondary", detail: "Science Stream (PCM) - Foundation of mathematics & physics." },
-                    { year: "2016 - 2018", inst: "Vidyanjali High School", degree: "Secondary Schooling", detail: "IGCSE Board - Early technological exposure." },
+                    { year: "2022 - 2026", inst: "Swami Vivekananda Institute", degree: "B.Tech in ECE", detail: "Coursework in embedded systems, signal processing, and telecommunications." },
+                    { year: "2018 - 2020", inst: "P.B.S College", degree: "Higher Secondary", detail: "Science Stream (PCM) — Physics, Chemistry, and Mathematics." },
+                    { year: "2016 - 2018", inst: "Vidyanjali High School", degree: "Secondary Schooling", detail: "IGCSE Board — Science and foundational computing." },
                   ].map((edu, i) => (
                     <div key={i} className="flex gap-8 group">
                       <div className="flex flex-col items-center">
@@ -443,17 +442,17 @@ export default function Portfolio() {
                 accent: "#00ff88"
               },
               { 
-                title: "Smart Parking AI", 
+                title: "Smart Parking System", 
                 type: "IoT / ARDUINO", 
-                desc: "Real-time occupancy tracking using ultrasonic sensors and custom AI feedback loop for optimal traffic flow.",
+                desc: "Real-time parking space detection built with Arduino and ultrasonic distance sensors.",
                 tags: ["Arduino", "Sensors", "Automation"],
                 accent: "#ff00ff"
               },
               { 
-                title: "Assister Pro AI", 
+                title: "AI Voice Assistant", 
                 type: "SOFTWARE / API", 
-                desc: "A headless AI assistant integrated with multi-model APIs for specialized electronic engineering tasks.",
-                tags: ["Python", "OpenAI", "React"],
+                desc: "Voice-enabled assistant built with Python and APIs for real-time speech processing and command execution.",
+                tags: ["Python", "APIs", "NLP"],
                 accent: "#00ffff"
               },
             ].map((proj, i) => (

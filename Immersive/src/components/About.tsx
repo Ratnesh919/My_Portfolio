@@ -6,10 +6,10 @@ const About = () => {
       <div className="about-me">
         <h3 className="title">About Me</h3>
         <p className="para">
-          Motivated Electronics and Communication Engineering student with a good
-          foundation in programming, embedded systems, and AI. Passionate about
-          developing innovative solutions in smart and software-driven technology.
-          Fast learner with excellent self-learning ability and strong problem-solving skills.
+          I study Electronics and Communication Engineering with a focus on
+          embedded hardware, software engineering, and practical AI tools.
+          I enjoy building functional systems—from RF antennas and Arduino sensor
+          prototypes to full-stack web applications.
         </p>
       </div>
     </div>

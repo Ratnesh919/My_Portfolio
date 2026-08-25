@@ -160,8 +160,8 @@ function App() {
             </div>
 
             {/* Right paragraph */}
-            <p className="font-mono text-[14px] lg:text-[16px] uppercase max-w-[266px] leading-relaxed text-cream mt-8 lg:mt-0">
-              MOTIVATED ECE STUDENT WITH A SOLID FOUNDATION IN PROGRAMMING, EMBEDDED SYSTEMS, AND AI. PASSIONATE ABOUT DEVELOPING INNOVATIVE SOLUTIONS.
+            <p className="font-mono text-[14px] lg:text-[16px] uppercase max-w-[280px] leading-relaxed text-cream mt-8 lg:mt-0">
+              ECE STUDENT BUILDING EMBEDDED HARDWARE, RF ANTENNAS, AND CLEAN FULL-STACK WEB SOFTWARE.
             </p>
           </div>
 
@@ -359,12 +359,12 @@ function App() {
             </div>
             
             <div className="liquid-glass rounded-[32px] p-[32px] hover:bg-white/10 transition duration-300">
-               <h3 className="font-grotesk text-[20px] text-neon mb-4">ATTRIBUTES</h3>
+               <h3 className="font-grotesk text-[20px] text-neon mb-4">CORE STRENGTHS</h3>
                <div className="font-mono text-[14px] uppercase text-cream leading-relaxed flex flex-col gap-2">
-                 <span>STRONG PROBLEM-SOLVING</span>
-                 <span>FAST LEARNER</span>
-                 <span>HIGHLY DEDICATED</span>
-                 <span>ADAPTABLE</span>
+                 <span>CIRCUIT PROTOTYPING</span>
+                 <span>HARDWARE & CODE DEBUGGING</span>
+                 <span>SELF-DIRECTED LEARNING</span>
+                 <span>TECHNICAL DOCUMENTATION</span>
                </div>
             </div>
           </div>

@@ -25,7 +25,7 @@ export default function AboutSection() {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-6xl text-white leading-[1.2] tracking-tight font-serif max-w-4xl"
           >
-            I am a motivated <span className="italic text-white/80">Electronics and Communication Engineering</span> student.
+            I study <span className="italic text-white/80">Electronics and Communication Engineering</span>.
           </motion.h2>
           
           <motion.div
@@ -35,10 +35,10 @@ export default function AboutSection() {
             className="grid grid-cols-1 md:grid-cols-2 gap-8 text-white/60 text-lg leading-relaxed"
           >
             <p>
-              My foundation lies deeply in <span className="text-white">programming</span>, <span className="text-white">embedded systems</span>, and <span className="text-white">artificial intelligence</span>. I strive to bridge the gap between hardware and software to build meaningful experiences.
+              My focus is on <span className="text-white">embedded hardware</span>, <span className="text-white">RF antenna design</span>, and <span className="text-white">software development</span>. I enjoy connecting physical components with clean code.
             </p>
             <p>
-              I am passionate about creating <span className="text-white">innovative solutions</span> in smart technology. Always learning, experimenting, and eager to tackle new challenges in the tech ecosystem.
+              From simulating antennas in Ansys HFSS to writing Python automation scripts and building web applications, I focus on building practical tools that work reliably.
             </p>
           </motion.div>
         </div>
