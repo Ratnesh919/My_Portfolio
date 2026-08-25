@@ -60,7 +60,7 @@ function getTimeOfDayGreeting() {
 
 function getIntroText() {
     const greeting = getTimeOfDayGreeting();
-    return `${greeting}! I am Raya, Ratnesh's AI companion. You can explore his 5 core skill tracks — Web Audio DSP, Android Mobile, AI Agents, RF Hardware, and 3D Graphics. What is your name?`;
+    return `${greeting}! I am Raya, Ratnesh's AI companion. Welcome to his engineering portfolio! You can explore his 5 core specializations in Web Audio DSP, Android MediaCodec, AI Agents, RF Hardware, and 3D Graphics. What is your name?`;
 }
 
 const THEME_PROMPT = "Explore Ratnesh's 5 core skill tracks: 1 Full-Stack Web & Audio DSP, 2 Native Android, 3 AI Agents & Automation, 4 Embedded & RF Hardware, or 5 Interactive 3D Graphics. Which one would you like to explore?";
@@ -465,12 +465,14 @@ class AvatarChatBot {
             </div>
             <ul class="info-panel-commands">
                 <li class="suggest-cmd suggest-cmd-leave-msg">"📩 Leave a message for Ratnesh"</li>
-                <li class="suggest-cmd">"select last theme"</li>
-                <li class="suggest-cmd">"play a song"</li>
-                <li class="suggest-cmd">"scroll down"</li>
-                <li class="suggest-cmd">"take me to projects section"</li>
-                <li class="suggest-cmd">"tell me about Ratnesh's project"</li>
-                <li class="suggest-cmd">"tell me a joke"</li>
+                <li class="suggest-cmd">"Tell me about SyncPulse (Web Audio DSP)"</li>
+                <li class="suggest-cmd">"Tell me about PAK Video Converter (Android)"</li>
+                <li class="suggest-cmd">"Tell me about JobPilot AI (AI Agents)"</li>
+                <li class="suggest-cmd">"Tell me about Smart Antenna V2X (RF Hardware)"</li>
+                <li class="suggest-cmd">"Tell me about BMW M3 GTR (3D WebGL)"</li>
+                <li class="suggest-cmd">"Show verified certifications"</li>
+                <li class="suggest-cmd">"🎵 Play a song on YouTube"</li>
+                <li class="suggest-cmd">"Scroll to timeline & education"</li>
             </ul>
         `;
         panel.appendChild(this.infoPanel);
