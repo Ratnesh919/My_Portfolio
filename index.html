@@ -3,105 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ratnesh Kumar Singh | Interactive 3D Portfolio & Theme Selector</title>
+    <title>Ratnesh Kumar Singh | ECE Engineer &bull; Full-Stack &bull; AI Agents &bull; RF Hardware</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <meta name="description" content="Explore the multi-themed interactive 3D portfolio of Ratnesh Kumar Singh. Experience immersive WebGL 3D, playful Cosmic styles, bold Urban street art, clean Essential minimalist, and neon Lumen designs with custom VRM avatars and an AI chatbot.">
-    <meta name="keywords" content="Ratnesh Kumar Singh, Ratnesh Singh, Portfolio, 3D Portfolio, Web Developer, Electronics and Communication Engineer, Three.js, React, WebGL, Vercel, VRM Avatar, Mixamo, AI Chatbot, Hardware Prototypes, Arduino, Python">
+    <meta name="description" content="Explore the engineering portfolio of Ratnesh Kumar Singh. Electronics and Communication Engineering graduate specializing in Real-Time Web & Audio DSP, Native Android MediaCodec, Autonomous AI Agents, and Ansys HFSS RF Antennas.">
+    <meta name="keywords" content="Ratnesh Kumar Singh, Ratnesh Singh, Portfolio, Full-Stack Web, Android Kotlin, MediaCodec, AI Agents, n8n, Gemini API, Three.js, WebGL, Ansys HFSS, RF Antennas, MAKAUT, ECE">
     <meta name="author" content="Ratnesh Kumar Singh">
     <meta name="robots" content="index, follow">
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Social -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ratnesh-portfolio.vercel.app/">
-    <meta property="og:title" content="Ratnesh Kumar Singh | Interactive 3D Portfolio & Theme Selector">
-    <meta property="og:description" content="Explore the multi-themed interactive 3D portfolio of Ratnesh Kumar Singh. Choose your visual theme (Immersive, Cosmic, Urban, Essential, Lumen) and interact with custom 3D avatars.">
+    <meta property="og:title" content="Ratnesh Kumar Singh | Engineering Portfolio & AI Companion">
+    <meta property="og:description" content="Unified 3D engineering portfolio organized by skill tracks with custom 3D VRM avatars and an AI companion.">
     <meta property="og:image" content="https://ratnesh-portfolio.vercel.app/favicon.png">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://ratnesh-portfolio.vercel.app/">
-    <meta property="twitter:title" content="Ratnesh Kumar Singh | Interactive 3D Portfolio">
-    <meta property="twitter:description" content="Explore the multi-themed interactive 3D portfolio of Ratnesh Kumar Singh featuring custom 3D avatars and an AI chatbot.">
-    <meta property="twitter:image" content="https://ratnesh-portfolio.vercel.app/favicon.png">
+    <!-- Fonts & CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    
-    <!-- Basic styling overrides -->
-    <style>
-        .shiny-glass-btn {
-            position: relative;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 22px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.9);
-            font-family: 'Outfit', system-ui, sans-serif;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            text-decoration: none;
-            cursor: pointer;
-            letter-spacing: 0.05em;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            z-index: 200;
-        }
-        .shiny-glass-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -150%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(
-                to right,
-                transparent,
-                rgba(255, 255, 255, 0.35),
-                transparent
-            );
-            transform: skewX(-25deg);
-            transition: 0.75s;
-        }
-        .shiny-glass-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(99, 102, 241, 0.45);
-            box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.25),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-        .shiny-glass-btn:hover::before {
-            left: 150%;
-        }
-        .shiny-glass-btn svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-        .loader-skip-row {
-            margin-top: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-        }
-        .loader-skip-hint {
-            font-size: 0.68rem;
-            color: rgba(255,255,255,0.3);
-            font-family: 'Outfit', system-ui, sans-serif;
-            letter-spacing: 0.06em;
-        }
-    </style>
-    <!-- ─── Importmap for Three.js and three-vrm ────────────────────────── -->
+
+    <!-- Lenis Smooth Scroll Library -->
+    <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+
+    <!-- Three.js & VRM Importmap -->
     <script type="importmap">
         {
             "imports": {
@@ -111,57 +36,42 @@
             }
         }
     </script>
-    <!-- Basic Security Obfuscation -->
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Prevent Flash if Bubble Session Done -->
     <script>
-        // Disable Right-Click
-        document.addEventListener('contextmenu', event => event.preventDefault());
-
-        // Disable common DevTools shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
-        document.addEventListener('keydown', function(e) {
-            // Block F12
-            if (e.key === "F12" || e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            // Block Ctrl+Shift+I, J, C
-            if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
-                e.preventDefault();
-                return false;
-            }
-            // Block Ctrl+U (View Source)
-            if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Prevent dragging to extract models
-        document.addEventListener('dragstart', event => {
-            if(event.target.nodeName.toUpperCase() === "IMG" || event.target.nodeName.toUpperCase() === "CANVAS") {
-                event.preventDefault();
-            }
-        });
-        // Prevent overlay flash if session bubble is already done
         if (sessionStorage.getItem('raya_bubble_done')) {
             document.write('<style>#site-loader, #bubble-screen { display: none !important; }</style>');
         }
     </script>
 </head>
 <body>
+
+    <!-- ═══ 3D INTERACTIVE WEBGL BACKGROUND CANVAS ═══════════════ -->
+    <canvas id="bg-3d-canvas"></canvas>
+
+    <!-- ═══ AMBIENT GLOW BACKDROP & RETRO GRID ═══════════════════ -->
+    <div class="ambient-mesh">
+        <div class="ambient-glow-1"></div>
+        <div class="ambient-glow-2"></div>
+        <div class="ambient-glow-3"></div>
+        <div class="retro-grid-bg"></div>
+        <div class="stardust-overlay"></div>
+    </div>
+
     <!-- ═══ BUBBLE ENTRY SCREEN ══════════════════════════════════ -->
     <div id="bubble-screen" role="dialog" aria-label="Tap a bubble to enter the portfolio" aria-modal="true">
         <div class="bubble-instructions" id="bubble-text">Tap a Bubble to Enter</div>
         <div id="bubble-container"></div>
     </div>
 
-    <!-- ─── Site Global Loading Screen ─────────────────────────────────── -->
+    <!-- ═══ SITE GLOBAL LOADER ═══════════════════════════════════ -->
     <div id="site-loader">
         <div class="site-loader-bg"></div>
         <div class="site-loader-content">
-            <div class="site-loader-logo">
-                <i data-lucide="zap" style="color: #ff416c; width: 48px; height: 48px;"></i>
-            </div>
-            <h1 class="site-loader-title">SYSTEM INITIALIZING</h1>
+            <div class="site-loader-title" data-decrypt="SYSTEM INITIALIZING">SYSTEM INITIALIZING</div>
             <div class="site-loader-bar-wrap">
                 <div id="site-loader-bar"></div>
             </div>
@@ -172,15 +82,9 @@
         </div>
     </div>
 
-    <!-- ─── Background decorations ──────────────────────────────────────── -->
-    <div class="bg-gradient"></div>
-    <div class="glow" style="top: -10%; left: -10%; background: radial-gradient(circle, rgba(79, 172, 254, 0.3) 0%, transparent 70%);"></div>
-    <div class="glow" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(254, 154, 158, 0.3) 0%, transparent 70%);"></div>
-
-    <!-- ─── VRM Character canvas (ABOVE cards, always on top) ─────────────── -->
+    <!-- ═══ 3D VRM AVATAR CANVAS ═════════════════════════════════ -->
     <canvas id="vrm-canvas"></canvas>
 
-    <!-- ─── Loading indicator ───────────────────────────────────────────── -->
     <div id="vrm-loading">
         <div class="loading-text">INITIALIZING AVATAR... <span id="vrm-loading-pct">0%</span></div>
         <div class="loading-bar-container">
@@ -188,297 +92,890 @@
         </div>
     </div>
 
-    <!-- ─── Page content (z-index above canvas) ─────────────────────────── -->
-    <header style="text-align: center;">
-        <h1 style="font-family: 'Syne', sans-serif; letter-spacing: -0.02em;">Explore By Skill Track</h1>
-        <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase;">Full-Stack Web &bull; Android Mobile &bull; AI Agents &bull; Embedded &amp; RF &bull; UI/UX 3D</p>
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
-            <a href="./assets/Ratnesh_Kumar_Singh_CV.pdf" download="Ratnesh_Kumar_Singh_CV.pdf" class="shiny-glass-btn">
-                <i data-lucide="download"></i> Download CV
-            </a>
-            <a href="mailto:kumarsinghratnesh3@gmail.com" class="shiny-glass-btn">
-                <i data-lucide="mail"></i> Contact Me
+    <!-- ═══ FLOATING NAVIGATION DOCK ═════════════════════════════ -->
+    <nav class="nav-island" id="main-nav">
+        <a href="#hero" class="nav-brand">
+            <div class="nav-status-pulse" title="Ready for Opportunities"></div>
+            <span class="nav-name" data-decrypt="RATNESH SINGH">RATNESH SINGH</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#skills-section" class="nav-link-item">Skills &amp; Projects</a></li>
+            <li><a href="#certifications-section" class="nav-link-item">Certificates</a></li>
+            <li><a href="#timeline-section" class="nav-link-item">Timeline</a></li>
+            <li><a href="#contact-section" class="nav-link-item">Contact</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="./assets/Ratnesh_Kumar_Singh_CV.pdf" download="Ratnesh_Kumar_Singh_CV.pdf" class="nav-btn nav-btn-primary">
+                <i data-lucide="download" style="width:14px;height:14px;"></i> CV
             </a>
         </div>
-    </header>
-    
-    <main class="container">
-        <!-- Pillar 1: Full-Stack & Real-Time Web -->
-        <a href="./Immersive/dist/index.html" class="card" id="card-1">
-            <div class="card-icon"><i data-lucide="globe"></i></div>
-            <div class="card-vertical-title">WEB &amp; DSP</div>
-            <div class="card-content">
-                <div class="card-title">Full-Stack Web</div>
-                <div class="card-subtitle">Real-time spatial audio (SyncPulse), hospital triage (MediFlow), and e-commerce.</div>
-                <div class="view-project">
-                    <span>Explore Web Track</span>
-                    <span class="arrow">→</span>
-                </div>
-            </div>
-        </a>
+    </nav>
 
-        <!-- Pillar 2: Android Mobile App Development -->
-        <a href="./Urban/dist/index.html" class="card" id="card-2">
-            <div class="card-icon"><i data-lucide="smartphone"></i></div>
-            <div class="card-vertical-title">ANDROID</div>
-            <div class="card-content">
-                <div class="card-title">Mobile Dev</div>
-                <div class="card-subtitle">Native Kotlin &amp; Jetpack Compose apps with MediaCodec hardware video engine.</div>
-                <div class="view-project">
-                    <span>Explore Mobile Track</span>
-                    <span class="arrow">→</span>
-                </div>
-            </div>
-        </a>
-
-        <!-- Pillar 3: AI Agents & Automation -->
-        <a href="./Cosmic/dist/index.html" class="card" id="card-3">
-            <div class="card-icon"><i data-lucide="bot"></i></div>
-            <div class="card-vertical-title">AI AGENTS</div>
-            <div class="card-content">
-                <div class="card-title">AI &amp; Automation</div>
-                <div class="card-subtitle">Autonomous n8n cloud agent pipelines, Google Gemini matching, and custom bots.</div>
-                <div class="view-project">
-                    <span>Explore AI Track</span>
-                    <span class="arrow">→</span>
-                </div>
-            </div>
-        </a>
-
-        <!-- Pillar 4: Embedded Systems & RF Hardware -->
-        <a href="./Essential/dist/index.html" class="card" id="card-4">
-            <div class="card-icon"><i data-lucide="radio"></i></div>
-            <div class="card-vertical-title">HARDWARE</div>
-            <div class="card-content">
-                <div class="card-title">Embedded &amp; RF</div>
-                <div class="card-subtitle">V2X antennas in Ansys HFSS (74% size reduction), Arduino IoT, and VNA tests.</div>
-                <div class="view-project">
-                    <span>Explore Hardware Track</span>
-                    <span class="arrow">→</span>
-                </div>
-            </div>
-        </a>
-
-        <!-- Pillar 5: UI/UX & Interactive 3D -->
-        <a href="./Lumen/dist/index.html" class="card" id="card-5">
-            <div class="card-icon"><i data-lucide="box"></i></div>
-            <div class="card-vertical-title">UI/UX &amp; 3D</div>
-            <div class="card-content">
-                <div class="card-title">UI/UX &amp; 3D</div>
-                <div class="card-subtitle">Three.js WebGL automotive visualizers, Figma systems, and interactive UI.</div>
-                <div class="view-project">
-                    <span>Explore Design Track</span>
-                    <span class="arrow">→</span>
-                </div>
-            </div>
-        </a>
-    </main>
-
-    <!-- ─── Domain Switcher / Iframe Container ───────────────────────────── -->
-    <button id="change-theme-btn">Switch Skill Track <i data-lucide="refresh-cw" style="width:18px;height:18px;margin-left:5px;display:inline-block;vertical-align:middle;"></i></button>
-    <div id="iframe-container"></div>
-
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        lucide.createIcons();
-        
-        // Iframe Logic for Seamless Theme Switching
-        const container = document.querySelector('.container');
-        const header = document.querySelector('header');
-        const contactSection = document.querySelector('.contact-section'); // may be null
-        const changeThemeBtn = document.getElementById('change-theme-btn');
-        const iframeContainer = document.getElementById('iframe-container');
-
-        document.querySelectorAll('.card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetUrl = card.getAttribute('href');
-                localStorage.setItem('selectedTheme', targetUrl);
-
-                // Determine theme name for Raya's navigation hints
-                const themeNames = { 'card-1': 'Immersive', 'card-2': 'Cosmic', 'card-3': 'Urban', 'card-4': 'Essential', 'card-5': 'Lumen' };
-                const themeName = themeNames[card.id] || '';
-                
-                // Animate cards out
-                document.querySelectorAll('.card').forEach((c, idx) => {
-                    c.classList.add('exiting');
-                    c.style.animationDelay = `${idx * 0.05}s`;
-                });
-
-                // Hide main UI
-                container.style.opacity = '0';
-                container.style.pointerEvents = 'none';
-                header.style.opacity = '0';
-                header.style.pointerEvents = 'none';
-                if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
-                
-                setTimeout(() => {
-                    const loaderHTML = `
-                        <div id="iframe-loader" style="position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; background:#080808; z-index:5;">
-                            <div style="width:48px; height:48px; border:3px solid rgba(255,65,108,0.2); border-top-color:#ff416c; border-radius:50%; animation:spin 1s linear infinite;"></div>
-                            <span style="color:rgba(255,255,255,0.4); font-family:'Outfit',sans-serif; font-size:13px; letter-spacing:1px;">LOADING...</span>
-                            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-                        </div>
-                    `;
-
-                    // Create and show iframe
-                    iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.addEventListener('pointermove', e => window.parent.postMessage({type: 'vrm-pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerdown', e => window.parent.postMessage({type: 'vrm-pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerup', e => window.parent.postMessage({type: 'vrm-pointerup', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
-                    iframeContainer.style.opacity = '1';
-                    iframeContainer.style.pointerEvents = 'none';
-                    const newIframe = iframeContainer.querySelector('iframe');
-                    if (newIframe) newIframe.style.pointerEvents = 'auto';
-                    
-                    // Show switch theme button, hide avatar button
-                    changeThemeBtn.style.opacity = '1';
-                    changeThemeBtn.style.pointerEvents = 'auto';
-                    const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
-                    if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
-                    const avatarPanel = document.getElementById('avatar-panel');
-                    if (avatarPanel) { avatarPanel.classList.remove('open'); }
-
-                    // Notify Raya that a theme was opened (for navigation hints)
-                    if (themeName && window.chatbot && typeof window.chatbot.onThemeOpened === 'function') {
-                        window.chatbot.onThemeOpened(themeName);
-                    }
-                }, 600); // Wait for card exit and fade out
-            });
-        });
-
-        changeThemeBtn.addEventListener('click', () => {
-            localStorage.removeItem('selectedTheme');
-            // Hide iframe and button
-            iframeContainer.style.opacity = '0';
-            iframeContainer.style.pointerEvents = 'none';
-            changeThemeBtn.style.opacity = '0';
-            changeThemeBtn.style.pointerEvents = 'none';
-            // Restore avatar button
-            const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
-            if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '1'; avatarToggleBtn.style.pointerEvents = 'auto'; }
-
-            // Notify Raya that user returned to theme selector
-            if (window.chatbot && typeof window.chatbot.onThemeClosed === 'function') {
-                window.chatbot.onThemeClosed();
-            }
-            
-            setTimeout(() => {
-                iframeContainer.innerHTML = ''; // clear iframe memory
-                
-                // Show main UI
-                container.style.opacity = '1';
-                container.style.pointerEvents = 'auto';
-                header.style.opacity = '1';
-                header.style.pointerEvents = 'auto';
-                if (contactSection) { contactSection.style.opacity = '1'; contactSection.style.pointerEvents = 'auto'; }
-                
-                // Animate cards back in
-                document.querySelectorAll('.card').forEach((c) => {
-                    c.style.animationDelay = ''; // clear exit delay
-                    c.style.animation = 'none';
-                    c.offsetHeight; /* trigger reflow */
-                    c.classList.remove('exiting');
-                    c.style.animation = ''; // restore CSS defined animation
-                });
-            }, 500); // Wait for fade out
-        });
-
-        // Auto-load previously selected theme
-        const savedTheme = localStorage.getItem('selectedTheme');
-        if (savedTheme) {
-            const card = Array.from(document.querySelectorAll('.card')).find(c => c.getAttribute('href') === savedTheme);
-            if (card) {
-                // Simulate quick transition without animation delays
-                const targetUrl = savedTheme;
-                const container = document.querySelector('.container');
-                const header = document.querySelector('header');
-                const contactSection = document.querySelector('.contact-section');
-                
-                container.style.opacity = '0';
-                container.style.pointerEvents = 'none';
-                header.style.opacity = '0';
-                header.style.pointerEvents = 'none';
-                if (contactSection) { contactSection.style.opacity = '0'; contactSection.style.pointerEvents = 'none'; }
-                
-                const loaderHTML = `
-                    <div id="iframe-loader" style="position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; background:#080808; z-index:5;">
-                        <div style="width:48px; height:48px; border:3px solid rgba(255,65,108,0.2); border-top-color:#ff416c; border-radius:50%; animation:spin 1s linear infinite;"></div>
-                        <span style="color:rgba(255,255,255,0.4); font-family:'Outfit',sans-serif; font-size:13px; letter-spacing:1px;">LOADING...</span>
-                        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-                    </div>
-                `;
-                iframeContainer.innerHTML = `${loaderHTML}<iframe src="${targetUrl}" frameborder="0" onload="const l = document.getElementById('iframe-loader'); if(l) { l.style.opacity='0'; setTimeout(()=>l.remove(), 300); } try { const idoc = this.contentDocument || this.contentWindow.document; idoc.addEventListener('contextmenu', e => e.preventDefault()); idoc.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; } if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) { e.preventDefault(); return false; } if (e.ctrlKey && e.key.toLowerCase() === 'u') { e.preventDefault(); return false; } }); idoc.addEventListener('pointermove', e => window.parent.postMessage({type: 'vrm-pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerdown', e => window.parent.postMessage({type: 'vrm-pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.addEventListener('pointerup', e => window.parent.postMessage({type: 'vrm-pointerup', clientX: e.clientX, clientY: e.clientY, button: e.button}, '*')); idoc.body.style.webkitTouchCallout = 'none'; } catch(e) {}"></iframe>`;
-                iframeContainer.style.opacity = '1';
-                iframeContainer.style.pointerEvents = 'none';
-                const newIframe2 = iframeContainer.querySelector('iframe');
-                if (newIframe2) newIframe2.style.pointerEvents = 'auto';
-                
-                changeThemeBtn.style.opacity = '1';
-                changeThemeBtn.style.pointerEvents = 'auto';
-                const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
-                if (avatarToggleBtn) { avatarToggleBtn.style.opacity = '0'; avatarToggleBtn.style.pointerEvents = 'none'; }
-                const avatarPanel = document.getElementById('avatar-panel');
-                if (avatarPanel) { avatarPanel.classList.remove('open'); }
-            }
-        }
-    </script>
-
-    <!-- SVG Filter for Liquid Effect -->
-    <svg style="visibility: hidden; position: absolute;" width="0" height="0">
-        <filter id="liquid-filter">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="liquid" />
-            <feComposite in="SourceGraphic" in2="liquid" operator="atop" />
-        </filter>
-    </svg>
-
-    <!-- ─── Avatar Switcher ──────────────────────────────────────────── -->
-    <button id="avatar-toggle-btn" title="Switch Avatar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-        <span>Avatar</span>
+    <!-- ═══ AVATAR STUDIO CONTROLLER ═════════════════════════════ -->
+    <button id="avatar-toggle-btn" title="Open Avatar Studio">
+        <i data-lucide="user" style="width:16px;height:16px;"></i>
+        <span>Avatar Studio</span>
     </button>
 
     <div id="avatar-panel">
         <div class="avatar-panel-header">
-            <span>Choose Avatar</span>
-            <button id="avatar-panel-close">✕</button>
+            <span>Avatar Studio</span>
+            <button id="avatar-panel-close">&times;</button>
         </div>
         <div class="avatar-toggle-row">
-            <span class="avatar-toggle-title">Display Avatar</span>
-            <label class="avatar-switch">
-                <input type="checkbox" id="avatar-onoff-toggle" checked>
-                <span class="avatar-switch-slider"></span>
+            <span>Display 3D Companion</span>
+            <label class="avatar-switch" style="position:relative;display:inline-block;width:38px;height:20px;">
+                <input type="checkbox" id="avatar-onoff-toggle" checked style="opacity:0;width:0;height:0;">
+                <span class="avatar-switch-slider" style="position:absolute;cursor:pointer;inset:0;background:#333;border-radius:20px;transition:.4s;"></span>
             </label>
         </div>
         <div class="avatar-slider-container">
-            <label for="avatar-size-slider">Character Size <span id="avatar-size-pct">95%</span></label>
+            <label>Character Scale <span id="avatar-size-pct">95%</span></label>
             <input type="range" id="avatar-size-slider" min="0.5" max="1.5" step="0.01" value="0.95">
         </div>
         <div class="avatar-slider-container">
-            <label for="avatar-brightness-slider">Scene Brightness <span id="avatar-brightness-pct">100%</span></label>
+            <label>Scene Brightness <span id="avatar-brightness-pct">100%</span></label>
             <input type="range" id="avatar-brightness-slider" min="0.2" max="3.0" step="0.05" value="1.0">
         </div>
         <div class="avatar-slider-container">
-            <label for="avatar-hair-slider">💇 Hair Brightness <span id="avatar-hair-pct">100%</span></label>
+            <label>Hair Illumination <span id="avatar-hair-pct">100%</span></label>
             <input type="range" id="avatar-hair-slider" min="0.1" max="3.0" step="0.05" value="1.0">
         </div>
         <div class="avatar-slider-container">
-            <label for="avatar-skin-slider">✨ Skin Brightness <span id="avatar-skin-pct">100%</span></label>
+            <label>Skin Tone Illumination <span id="avatar-skin-pct">100%</span></label>
             <input type="range" id="avatar-skin-slider" min="0.1" max="3.0" step="0.05" value="1.0">
         </div>
         <div class="avatar-grid" id="avatar-grid">
-            <!-- filled by JS -->
+            <!-- Populated dynamically by JS -->
         </div>
     </div>
 
+    <!-- ═══ MAIN CONTENT WRAPPER ══════════════════════════════════ -->
+    <main class="main-wrapper">
+
+        <!-- ── HERO CHAPTER ────────────────────────────────────── -->
+        <section class="hero-section" id="hero">
+            <div class="hero-eyebrow">
+                <i data-lucide="cpu" style="width:14px;height:14px;color:#00f2fe;"></i>
+                <span>ECE ENGINEER &bull; REAL-TIME FULL-STACK &bull; AI AGENTS &bull; RF HARDWARE</span>
+            </div>
+            
+            <h1 class="hero-h1">
+                ENGINEERING REAL-TIME SYSTEMS,
+                <span class="glow-gradient-text" data-decrypt="INTELLIGENT AGENTS & RF HARDWARE">INTELLIGENT AGENTS &amp; RF HARDWARE</span>
+            </h1>
+
+            <p class="hero-bio">
+                Electronics &amp; Communication Engineering graduate from <strong>MAKAUT ('26)</strong>. Designing multi-device spatial audio networks with &plusmn;5ms NTP sync, native Android MediaCodec hardware video transcoders, autonomous Google Gemini AI workflows in n8n, and Ansys HFSS vehicular RF antennas with 74% size reduction.
+            </p>
+
+            <div class="hero-ctas">
+                <a href="#skills-section" class="shiny-glass-btn">
+                    <i data-lucide="layers"></i> Explore Skills &amp; Projects
+                </a>
+                <a href="./assets/Ratnesh_Kumar_Singh_CV.pdf" download="Ratnesh_Kumar_Singh_CV.pdf" class="shiny-glass-btn">
+                    <i data-lucide="file-check"></i> Download Verified CV
+                </a>
+                <button class="shiny-glass-btn" id="hero-talk-raya-btn">
+                    <i data-lucide="bot"></i> Talk with Raya AI
+                </button>
+            </div>
+
+            <div class="hero-ticker-wrap">
+                <div class="hero-ticker-item">
+                    <span>✦</span> <strong data-counter="5">&plusmn;5ms</strong> NTP Spatial Audio Sync
+                </div>
+                <div class="hero-ticker-item">
+                    <span>✦</span> MediaCodec Hardware Video Pipelines
+                </div>
+                <div class="hero-ticker-item">
+                    <span>✦</span> Autonomous Gemini &amp; n8n Agents
+                </div>
+                <div class="hero-ticker-item">
+                    <span>✦</span> <strong data-counter="74">74%</strong> HFSS Antenna Size Reduction
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 5 SKILL TRACKS WITH INTEGRATED PROJECTS ─────────── -->
+        <section id="skills-section" style="display:flex;flex-direction:column;gap:40px;">
+            <div class="section-header">
+                <div class="section-badge">Core Specializations &amp; Production Work</div>
+                <h2 class="section-title" data-decrypt="SKILLS & INTEGRATED PROJECTS">Skills &amp; Projects</h2>
+                <p class="section-subtitle">
+                    Explore Ratnesh's 5 engineering tracks. Each track showcases deep architecture patterns, tech stacks, and live production projects.
+                </p>
+            </div>
+
+            <!-- TRACK 1: FULL-STACK WEB & AUDIO DSP -->
+            <div class="skill-track-module track-web spotlight-card" id="pillar-web-card" data-skill="web">
+                <div class="track-header-row">
+                    <div class="track-title-wrap">
+                        <div class="track-icon-box"><i data-lucide="globe"></i></div>
+                        <div>
+                            <h3 class="track-name">1. Full-Stack Web &amp; Real-Time Audio DSP</h3>
+                            <div style="font-size:0.8rem;color:#00f2fe;font-weight:700;margin-top:2px;">3 Production Projects</div>
+                        </div>
+                    </div>
+                    <div class="track-metric-badge">&plusmn;5ms NTP CLOCK SYNC &bull; WEB AUDIO DSP</div>
+                </div>
+
+                <p class="track-desc">
+                    High-concurrency web architecture and real-time audio signal processing. Implementing Cristian's NTP algorithm for sub-5ms cross-device clock synchronization, 8D binaural 360° spatial audio panning, WebSockets, and FastAPI outpatient wait-time forecasting using Scikit-Learn Random Forest models.
+                </p>
+
+                <div class="track-tech-row">
+                    <span class="track-tech-pill" data-tech="React 18">React 18</span>
+                    <span class="track-tech-pill" data-tech="TypeScript">TypeScript</span>
+                    <span class="track-tech-pill" data-tech="FastAPI">FastAPI</span>
+                    <span class="track-tech-pill" data-tech="WebSockets">WebSockets</span>
+                    <span class="track-tech-pill" data-tech="Web Audio API">Web Audio API</span>
+                    <span class="track-tech-pill" data-tech="Three.js">Three.js</span>
+                    <span class="track-tech-pill" data-tech="PostgreSQL">PostgreSQL</span>
+                    <span class="track-tech-pill" data-tech="Scikit-Learn">Scikit-Learn</span>
+                </div>
+
+                <!-- Embedded Projects for Track 1 -->
+                <div class="embedded-projects-grid">
+                    <!-- SyncPulse -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">SyncPulse</div>
+                            <div class="ep-tagline">Real-Time Synchronized Spatial Audio Network</div>
+                            <p class="ep-desc">
+                                Multi-device synchronized spatial audio system using Cristian's NTP algorithm (&plusmn;5ms cross-device accuracy), 8D binaural 360° soundstage, and interactive Three.js frequency visualizer.
+                            </p>
+                            <div class="ep-metric-box">&plusmn;5ms NTP Clock Sync &bull; 8D Binaural DSP</div>
+                        </div>
+                        <div class="ep-actions">
+                            <a href="https://syncpulse-1igt.onrender.com" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                                <i data-lucide="external-link" style="width:13px;height:13px;"></i> Live Demo
+                            </a>
+                            <a href="https://github.com/Ratnesh919/SyncPulse" target="_blank" rel="noopener" class="p-btn p-btn-github">
+                                <i data-lucide="github" style="width:13px;height:13px;"></i> Source
+                            </a>
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('SyncPulse — Spatial Audio Network', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> Video
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MediFlow -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">MediFlow</div>
+                            <div class="ep-tagline">Smart Hospital Queue &amp; ML Wait-Time Forecasting</div>
+                            <p class="ep-desc">
+                                Enterprise outpatient triage platform combining Scikit-Learn Random Forest regression for wait-time predictions, live WebSocket token broadcasts, and emergency triage preemption.
+                            </p>
+                            <div class="ep-metric-box">Random Forest ML &bull; WebSocket Live Broadcasts</div>
+                        </div>
+                        <div class="ep-actions">
+                            <a href="https://github.com/Ratnesh919/Medi_Flow" target="_blank" rel="noopener" class="p-btn p-btn-github">
+                                <i data-lucide="github" style="width:13px;height:13px;"></i> Source Code
+                            </a>
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('MediFlow — Smart Hospital Queue & ML', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> Demo Video
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ShopKart -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">ShopKart</div>
+                            <div class="ep-tagline">Modern E-Commerce Web Application</div>
+                            <p class="ep-desc">
+                                Full-featured online shopping platform featuring dynamic product catalog, category filters, responsive cart state management, and seamless modern design.
+                            </p>
+                            <div class="ep-metric-box">React Architecture &bull; REST API Integration</div>
+                        </div>
+                        <div class="ep-actions">
+                            <a href="https://shopkart919.netlify.app" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                                <i data-lucide="external-link" style="width:13px;height:13px;"></i> Live Demo
+                            </a>
+                            <a href="https://github.com/Ratnesh919/Shop_Kart-" target="_blank" rel="noopener" class="p-btn p-btn-github">
+                                <i data-lucide="github" style="width:13px;height:13px;"></i> Source
+                            </a>
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('ShopKart E-Commerce Platform', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRACK 2: NATIVE ANDROID MOBILE -->
+            <div class="skill-track-module track-android spotlight-card" id="pillar-android-card" data-skill="android">
+                <div class="track-header-row">
+                    <div class="track-title-wrap">
+                        <div class="track-icon-box"><i data-lucide="smartphone"></i></div>
+                        <div>
+                            <h3 class="track-name">2. Native Android Mobile Development</h3>
+                            <div style="font-size:0.8rem;color:#10b981;font-weight:700;margin-top:2px;">1 Production Project</div>
+                        </div>
+                    </div>
+                    <div class="track-metric-badge">HARDWARE MEDIACODEC PIPELINE</div>
+                </div>
+
+                <p class="track-desc">
+                    Modern native Android applications written in Kotlin and Jetpack Compose. Utilizing low-latency hardware MediaCodec and MediaMuxer pipelines for raw video frame extraction, format transcoding, Room SQLite caching, and asynchronous Kotlin Coroutines and Flows.
+                </p>
+
+                <div class="track-tech-row">
+                    <span class="track-tech-pill" data-tech="Kotlin">Kotlin</span>
+                    <span class="track-tech-pill" data-tech="Jetpack Compose">Jetpack Compose</span>
+                    <span class="track-tech-pill" data-tech="MediaCodec">MediaCodec</span>
+                    <span class="track-tech-pill" data-tech="MediaMuxer">MediaMuxer</span>
+                    <span class="track-tech-pill" data-tech="Room SQLite">Room SQLite</span>
+                    <span class="track-tech-pill" data-tech="Coroutines">Coroutines &amp; Flow</span>
+                </div>
+
+                <div class="embedded-projects-grid">
+                    <!-- PAK Video Converter -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">PAK Video Converter &amp; Transcoder</div>
+                            <div class="ep-tagline">Pro-Grade Android Media Extractor &amp; Transcoder</div>
+                            <p class="ep-desc">
+                                Native Android app engineered with low-latency MediaCodec and MediaMuxer hardware pipelines to extract, transcode, and stream raw video payloads, game assets, and dashcam archives.
+                            </p>
+                            <div class="ep-metric-box">Hardware MediaCodec Engine &bull; Jetpack Compose</div>
+                        </div>
+                        <div class="ep-actions">
+                            <a href="https://github.com/Ratnesh919/PAK_Video_Converter_Android_App" target="_blank" rel="noopener" class="p-btn p-btn-github">
+                                <i data-lucide="github" style="width:13px;height:13px;"></i> Source Code
+                            </a>
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('PAK Video Converter & Transcoder', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> Walkthrough Video
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRACK 3: AI AGENTS & WORKFLOW AUTOMATION -->
+            <div class="skill-track-module track-ai spotlight-card" id="pillar-ai-card" data-skill="ai">
+                <div class="track-header-row">
+                    <div class="track-title-wrap">
+                        <div class="track-icon-box"><i data-lucide="bot"></i></div>
+                        <div>
+                            <h3 class="track-name">3. AI Agents &amp; Workflow Automation</h3>
+                            <div style="font-size:0.8rem;color:#ff416c;font-weight:700;margin-top:2px;">1 Production Project</div>
+                        </div>
+                    </div>
+                    <div class="track-metric-badge">AUTONOMOUS LLM ORCHESTRATION</div>
+                </div>
+
+                <p class="track-desc">
+                    Autonomous agent pipelines connecting cloud workflow orchestrators (n8n Cloud) with Google Gemini and OpenAI LLMs. Implementing deterministic multi-step reasoning, RSS/webhook data intake, algorithmic resume scoring, and customized dispatching.
+                </p>
+
+                <div class="track-tech-row">
+                    <span class="track-tech-pill" data-tech="n8n">n8n Cloud</span>
+                    <span class="track-tech-pill" data-tech="Google Gemini API">Google Gemini API</span>
+                    <span class="track-tech-pill" data-tech="OpenAI API">OpenAI API</span>
+                    <span class="track-tech-pill" data-tech="Prompt Engineering">Prompt Engineering</span>
+                    <span class="track-tech-pill" data-tech="Webhooks">Webhooks</span>
+                    <span class="track-tech-pill" data-tech="Python Automation">Python Automation</span>
+                </div>
+
+                <div class="embedded-projects-grid">
+                    <!-- JobPilot AI -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">JobPilot AI</div>
+                            <div class="ep-tagline">Autonomous AI Job Discovery &amp; Dispatch Agent</div>
+                            <p class="ep-desc">
+                                Production n8n automation pipeline connecting Google Gemini API to scan job feeds, assess match scoring against candidate profiles, generate tailored letters, and dispatch applications.
+                            </p>
+                            <div class="ep-metric-box">n8n Cloud Orchestration &bull; Gemini LLM Analysis</div>
+                        </div>
+                        <div class="ep-actions">
+                            <a href="https://ratnesh919.app.n8n.cloud" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                                <i data-lucide="zap" style="width:13px;height:13px;"></i> n8n Workflow
+                            </a>
+                            <a href="https://github.com/Ratnesh919/Job_Pilot-AI" target="_blank" rel="noopener" class="p-btn p-btn-github">
+                                <i data-lucide="github" style="width:13px;height:13px;"></i> Source
+                            </a>
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('JobPilot AI — Autonomous Agent', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRACK 4: EMBEDDED SYSTEMS & RF HARDWARE -->
+            <div class="skill-track-module track-rf spotlight-card" id="pillar-rf-card" data-skill="rf">
+                <div class="track-header-row">
+                    <div class="track-title-wrap">
+                        <div class="track-icon-box"><i data-lucide="radio"></i></div>
+                        <div>
+                            <h3 class="track-name">4. Embedded Systems &amp; RF Hardware</h3>
+                            <div style="font-size:0.8rem;color:#f59e0b;font-weight:700;margin-top:2px;">2 Engineering Projects</div>
+                        </div>
+                    </div>
+                    <div class="track-metric-badge">74% SIZE REDUCTION &bull; -31.87 dB RETURN LOSS</div>
+                </div>
+
+                <p class="track-desc">
+                    3D Electromagnetic simulation in Ansys HFSS, RF antenna miniaturization, and micro-controller IoT systems. Engineered a capacitive and dielectric-loaded monopole antenna for vehicular communications (V2X), achieving 74% size reduction (36 mm height) resonating at 535.57 MHz with -31.87 dB return loss and 98.34% efficiency, verified via Vector Network Analyzer (VNA).
+                </p>
+
+                <div class="track-tech-row">
+                    <span class="track-tech-pill" data-tech="Ansys HFSS">Ansys HFSS 3D EM</span>
+                    <span class="track-tech-pill" data-tech="VNA Testing">VNA Testing</span>
+                    <span class="track-tech-pill" data-tech="Dielectric Sleeve">Dielectric Sleeve</span>
+                    <span class="track-tech-pill" data-tech="V2X Comms">V2X Antennas</span>
+                    <span class="track-tech-pill" data-tech="Arduino IoT">Arduino IoT</span>
+                    <span class="track-tech-pill" data-tech="MATLAB">MATLAB</span>
+                </div>
+
+                <div class="embedded-projects-grid">
+                    <!-- Smart Antenna -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">Smart Antenna for Vehicular Applications (V2X)</div>
+                            <div class="ep-tagline">Low-Profile Monopole Antenna in Ansys HFSS</div>
+                            <p class="ep-desc">
+                                Designed and simulated a dielectric-loaded capacitive monopole antenna in Ansys HFSS for V2V/V2I vehicular communications. 74% physical size reduction at 535.57 MHz with -31.87 dB return loss and 98.34% radiation efficiency.
+                            </p>
+                            <div class="ep-metric-box">74% Miniaturization &bull; -31.87 dB S11 &bull; 98.34% Eff.</div>
+                        </div>
+                        <div class="ep-actions">
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('Smart Antenna V2X Simulation in Ansys HFSS', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> HFSS Simulation Video
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Smart Parking System -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">Smart Parking System</div>
+                            <div class="ep-tagline">Arduino IoT Real-Time Space Detection</div>
+                            <p class="ep-desc">
+                                Arduino hardware prototype utilizing ultrasonic sensor arrays to detect vacant parking spaces in real-time with visual indicators.
+                            </p>
+                            <div class="ep-metric-box">Arduino C++ &bull; Ultrasonic Sensor Arrays</div>
+                        </div>
+                        <div class="ep-actions">
+                            <span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Hardware Prototype &bull; ECE Lab</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRACK 5: UI/UX & INTERACTIVE 3D GRAPHICS -->
+            <div class="skill-track-module track-3d spotlight-card" id="pillar-3d-card" data-skill="3d">
+                <div class="track-header-row">
+                    <div class="track-title-wrap">
+                        <div class="track-icon-box"><i data-lucide="box"></i></div>
+                        <div>
+                            <h3 class="track-name">5. UI/UX &amp; Interactive 3D Graphics</h3>
+                            <div style="font-size:0.8rem;color:#8b5cf6;font-weight:700;margin-top:2px;">1 Production Project</div>
+                        </div>
+                    </div>
+                    <div class="track-metric-badge">THREE.JS WEBGL &bull; PBR SHADERS</div>
+                </div>
+
+                <p class="track-desc">
+                    High-end WebGL 3D graphics and responsive frontend engineering. Building interactive Three.js vehicle showcases with realistic PBR lighting, reflection environment mapping, 360-degree orbit inspection controls, and custom GLSL vertex/fragment shaders.
+                </p>
+
+                <div class="track-tech-row">
+                    <span class="track-tech-pill" data-tech="Three.js">Three.js</span>
+                    <span class="track-tech-pill" data-tech="WebGL">WebGL</span>
+                    <span class="track-tech-pill" data-tech="GLSL Shaders">GLSL Shaders</span>
+                    <span class="track-tech-pill" data-tech="GSAP">GSAP ScrollTrigger</span>
+                    <span class="track-tech-pill" data-tech="Framer Motion">Framer Motion</span>
+                    <span class="track-tech-pill" data-tech="Figma">Figma Design Systems</span>
+                </div>
+
+                <div class="embedded-projects-grid">
+                    <!-- BMW M3 GTR 3D -->
+                    <div class="embedded-project-card">
+                        <div>
+                            <div class="ep-title">BMW M3 GTR 3D Visualizer</div>
+                            <div class="ep-tagline">Interactive WebGL 3D Automotive Showcase</div>
+                            <p class="ep-desc">
+                                Interactive 3D vehicle showcase with real-time lighting, reflection environment maps, orbit inspection controls, and custom GLSL vertex/fragment shaders in Three.js.
+                            </p>
+                            <div class="ep-metric-box">Three.js WebGL &bull; PBR Shaders &bull; Reflection Maps</div>
+                        </div>
+                        <div class="ep-actions">
+                            <a href="https://github.com/Ratnesh919/BMW-M3-GTR" target="_blank" rel="noopener" class="p-btn p-btn-github">
+                                <i data-lucide="github" style="width:13px;height:13px;"></i> Source Code
+                            </a>
+                            <button class="p-btn p-btn-video" onclick="openVideoModal('BMW M3 GTR 3D WebGL Showcase', 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4')">
+                                <i data-lucide="play" style="width:13px;height:13px;"></i> 3D Preview
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── VERIFIED LICENSES & CERTIFICATIONS SECTION ──────── -->
+        <section id="certifications-section">
+            <div class="section-header">
+                <div class="section-badge">Verified Credentials</div>
+                <h2 class="section-title" data-decrypt="LICENSES & CERTIFICATIONS">Licenses &amp; Certifications</h2>
+                <p class="section-subtitle">
+                    Verified technical certifications issued by Udemy across IoT, Prompt Engineering, Multi-Language Programming, and C++.
+                </p>
+            </div>
+
+            <div class="certs-grid">
+                <!-- Cert 1: IoT -->
+                <div class="cert-card spotlight-card">
+                    <div>
+                        <div class="cert-thumb">
+                            <img src="./certificates/cert-iot.jpg" alt="Internet of Things (IoT) Online Course Certificate" onerror="this.src='./Essential/public/certificates/cert-iot.jpg'">
+                            <div class="cert-verified-stamp"><i data-lucide="check-circle" style="width:12px;height:12px;"></i> Verified</div>
+                        </div>
+                        <h3 class="cert-title">Internet of Things (IoT) Online Course</h3>
+                        <div class="cert-issuer">Makeintern &amp; Learntoupgrade &bull; July 30, 2026</div>
+                        <div class="cert-meta-id">ID: UC-45f867df-23bf-440a-b362-0508bfb8d29f</div>
+                    </div>
+                    <div class="cert-actions">
+                        <button class="p-btn p-btn-github" onclick="openCertModal('Internet of Things (IoT) Online Course', './certificates/cert-iot.jpg', 'https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f')">
+                            <i data-lucide="eye" style="width:14px;height:14px;"></i> Preview
+                        </button>
+                        <a href="https://ude.my/UC-45f867df-23bf-440a-b362-0508bfb8d29f" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                            <i data-lucide="shield-check" style="width:14px;height:14px;"></i> Verify
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Cert 2: Prompt Engineering -->
+                <div class="cert-card spotlight-card">
+                    <div>
+                        <div class="cert-thumb">
+                            <img src="./certificates/cert-prompt-engineering.jpg" alt="Prompt Engineering for Everyone Certificate" onerror="this.src='./Essential/public/certificates/cert-prompt-engineering.jpg'">
+                            <div class="cert-verified-stamp"><i data-lucide="check-circle" style="width:12px;height:12px;"></i> Verified</div>
+                        </div>
+                        <h3 class="cert-title">Prompt Engineering for Everyone (Tool-Agnostic)</h3>
+                        <div class="cert-issuer">Dr. Amar Massoud &bull; May 4, 2025</div>
+                        <div class="cert-meta-id">ID: UC-58952f65-94dc-45c4-abd9-aa490de18afc</div>
+                    </div>
+                    <div class="cert-actions">
+                        <button class="p-btn p-btn-github" onclick="openCertModal('Prompt Engineering for Everyone', './certificates/cert-prompt-engineering.jpg', 'https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc')">
+                            <i data-lucide="eye" style="width:14px;height:14px;"></i> Preview
+                        </button>
+                        <a href="https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                            <i data-lucide="shield-check" style="width:14px;height:14px;"></i> Verify
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Cert 3: Master Java Python C C++ -->
+                <div class="cert-card spotlight-card">
+                    <div>
+                        <div class="cert-thumb">
+                            <img src="./certificates/cert-multi-programming.jpg" alt="Master Java, Python, C & C++ Certificate" onerror="this.src='./Essential/public/certificates/cert-multi-programming.jpg'">
+                            <div class="cert-verified-stamp"><i data-lucide="check-circle" style="width:12px;height:12px;"></i> Verified</div>
+                        </div>
+                        <h3 class="cert-title">Master Java, Python, C &amp; C++: All-in-One</h3>
+                        <div class="cert-issuer">Knowledge Nest &bull; May 5, 2025</div>
+                        <div class="cert-meta-id">ID: UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b</div>
+                    </div>
+                    <div class="cert-actions">
+                        <button class="p-btn p-btn-github" onclick="openCertModal('Master Java, Python, C & C++', './certificates/cert-multi-programming.jpg', 'https://ude.my/UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b')">
+                            <i data-lucide="eye" style="width:14px;height:14px;"></i> Preview
+                        </button>
+                        <a href="https://ude.my/UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                            <i data-lucide="shield-check" style="width:14px;height:14px;"></i> Verify
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Cert 4: C++ Programming -->
+                <div class="cert-card spotlight-card">
+                    <div>
+                        <div class="cert-thumb">
+                            <img src="./certificates/cert-cpp.jpg" alt="The Complete Introduction to C++ Certificate" onerror="this.src='./Essential/public/certificates/cert-cpp.jpg'">
+                            <div class="cert-verified-stamp"><i data-lucide="check-circle" style="width:12px;height:12px;"></i> Verified</div>
+                        </div>
+                        <h3 class="cert-title">The Complete Introduction to C++ Programming</h3>
+                        <div class="cert-issuer">Yassin Marco MBA &bull; July 14, 2025</div>
+                        <div class="cert-meta-id">ID: UC-c57ec369-5a17-48e6-a9be-bcf9c0855867</div>
+                    </div>
+                    <div class="cert-actions">
+                        <button class="p-btn p-btn-github" onclick="openCertModal('The Complete Introduction to C++', './certificates/cert-cpp.jpg', 'https://ude.my/UC-c57ec369-5a17-48e6-a9be-bcf9c0855867')">
+                            <i data-lucide="eye" style="width:14px;height:14px;"></i> Preview
+                        </button>
+                        <a href="https://ude.my/UC-c57ec369-5a17-48e6-a9be-bcf9c0855867" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                            <i data-lucide="shield-check" style="width:14px;height:14px;"></i> Verify
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ACADEMIC & EXPERIENCE TIMELINE ──────────────────── -->
+        <section id="timeline-section">
+            <div class="section-header">
+                <div class="section-badge">Academic &amp; Professional Journey</div>
+                <h2 class="section-title" data-decrypt="EDUCATION & EXPERIENCE">Education &amp; Experience</h2>
+                <p class="section-subtitle">
+                    Foundational engineering background and technical development milestones.
+                </p>
+            </div>
+
+            <div class="timeline-wrap">
+                <!-- Education Item 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card spotlight-card">
+                        <div class="timeline-period">2022 &mdash; 2026 &bull; Graduating Class</div>
+                        <h3 class="timeline-degree">B.Tech in Electronics &amp; Communication Engineering (ECE)</h3>
+                        <div class="timeline-institution">Swami Vivekananda Institute of Science &amp; Technology &bull; MAKAUT (W.B.U.T.)</div>
+                        <p class="timeline-desc">
+                            Specializing in embedded RF hardware simulation (Ansys HFSS), digital signal processing (DSP), TCP/IP networking, real-time web systems, and AI automation.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Education Item 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card spotlight-card">
+                        <div class="timeline-period">2018 &mdash; 2020</div>
+                        <h3 class="timeline-degree">Higher Secondary Education (12th Standard &bull; Science)</h3>
+                        <div class="timeline-institution">P.B.S College &bull; B.S.E.B</div>
+                        <p class="timeline-desc">
+                            Core subjects in Physics, Chemistry, and Advanced Mathematics, establishing fundamental logic and problem-solving skills.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Education Item 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card spotlight-card">
+                        <div class="timeline-period">Completed 2018</div>
+                        <h3 class="timeline-degree">Secondary Education (10th Standard &bull; Science)</h3>
+                        <div class="timeline-institution">Vidyanjali High School (H.S.) &bull; I.G.C.S.E</div>
+                        <p class="timeline-desc">
+                            Graduated with strong foundations in science and computer fundamentals.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Workshop Item 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card spotlight-card">
+                        <div class="timeline-period">Industrial Visits &amp; Workshops</div>
+                        <h3 class="timeline-degree">Technical Workshops &amp; Industrial Exposure</h3>
+                        <div class="timeline-institution">BSNL Telecom &bull; HAM Radio &bull; Cyber Security Awareness</div>
+                        <p class="timeline-desc">
+                            Industrial visit to BSNL Telecom infrastructure, technical workshops on HAM Radio Innovation &amp; General Awareness, Electric Vehicle Service Tech Training, and Cyber Security.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── CONTACT & GET IN TOUCH ───────────────────────────── -->
+        <section class="contact-container" id="contact-section">
+            <div class="section-badge">Get in Touch</div>
+            <h2 class="section-title" data-decrypt="LET'S BUILD TOGETHER">Let's Build Something Exceptional</h2>
+            <p class="section-subtitle">
+                Open for full-time engineering roles, high-impact full-stack contracts, AI agent workflow design, and embedded RF development.
+            </p>
+            
+            <div class="contact-links">
+                <a href="mailto:kumarsinghratnesh3@gmail.com" class="shiny-glass-btn">
+                    <i data-lucide="mail"></i> Email Ratnesh
+                </a>
+                <a href="https://github.com/Ratnesh919" target="_blank" rel="noopener" class="shiny-glass-btn">
+                    <i data-lucide="github"></i> GitHub Profile
+                </a>
+                <a href="./assets/Ratnesh_Kumar_Singh_CV.pdf" download="Ratnesh_Kumar_Singh_CV.pdf" class="shiny-glass-btn">
+                    <i data-lucide="download"></i> Download CV
+                </a>
+            </div>
+        </section>
+
+        <!-- ── FOOTER ──────────────────────────────────────────── -->
+        <footer style="text-align:center;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:20px 0;letter-spacing:0.05em;">
+            &copy; <span id="copyright-year">2026</span> Ratnesh Kumar Singh. Built with Three.js, WebGL, Lenis &amp; Raya AI.
+        </footer>
+    </main>
+
+    <!-- ═══ GLOBAL MODAL (Video / Certificate) ═══════════════════ -->
+    <div id="global-modal">
+        <div class="modal-box">
+            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+            <div id="modal-content">
+                <!-- Dynamically filled -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Core Interaction Scripts ────────────────────────────── -->
+    <script>
+        document.getElementById('copyright-year').innerText = new Date().getFullYear();
+        lucide.createIcons();
+
+        // ── 1. Lenis Inertia Smooth Scrolling ──
+        let lenis = null;
+        if (typeof Lenis !== 'undefined') {
+            lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                smoothTouch: false,
+                touchMultiplier: 2,
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+        }
+
+        // ── 2. Interactive 3D WebGL Background (Three.js) ──
+        (function init3DBackground() {
+            const canvas = document.getElementById('bg-3d-canvas');
+            if (!canvas) return;
+
+            let scene, camera, renderer, particles;
+            const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
+            try {
+                import('three').then(THREE => {
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                    camera.position.z = 80;
+
+                    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                    // Particles geometry
+                    const count = 350;
+                    const geometry = new THREE.BufferGeometry();
+                    const positions = new Float32Array(count * 3);
+                    const colors = new Float32Array(count * 3);
+
+                    const colorOptions = [
+                        new THREE.Color('#00f2fe'),
+                        new THREE.Color('#ff416c'),
+                        new THREE.Color('#8b5cf6'),
+                        new THREE.Color('#f59e0b')
+                    ];
+
+                    for (let i = 0; i < count * 3; i += 3) {
+                        positions[i] = (Math.random() - 0.5) * 160;
+                        positions[i + 1] = (Math.random() - 0.5) * 160;
+                        positions[i + 2] = (Math.random() - 0.5) * 120;
+
+                        const col = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+                        colors[i] = col.r;
+                        colors[i + 1] = col.g;
+                        colors[i + 2] = col.b;
+                    }
+
+                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                    const material = new THREE.PointsMaterial({
+                        size: 1.8,
+                        vertexColors: true,
+                        transparent: true,
+                        opacity: 0.7,
+                        blending: THREE.AdditiveBlending
+                    });
+
+                    particles = new THREE.Points(geometry, material);
+                    scene.add(particles);
+
+                    // Animation Loop
+                    function animate() {
+                        requestAnimationFrame(animate);
+
+                        mouse.x += (mouse.targetX - mouse.x) * 0.05;
+                        mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+                        if (particles) {
+                            particles.rotation.y += 0.001;
+                            particles.rotation.x = mouse.y * 0.0005;
+                            particles.rotation.z = mouse.x * 0.0005;
+                        }
+
+                        renderer.render(scene, camera);
+                    }
+                    animate();
+
+                    window.addEventListener('mousemove', (e) => {
+                        mouse.targetX = (e.clientX - window.innerWidth / 2);
+                        mouse.targetY = (e.clientY - window.innerHeight / 2);
+                    });
+
+                    window.addEventListener('resize', () => {
+                        camera.aspect = window.innerWidth / window.innerHeight;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(window.innerWidth, window.innerHeight);
+                    });
+                });
+            } catch(e) {
+                console.warn('3D Background initialization skipped:', e);
+            }
+        })();
+
+        // ── 3. ReactBits Spotlight & 3D Tilt Hover Physics ──
+        const spotlightCards = document.querySelectorAll('.spotlight-card');
+        spotlightCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+
+                // Subtle 3D Card Tilt
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -4;
+                const rotateY = ((x - centerX) / centerX) * 4;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-3px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            });
+        });
+
+        // ── 4. ReactBits Decrypted Text Effect ──
+        const glyphs = 'ABCDEF0123456789!@#$%^&*()_+~|}{[]:;?><';
+        function runDecryptText(el) {
+            const originalText = el.getAttribute('data-decrypt') || el.innerText;
+            el.setAttribute('data-decrypt', originalText);
+            let iteration = 0;
+            const maxIterations = originalText.length;
+            const interval = setInterval(() => {
+                el.innerText = originalText
+                    .split('')
+                    .map((char, index) => {
+                        if (index < iteration) return originalText[index];
+                        if (char === ' ') return ' ';
+                        return glyphs[Math.floor(Math.random() * glyphs.length)];
+                    })
+                    .join('');
+
+                if (iteration >= maxIterations) {
+                    clearInterval(interval);
+                    el.innerText = originalText;
+                }
+                iteration += 1 / 2;
+            }, 30);
+        }
+
+        document.querySelectorAll('[data-decrypt]').forEach(el => {
+            el.addEventListener('mouseenter', () => runDecryptText(el));
+        });
+
+        // ── 5. Modal Handlers ──
+        const globalModal = document.getElementById('global-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function openVideoModal(title, videoSrc) {
+            modalContent.innerHTML = `
+                <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:14px;">${title}</div>
+                <div style="width:100%;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+                    <video controls autoplay style="width:100%;max-height:60vh;display:block;">
+                        <source src="${videoSrc}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            `;
+            globalModal.classList.add('active');
+        }
+
+        function openCertModal(title, imageSrc, verifyUrl) {
+            modalContent.innerHTML = `
+                <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:14px;">${title}</div>
+                <div style="width:100%;border-radius:16px;overflow:hidden;background:#000;margin-bottom:18px;border:1px solid rgba(255,255,255,0.1);">
+                    <img src="${imageSrc}" alt="${title}" style="width:100%;display:block;object-fit:contain;max-height:60vh;">
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:10px;">
+                    <a href="${verifyUrl}" target="_blank" rel="noopener" class="p-btn p-btn-live">
+                        <i data-lucide="shield-check" style="width:14px;height:14px;"></i> Verify on Udemy
+                    </a>
+                </div>
+            `;
+            lucide.createIcons();
+            globalModal.classList.add('active');
+        }
+
+        modalCloseBtn.addEventListener('click', () => {
+            globalModal.classList.remove('active');
+            const video = modalContent.querySelector('video');
+            if (video) video.pause();
+            modalContent.innerHTML = '';
+        });
+        globalModal.addEventListener('click', (e) => {
+            if (e.target === globalModal) {
+                globalModal.classList.remove('active');
+                const video = modalContent.querySelector('video');
+                if (video) video.pause();
+                modalContent.innerHTML = '';
+            }
+        });
+
+        // ── 6. Interactive Skill Pillar Click & Raya Voice Announcement ──
+        const skillModules = document.querySelectorAll('.skill-track-module');
+        skillModules.forEach(mod => {
+            mod.addEventListener('click', (e) => {
+                if (e.target.closest('a') || e.target.closest('button')) return;
+                const skillKey = mod.getAttribute('data-skill');
+                const trackName = mod.querySelector('.track-name')?.innerText || skillKey;
+                const trackDesc = mod.querySelector('.track-desc')?.innerText || '';
+
+                if (window.chatBot && typeof window.chatBot.onSkillSelected === 'function') {
+                    window.chatBot.onSkillSelected(skillKey, trackName, trackDesc);
+                }
+            });
+        });
+
+        // Clickable tech tags
+        document.querySelectorAll('.track-tech-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const techName = pill.getAttribute('data-tech') || pill.innerText.trim();
+                if (window.chatBot && typeof window.chatBot.speakAvatar === 'function') {
+                    const msg = `Ratnesh has deep production experience in ${techName}! He implements it extensively in his engineering work.`;
+                    window.chatBot.messages.push({ role: 'assistant', content: msg });
+                    window.chatBot.speakAvatar(msg, false);
+                }
+            });
+        });
+
+        // Hero Talk with Raya button
+        document.getElementById('hero-talk-raya-btn').addEventListener('click', () => {
+            if (window.chatBot) {
+                const greeting = "Hi there! I am Raya, Ratnesh's AI companion. You can ask me anything about his skills, projects, certifications, or ask me to play any song on YouTube!";
+                window.chatBot.speakAvatar(greeting, false);
+            }
+        });
+    </script>
+
+    <!-- ─── Avatar & VRM Engine Integration ─────────────────────── -->
     <script>
         const isMobileDevice = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         window.getAvatarUrl = function(localPath) {
             if (!localPath) return '';
-            if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
-                return localPath;
-            }
+            if (localPath.startsWith('http://') || localPath.startsWith('https://')) return localPath;
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:') {
                 return localPath;
             }
@@ -502,80 +999,53 @@
             { name: 'Yinlin',         file: './Wuwa/yinlin.vrm' },
         ];
 
-        // Load user's saved avatar, defaulting to Changli on both mobile and desktop
         let activeAvatar = localStorage.getItem('selectedAvatar') || './Wuwa/changli(fixed).vrm';
-        window.initialAvatarFile = activeAvatar; // Pass to vrm-character.js
+        window.initialAvatarFile = activeAvatar;
 
         const panel      = document.getElementById('avatar-panel');
         const toggleBtn  = document.getElementById('avatar-toggle-btn');
         const closeBtn   = document.getElementById('avatar-panel-close');
         const grid       = document.getElementById('avatar-grid');
 
-        // Build grid
         AVATARS.forEach(av => {
             const btn = document.createElement('button');
             btn.className = 'avatar-item' + (av.file === activeAvatar ? ' active' : '');
             btn.dataset.file = av.file;
-            btn.innerHTML = `
-                <div class="avatar-icon">✦</div>
-                <div class="avatar-name">${av.name}</div>`;
+            btn.innerHTML = `<span style="color:#ff416c">✦</span> <span>${av.name}</span>`;
             btn.addEventListener('click', () => {
                 if (av.file === activeAvatar) return;
-                activeAvatar = av.file; localStorage.setItem('selectedAvatar', activeAvatar);
+                activeAvatar = av.file;
+                localStorage.setItem('selectedAvatar', activeAvatar);
                 grid.querySelectorAll('.avatar-item').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                // Call the exposed switch function from vrm-character.js
                 if (typeof window.switchVRM === 'function') window.switchVRM(av.file);
-                // Reset brightness sliders to defaults for new avatar
-                if (typeof resetBrightnessSliders === 'function') resetBrightnessSliders();
                 panel.classList.remove('open');
             });
             grid.appendChild(btn);
         });
 
         toggleBtn.addEventListener('click', () => panel.classList.toggle('open'));
-        closeBtn.addEventListener('click',  () => panel.classList.remove('open'));
-        // Close when clicking outside
-        document.addEventListener('click', e => {
-            if (!panel.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target))
-                panel.classList.remove('open');
-        });
+        closeBtn.addEventListener('click', () => panel.classList.remove('open'));
 
-        // Setup Avatar ON/OFF Toggle
+        // Avatar sliders
         const avatarOnOffToggle = document.getElementById('avatar-onoff-toggle');
-        const isAvatarSavedOff = localStorage.getItem('avatarEnabled') === 'false';
         if (avatarOnOffToggle) {
-            avatarOnOffToggle.checked = !isAvatarSavedOff;
+            avatarOnOffToggle.checked = localStorage.getItem('avatarEnabled') !== 'false';
             avatarOnOffToggle.addEventListener('change', (e) => {
                 const isEnabled = e.target.checked;
-                if (typeof window.setVRMVisibility === 'function') {
-                    window.setVRMVisibility(isEnabled);
-                } else {
-                    localStorage.setItem('avatarEnabled', isEnabled ? 'true' : 'false');
-                    const canvas = document.getElementById('vrm-canvas');
-                    if (canvas) canvas.style.display = isEnabled ? 'block' : 'none';
-                }
+                if (typeof window.setVRMVisibility === 'function') window.setVRMVisibility(isEnabled);
             });
         }
 
-        // Setup size slider
         const sizeSlider = document.getElementById('avatar-size-slider');
         const sizePct = document.getElementById('avatar-size-pct');
-        // isMobileDevice is declared at the top of script
-        if (isMobileDevice) {
-            sizeSlider.value = '0.65';
-            sizePct.innerText = '65%';
-        }
-
+        if (isMobileDevice) { sizeSlider.value = '0.65'; sizePct.innerText = '65%'; }
         sizeSlider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             sizePct.innerText = Math.round(val * 100) + '%';
-            if (typeof window.setVRMScale === 'function') {
-                window.setVRMScale(val);
-            }
+            if (typeof window.setVRMScale === 'function') window.setVRMScale(val);
         });
 
-        // Setup scene brightness slider
         const brightSlider = document.getElementById('avatar-brightness-slider');
         const brightPct = document.getElementById('avatar-brightness-pct');
         brightSlider.addEventListener('input', (e) => {
@@ -584,7 +1054,6 @@
             if (typeof window.setVRMBrightness === 'function') window.setVRMBrightness(val);
         });
 
-        // Setup hair brightness slider
         const hairSlider = document.getElementById('avatar-hair-slider');
         const hairPct = document.getElementById('avatar-hair-pct');
         hairSlider.addEventListener('input', (e) => {
@@ -593,7 +1062,6 @@
             if (typeof window.setVRMHairBrightness === 'function') window.setVRMHairBrightness(val);
         });
 
-        // Setup skin brightness slider
         const skinSlider = document.getElementById('avatar-skin-slider');
         const skinPct = document.getElementById('avatar-skin-pct');
         skinSlider.addEventListener('input', (e) => {
@@ -601,25 +1069,11 @@
             skinPct.innerText = Math.round(val * 100) + '%';
             if (typeof window.setVRMSkinBrightness === 'function') window.setVRMSkinBrightness(val);
         });
-
-        // Reset sliders to default when avatar switches
-        function resetBrightnessSliders() {
-            brightSlider.value = 1.0; brightPct.innerText = '100%';
-            hairSlider.value = 1.0;   hairPct.innerText = '100%';
-            skinSlider.value = 1.0;   skinPct.innerText = '100%';
-        }
     </script>
 
-    <!-- ─── Copyright Footer ──────────────────────────────────────────── -->
-    <div style="position: fixed; bottom: 15px; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.4); font-family: 'Outfit', sans-serif; font-size: 11px; z-index: 8000; pointer-events: none; letter-spacing: 1px;">
-        &copy; <span id="copyright-year"></span> Ratnesh Singh. All Rights Reserved.
-        <script>document.getElementById('copyright-year').innerText = new Date().getFullYear();</script>
-    </div>
-
-    <!-- ─── Bubble Entry Screen Script ───────────────────────────────── -->
+    <!-- ─── Bubble Entry Screen Script ─────────────────────────── -->
     <script>
         (function() {
-            // Skip bubble if user has already been here this session
             if (sessionStorage.getItem('raya_bubble_done')) {
                 const bs = document.getElementById('bubble-screen');
                 if (bs) bs.remove();
@@ -638,59 +1092,20 @@
                 }
                 const b = document.createElement('div');
                 b.className = 'bubble-item';
-                const size = 30 + Math.random() * 80;
+                const size = 32 + Math.random() * 75;
                 b.style.cssText = `width:${size}px;height:${size}px;left:${5+Math.random()*85}vw;animation-duration:${(isMobile?8:4)+Math.random()*5}s;`;
 
                 b.addEventListener('pointerdown', (e) => {
                     clearInterval(interval);
                     document.querySelectorAll('.bubble-item').forEach(x => x.style.opacity='0');
 
-                    // Crack + mist burst effect
-                    const cx=e.clientX, cy=e.clientY, r=b.getBoundingClientRect().width*0.5;
-                    for(let i=0;i<4;i++){
-                        const ang=(i/4)*Math.PI, len=r*(1.1+Math.random()*0.4);
-                        const l=document.createElement('div');
-                        l.className='bubble-crack-line';
-                        l.style.cssText=`left:${cx}px;top:${cy}px;width:${len*2}px;height:${1+Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent,rgba(200,235,255,0.9) 30%,#fff 50%,rgba(200,235,255,0.9) 70%,transparent);transform:rotate(${ang}rad) scaleX(0);animation-delay:${i*0.03}s;`;
-                        document.body.appendChild(l);
-                        setTimeout(()=>l.remove(),500);
-                    }
-                    for(let i=0;i<6;i++){
-                        const ang=(i/6)*2*Math.PI+Math.random()*0.4;
-                        const dist=r*(0.5+Math.random()*0.8);
-                        const sz=2+Math.random()*3;
-                        const m=document.createElement('div');
-                        m.className='bubble-mist-dot';
-                        m.style.cssText=`left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz/2}px;margin-top:${-sz/2}px;`;
-                        document.body.appendChild(m);
-                        requestAnimationFrame(()=>{ m.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px) scale(0)`; });
-                        setTimeout(()=>m.remove(),550);
-                    }
-
-                    // Fade out overlay after burst
                     setTimeout(() => {
                         bubbleScreen.classList.add('hidden');
                         sessionStorage.setItem('raya_bubble_done','1');
                         setTimeout(() => {
                             bubbleScreen.remove();
-                            // Prime TTS & activate voice / wave
-                            if (window.chatBot) {
-                                window.chatBot._userHasGestured = true;
-                            }
-                            try {
-                                const w = new SpeechSynthesisUtterance('');
-                                w.volume = 0;
-                                speechSynthesis.speak(w);
-                            } catch(e){}
-
-                            // Activate avatar and chatbot container
-                            if (typeof activateAvatarAndChatbot === 'function') {
-                                activateAvatarAndChatbot();
-                            }
-
-                            if (typeof window.onBubblePopped === 'function') {
-                                window.onBubblePopped();
-                            }
+                            if (window.chatBot) window.chatBot._userHasGestured = true;
+                            if (typeof activateAvatarAndChatbot === 'function') activateAvatarAndChatbot();
                         }, 400);
                     }, 280);
                 });
@@ -700,26 +1115,20 @@
         })();
     </script>
 
-    <!-- ─── VRM Configuration & Controller ────────────────────────────── -->
+    <!-- ─── VRM Character & Chatbot Scripts ─────────────────────── -->
     <script src="./js/vrm-config.js"></script>
     <script type="module" src="./js/vrm-character.js"></script>
     <script src="./js/chatbot.js"></script>
     
     <script>
-        // Reveal VRM and Chatbot immediately
         function activateAvatarAndChatbot() {
             const canvas = document.getElementById('vrm-canvas');
             if (canvas) canvas.classList.add('active');
-
             const panel = document.getElementById('chatbot-panel');
-            if (panel) {
-                panel.classList.add('active');
-            }
+            if (panel) panel.classList.add('active');
         }
 
-        // On window load
         window.addEventListener('load', () => {
-            // If skip bubble is active, reveal immediately
             if (sessionStorage.getItem('raya_bubble_done')) {
                 activateAvatarAndChatbot();
             }
