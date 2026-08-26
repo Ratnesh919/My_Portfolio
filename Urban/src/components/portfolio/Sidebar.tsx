@@ -1,0 +1,160 @@
+import React from 'react';
+import { 
+  Home, 
+  User, 
+  Code2, 
+  FolderGit2, 
+  Briefcase, 
+  Mail, 
+  Github, 
+  Linkedin, 
+  Twitter,
+  Bot
+} from 'lucide-react';
+import { PORTFOLIO_DATA } from '@/lib/portfolioData';
+
+interface SidebarProps {
+  activeSection: string;
+  onNavigate: (sectionId: string) => void;
+  onToggleRaya?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  activeSection, 
+  onNavigate,
+  onToggleRaya 
+}) => {
+  const navItems = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'about', label: 'About', icon: User },
+    { id: 'skills', label: 'Skills', icon: Code2 },
+    { id: 'projects', label: 'Projects', icon: FolderGit2 },
+    { id: 'experience', label: 'Experience', icon: Briefcase },
+    { id: 'contact', label: 'Contact', icon: Mail },
+  ];
+
+  return (
+    <aside className="w-full lg:w-64 flex flex-col justify-between p-4 lg:p-6 bg-[#0f0b18]/80 backdrop-blur-xl border-b lg:border-b-0 lg:border-r border-purple-500/15 select-none z-30 lg:min-h-full">
+      {/* Top Brand / 3D Logo ("R" / "A" matching reference image) */}
+      <div className="flex items-center justify-between lg:justify-start lg:flex-col lg:items-start gap-4">
+        <div 
+          onClick={() => onNavigate('home')}
+          className="group cursor-pointer flex items-center gap-3"
+        >
+          {/* 3D Extruded Purple Logo Tile */}
+          <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-b from-[#7e22ce] via-[#6b21a8] to-[#3b0764] p-0.5 shadow-[0_10px_25px_rgba(147,51,234,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] transition-transform group-hover:scale-105 group-active:scale-95 flex items-center justify-center">
+            <div className="w-full h-full rounded-[14px] bg-[#1a0f2e] flex items-center justify-center border border-purple-400/30">
+              <span className="font-black text-2xl bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(168,85,247,0.8)]">
+                R
+              </span>
+            </div>
+          </div>
+          
+          <div className="hidden lg:block">
+            <h1 className="text-sm font-bold text-white tracking-wide">Ratnesh Singh</h1>
+            <p className="text-[11px] font-mono text-purple-400">ECE &bull; Full-Stack &bull; AI</p>
+          </div>
+        </div>
+
+        {/* Mobile Quick Action for Raya AI */}
+        <button
+          onClick={onToggleRaya}
+          className="lg:hidden flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-900/40 border border-purple-500/30 text-purple-300 text-xs font-mono"
+        >
+          <Bot size={14} className="animate-pulse text-purple-400" />
+          <span>Ask Raya AI</span>
+        </button>
+      </div>
+
+      {/* Navigation Items (Middle) */}
+      <nav className="my-4 lg:my-8 flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeSection === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                isActive
+                  ? 'bg-gradient-to-r from-purple-900/60 to-purple-950/30 text-purple-200 border border-purple-500/40 shadow-[0_4px_16px_rgba(147,51,234,0.25)]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+              }`}
+            >
+              {/* Active Left Indicator Bar */}
+              {isActive && (
+                <span className="hidden lg:block absolute left-0 top-2 bottom-2 w-1 bg-purple-500 rounded-r-full shadow-[0_0_8px_#a855f7]" />
+              )}
+              <Icon 
+                size={18} 
+                className={`transition-transform duration-300 group-hover:scale-110 ${
+                  isActive ? 'text-purple-400' : 'text-slate-400 group-hover:text-purple-300'
+                }`} 
+              />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Footer: Social Links & Raya Trigger */}
+      <div className="pt-4 border-t border-purple-500/10 hidden lg:flex flex-col gap-4">
+        {/* Raya AI Companion Quick Dock */}
+        <button
+          onClick={onToggleRaya}
+          className="w-full group flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-purple-950/40 to-slate-900/60 border border-purple-500/20 hover:border-purple-400/50 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.4)] active:scale-98"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-purple-900/60 flex items-center justify-center border border-purple-400/30">
+              <Bot size={15} className="text-purple-300 group-hover:rotate-12 transition-transform" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-purple-200">Raya AI</div>
+              <div className="text-[10px] text-purple-400/80 font-mono">Portfolio Companion</div>
+            </div>
+          </div>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        </button>
+
+        {/* Social Icons matching mockup bottom left */}
+        <div className="flex items-center justify-start gap-4 px-1 text-slate-400">
+          <a 
+            href={PORTFOLIO_DATA.github} 
+            target="_blank" 
+            rel="noreferrer"
+            className="hover:text-purple-300 hover:scale-110 transition-all"
+            title="GitHub Profile"
+          >
+            <Github size={18} />
+          </a>
+          <a 
+            href={PORTFOLIO_DATA.linkedin} 
+            target="_blank" 
+            rel="noreferrer"
+            className="hover:text-purple-300 hover:scale-110 transition-all"
+            title="LinkedIn Profile"
+          >
+            <Linkedin size={18} />
+          </a>
+          <a 
+            href={PORTFOLIO_DATA.twitter} 
+            target="_blank" 
+            rel="noreferrer"
+            className="hover:text-purple-300 hover:scale-110 transition-all"
+            title="Twitter / X"
+          >
+            <Twitter size={18} />
+          </a>
+          <a 
+            href={`mailto:${PORTFOLIO_DATA.email}`}
+            className="hover:text-purple-300 hover:scale-110 transition-all"
+            title="Direct Email"
+          >
+            <Mail size={18} />
+          </a>
+        </div>
+      </div>
+    </aside>
+  );
+};
