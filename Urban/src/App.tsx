@@ -14,14 +14,7 @@ import { IntroLoader } from '@/components/portfolio/IntroLoader';
 import { VRMCharacterEngine } from '@/components/portfolio/VRMCharacterEngine';
 import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
-import { Bot, Sparkles, ChevronUp, Layers, X } from 'lucide-react';
-
-function getTimeOfDayGreeting() {
-  const hr = new Date().getHours();
-  if (hr >= 5 && hr < 12) return "Good morning";
-  if (hr >= 12 && hr < 17) return "Good afternoon";
-  return "Good evening";
-}
+import { Bot, ChevronUp, Layers, X } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
@@ -35,9 +28,14 @@ export const App: React.FC = () => {
   const [pendingChatMessage, setPendingChatMessage] = useState<string | null>(null);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState<boolean>(true);
   
-  // Raya Speech Bubble state (matching original screenshot)
+  // Track whether bubble intro has been completed
+  const [introDone, setIntroDone] = useState<boolean>(() => {
+    return !!sessionStorage.getItem('raya_bubble_done');
+  });
+
+  // Raya Speech Bubble text (exact user requested intro)
   const [rayaBubbleText, setRayaBubbleText] = useState<string>(
-    `Welcome! I am Raya, your AI guide. Ask me anything about Ratnesh's projects, ECE background, or verified certifications!`
+    "Welcome back! It's nice to have you back, what can I help you with?"
   );
   const introSpokenRef = useRef(false);
 
@@ -114,23 +112,26 @@ export const App: React.FC = () => {
   };
 
   const handleIntroComplete = () => {
+    setIntroDone(true);
+
     if (introSpokenRef.current || sessionStorage.getItem('raya_intro_spoken')) return;
     introSpokenRef.current = true;
     sessionStorage.setItem('raya_intro_spoken', 'true');
 
+    // Trigger wave animation and Raya intro voice simultaneously
     if ((window as any).playWaveAnimation) {
       (window as any).playWaveAnimation();
     }
     if ((window as any).introduceRaya) {
       setTimeout(() => {
         (window as any).introduceRaya();
-      }, 700);
+      }, 500);
     }
   };
 
   return (
     <div className="min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white">
-      {/* ═══ Phase 1 & 2 Intro Loader & Bubble Pop Screen ═══ */}
+      {/* ═══ Phase 1 & 2 Intro Loader & Soap Bubble Screen ═══ */}
       <IntroLoader onComplete={handleIntroComplete} />
 
       {/* Background Ambient Glows & Cyber Mesh */}
@@ -234,17 +235,21 @@ export const App: React.FC = () => {
         </footer>
       </div>
 
-      {/* ═══ 3D VRM Resonator Character (100% Transparent, Sitting Above Chat Bubble) ═══ */}
-      <VRMCharacterEngine
-        currentAvatarFile={currentAvatarFile}
-      />
+      {/* ═══ 3D VRM Resonator Character (Always on Top z-[2147483647]) ═══ */}
+      {introDone && (
+        <VRMCharacterEngine
+          currentAvatarFile={currentAvatarFile}
+        />
+      )}
 
-      {/* ═══ Floating Interactive Chatbot Bottom Bar (Matching Screenshot) ═══ */}
-      <ChatbotBar
-        onSendMessage={handleSendMessageFromBar}
-        onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
-        rayaSpeechText={rayaBubbleText}
-      />
+      {/* ═══ Floating Interactive Chatbot Bar (Appears after Bubble Pop) ═══ */}
+      {introDone && (
+        <ChatbotBar
+          onSendMessage={handleSendMessageFromBar}
+          onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
+          rayaSpeechText={rayaBubbleText}
+        />
+      )}
 
       {/* Back To Top Floating Action */}
       {showBackToTop && (

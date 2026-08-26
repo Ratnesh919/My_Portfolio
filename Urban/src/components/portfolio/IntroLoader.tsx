@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Zap } from 'lucide-react';
 
 interface IntroLoaderProps {
@@ -11,106 +11,140 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
   const [statusText, setStatusText] = useState('Processing Asset...');
   const [isLoaderHidden, setIsLoaderHidden] = useState(false);
   const [isBubbleHidden, setIsBubbleHidden] = useState(false);
+  const isCompletedRef = useRef(false);
 
   useEffect(() => {
     if (sessionStorage.getItem('raya_bubble_done')) {
       setPhase('done');
+      onComplete();
       return;
     }
 
-    // Progress bar simulation matching original site loader
+    // Realistic progressive loading bar simulation
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           setTimeout(() => {
             setIsLoaderHidden(true);
-            setTimeout(() => setPhase('bubbles'), 600);
+            setTimeout(() => setPhase('bubbles'), 500);
           }, 300);
           return 100;
         }
 
-        const next = prev + Math.floor(Math.random() * 12) + 6;
-        if (next > 30 && next < 60) setStatusText("Loading Character Engine...");
-        else if (next >= 60 && next < 90) setStatusText("Decrypting VRM Animations...");
-        else if (next >= 90) setStatusText("Processing Asset...");
+        const next = prev + Math.floor(Math.random() * 14) + 8;
+        if (next > 25 && next < 55) setStatusText("Loading Character Engine...");
+        else if (next >= 55 && next < 85) setStatusText("Decrypting VRM Animations...");
+        else if (next >= 85) setStatusText("Processing Asset...");
 
         return Math.min(next, 100);
       });
-    }, 90);
+    }, 80);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [onComplete]);
 
-  // Bubble Screen mechanics
+  // Transparent Soap Bubbles System
   useEffect(() => {
     if (phase !== 'bubbles') return;
 
-    const container = document.getElementById('bubble-container-el');
+    const container = document.getElementById('soap-bubble-container');
     if (!container) return;
 
     const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-    const spawnMs = isMobile ? 1400 : 650;
+    const spawnMs = isMobile ? 1200 : 600;
 
     const spawnInterval = setInterval(() => {
-      if (!document.getElementById('bubble-container-el')) {
+      if (!document.getElementById('soap-bubble-container')) {
         clearInterval(spawnInterval);
         return;
       }
 
       const b = document.createElement('div');
-      b.className = 'bubble-item-el';
-      const size = 35 + Math.random() * 75;
-      b.style.cssText = `width:${size}px;height:${size}px;left:${5 + Math.random() * 85}vw;animation-duration:${(isMobile ? 8 : 4.5) + Math.random() * 4}s;`;
+      b.className = 'soap-bubble';
+      const size = 45 + Math.random() * 85;
+      const leftPos = 6 + Math.random() * 88;
+      const duration = (isMobile ? 7.5 : 4.5) + Math.random() * 3.5;
+
+      b.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        left: ${leftPos}vw;
+        animation-duration: ${duration}s;
+      `;
 
       b.addEventListener('pointerdown', (e) => {
+        if (isCompletedRef.current) return;
+        isCompletedRef.current = true;
         clearInterval(spawnInterval);
-        document.querySelectorAll('.bubble-item-el').forEach((x: any) => (x.style.opacity = '0'));
 
-        // Crack + mist burst particle effect
+        // Hide all bubbles
+        document.querySelectorAll('.soap-bubble').forEach((el: any) => {
+          el.style.opacity = '0';
+          el.style.transform = 'scale(1.2)';
+        });
+
+        // Bubble burst particles & crack lines
         const cx = e.clientX;
         const cy = e.clientY;
         const r = b.getBoundingClientRect().width * 0.5;
 
-        for (let i = 0; i < 4; i++) {
-          const ang = (i / 4) * Math.PI;
-          const len = r * (1.1 + Math.random() * 0.4);
+        for (let i = 0; i < 5; i++) {
+          const ang = (i / 5) * Math.PI;
+          const len = r * (1.2 + Math.random() * 0.4);
           const l = document.createElement('div');
-          l.className = 'bubble-crack-line-el';
-          l.style.cssText = `left:${cx}px;top:${cy}px;width:${len * 2}px;height:${1 + Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent,rgba(200,235,255,0.9) 30%,#fff 50%,rgba(200,235,255,0.9) 70%,transparent);transform:rotate(${ang}rad) scaleX(0);animation-delay:${i * 0.03}s;`;
+          l.className = 'soap-crack-line';
+          l.style.cssText = `
+            left: ${cx}px;
+            top: ${cy}px;
+            width: ${len * 2}px;
+            height: ${1.5 + Math.random()}px;
+            margin-left: ${-len}px;
+            margin-top: -0.75px;
+            background: linear-gradient(90deg, transparent, rgba(255, 180, 220, 0.9) 30%, #fff 50%, rgba(180, 230, 255, 0.9) 70%, transparent);
+            transform: rotate(${ang}rad) scaleX(0);
+            animation-delay: ${i * 0.02}s;
+          `;
           document.body.appendChild(l);
-          setTimeout(() => l.remove(), 500);
+          setTimeout(() => l.remove(), 450);
         }
 
-        for (let i = 0; i < 6; i++) {
-          const ang = (i / 6) * 2 * Math.PI + Math.random() * 0.4;
-          const dist = r * (0.5 + Math.random() * 0.8);
-          const sz = 2 + Math.random() * 3;
+        for (let i = 0; i < 8; i++) {
+          const ang = (i / 8) * 2 * Math.PI + Math.random() * 0.4;
+          const dist = r * (0.6 + Math.random() * 0.8);
+          const sz = 2.5 + Math.random() * 3.5;
           const m = document.createElement('div');
-          m.className = 'bubble-mist-dot-el';
-          m.style.cssText = `left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz / 2}px;margin-top:${-sz / 2}px;`;
+          m.className = 'soap-mist-dot';
+          m.style.cssText = `
+            left: ${cx}px;
+            top: ${cy}px;
+            width: ${sz}px;
+            height: ${sz}px;
+            margin-left: ${-sz / 2}px;
+            margin-top: ${-sz / 2}px;
+          `;
           document.body.appendChild(m);
           requestAnimationFrame(() => {
-            m.style.transform = `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist}px) scale(0)`;
+            m.style.transform = `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0)`;
           });
-          setTimeout(() => m.remove(), 550);
+          setTimeout(() => m.remove(), 500);
         }
 
-        // Fade out overlay after burst
+        // Fade out overlay and unveil
         setTimeout(() => {
           setIsBubbleHidden(true);
           sessionStorage.setItem('raya_bubble_done', '1');
           setTimeout(() => {
             setPhase('done');
             onComplete();
-          }, 400);
-        }, 280);
+          }, 350);
+        }, 220);
       });
 
       container.appendChild(b);
       setTimeout(() => {
         if (b.parentNode) b.remove();
-      }, isMobile ? 15000 : 8500);
+      }, isMobile ? 14000 : 9000);
     }, spawnMs);
 
     return () => clearInterval(spawnInterval);
@@ -120,103 +154,144 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
 
   return (
     <>
-      {/* ═══ Phase 1: Site Global Loading Screen (Matching Original Screenshot) ═══ */}
+      {/* ═══ Phase 1: SYSTEM INITIALIZING (Realistic Red-Blue Loading Screen) ═══ */}
       {phase === 'loader' && (
         <div
-          className={`fixed inset-0 z-[9999] bg-[#080808] flex items-center justify-center transition-all duration-700 select-none ${
+          className={`fixed inset-0 z-[9999999] bg-[#080808] flex items-center justify-center transition-all duration-700 select-none ${
             isLoaderHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
           }`}
         >
-          {/* Radial Center Glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,65,108,0.18)_0%,transparent_60%)] pointer-events-none" />
+          {/* Subtle Ambient Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,65,108,0.2)_0%,transparent_65%)] pointer-events-none" />
 
           <div className="relative z-10 w-[85%] max-w-[500px] flex flex-col items-center gap-5 text-center">
-            {/* Glowing Lightning Bolt Logo */}
+            {/* Pulsing Lightning Bolt Icon */}
             <div className="animate-pulse flex items-center justify-center">
-              <Zap size={44} className="text-[#ff416c] fill-[#ff416c]/40 drop-shadow-[0_0_15px_#ff416c]" />
+              <Zap size={46} className="text-[#ff416c] fill-[#ff416c]/40 drop-shadow-[0_0_16px_#ff416c]" />
             </div>
 
             {/* Glowing Title */}
-            <h1 className="font-sans font-black text-2xl sm:text-3xl text-white tracking-[0.18em] uppercase drop-shadow-[0_0_18px_rgba(255,65,108,0.85)]">
+            <h1 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl text-white tracking-[0.16em] uppercase drop-shadow-[0_0_20px_rgba(255,65,108,0.9)]">
               SYSTEM INITIALIZING
             </h1>
 
-            {/* Progressive Bar (Red-Pink Gradient) */}
-            <div className="w-full h-[6px] bg-white/[0.06] border border-white/10 rounded-full overflow-hidden shadow-[inset_0_2px_5px_rgba(0,0,0,0.9)] relative">
+            {/* Red to Blue Gradient Progressive Bar */}
+            <div className="w-full h-[6px] bg-white/[0.07] border border-white/10 rounded-full overflow-hidden shadow-[inset_0_2px_5px_rgba(0,0,0,0.9)] relative">
               <div
-                className="h-full bg-gradient-to-r from-[#ff4b2b] to-[#ff416c] shadow-[0_0_15px_#ff416c] transition-all duration-100 rounded-full"
+                className="h-full bg-gradient-to-r from-[#ff416c] via-[#ff4b2b] to-[#38bdf8] shadow-[0_0_16px_#ff416c] transition-all duration-100 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
-            {/* Footer Status & Percentage */}
+            {/* Status Footer */}
             <div className="w-full flex items-center justify-between text-xs sm:text-sm font-semibold tracking-wider text-slate-400 font-mono">
               <span className="text-slate-300">{statusText}</span>
               <span className="text-[#ff416c] font-bold">{progress}%</span>
             </div>
 
-            {/* Hint */}
-            <p className="text-[11px] text-[#ff416c]/70 font-mono mt-2 tracking-wide">
+            <p className="text-[11px] text-[#ff416c]/70 font-mono mt-1 tracking-wide">
               Switch to desktop or rotate your phone for better experience
             </p>
           </div>
         </div>
       )}
 
-      {/* ═══ Phase 2: Bubble Entry Screen ("Tap a Bubble to Enter") ═══ */}
+      {/* ═══ Phase 2: Tap a Bubble to Enter (Transparent Soap Bubbles) ═══ */}
       {phase === 'bubbles' && (
         <div
           id="bubble-screen"
-          className={`fixed inset-0 z-[9998] bg-[#080808]/95 backdrop-blur-[12px] flex flex-col items-center justify-center transition-all duration-700 select-none ${
+          className={`fixed inset-0 z-[999999] bg-[#060608]/92 backdrop-blur-[12px] flex flex-col items-center justify-center transition-all duration-600 select-none ${
             isBubbleHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
           }`}
         >
-          <div className="text-2xl sm:text-4xl md:text-5xl font-black text-white font-sans tracking-wide text-center drop-shadow-[0_0_25px_rgba(255,65,108,0.85)] pointer-events-none animate-pulse">
+          <div className="text-3xl sm:text-5xl font-black text-white font-sans tracking-wide text-center drop-shadow-[0_0_25px_rgba(255,65,108,0.9)] pointer-events-none animate-pulse">
             Tap a Bubble to Enter
           </div>
-          <div id="bubble-container-el" className="absolute inset-0 overflow-hidden pointer-events-none" />
+
+          <div id="soap-bubble-container" className="absolute inset-0 overflow-hidden pointer-events-none" />
 
           <style>{`
-            .bubble-item-el {
+            /* Realistic Transparent Soap Bubble Styling */
+            .soap-bubble {
               position: absolute;
-              bottom: -100px;
+              bottom: -120px;
               border-radius: 50%;
-              background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 65, 108, 0.25) 60%, rgba(79, 172, 254, 0.3) 100%);
-              border: 1px solid rgba(255, 255, 255, 0.4);
-              box-shadow: 0 0 20px rgba(255, 65, 108, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.3);
-              animation: floatBubbleUp linear infinite;
+              /* Iridescent transparent soap sheen */
+              background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.08) 35%, rgba(180, 220, 255, 0.12) 65%, rgba(255, 120, 180, 0.2) 100%);
+              border: 1.5px solid rgba(255, 255, 255, 0.55);
+              box-shadow: 
+                inset 3px 3px 8px rgba(255, 255, 255, 0.6),
+                inset -3px -3px 8px rgba(180, 230, 255, 0.35),
+                inset 0 0 12px rgba(255, 105, 180, 0.25),
+                0 0 18px rgba(255, 65, 108, 0.35);
+              animation: floatSoapBubble linear infinite;
               cursor: pointer;
               pointer-events: auto !important;
-              transition: transform 0.2s ease, opacity 0.3s ease;
+              transition: transform 0.2s ease, opacity 0.25s ease;
+              backdrop-filter: blur(1.5px);
             }
-            .bubble-item-el:hover {
-              transform: scale(1.15);
-              box-shadow: 0 0 30px rgba(255, 65, 108, 0.9), inset 0 0 20px #fff;
+            .soap-bubble::before {
+              content: '';
+              position: absolute;
+              top: 15%;
+              left: 20%;
+              width: 25%;
+              height: 18%;
+              border-radius: 50%;
+              background: rgba(255, 255, 255, 0.75);
+              transform: rotate(-30deg);
+              filter: blur(0.5px);
             }
-            @keyframes floatBubbleUp {
-              0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-              10% { opacity: 0.9; }
-              90% { opacity: 0.9; }
-              100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+            .soap-bubble::after {
+              content: '';
+              position: absolute;
+              bottom: 18%;
+              right: 22%;
+              width: 12%;
+              height: 10%;
+              border-radius: 50%;
+              background: rgba(255, 255, 255, 0.4);
             }
-            .bubble-crack-line-el {
+            .soap-bubble:hover {
+              transform: scale(1.18);
+              box-shadow: 
+                inset 4px 4px 12px rgba(255, 255, 255, 0.8),
+                0 0 28px rgba(255, 65, 108, 0.7);
+            }
+            @keyframes floatSoapBubble {
+              0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+              }
+              12% {
+                opacity: 0.95;
+              }
+              88% {
+                opacity: 0.95;
+              }
+              100% {
+                transform: translateY(-120vh) rotate(180deg);
+                opacity: 0;
+              }
+            }
+            .soap-crack-line {
               position: fixed;
               pointer-events: none;
-              z-index: 10000;
-              animation: crackAnim 0.45s ease-out forwards;
+              z-index: 1000000;
+              animation: soapCrackAnim 0.4s ease-out forwards;
             }
-            @keyframes crackAnim {
+            @keyframes soapCrackAnim {
               0% { transform: scaleX(0); opacity: 1; }
               100% { transform: scaleX(1); opacity: 0; }
             }
-            .bubble-mist-dot-el {
+            .soap-mist-dot {
               position: fixed;
               border-radius: 50%;
-              background: rgba(255, 255, 255, 0.9);
-              box-shadow: 0 0 8px #ff416c;
+              background: rgba(255, 255, 255, 0.95);
+              box-shadow: 0 0 10px #ff416c, 0 0 4px #fff;
               pointer-events: none;
-              z-index: 10000;
-              transition: transform 0.5s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.5s ease;
+              z-index: 1000000;
+              transition: transform 0.45s cubic-bezier(0.1, 0.85, 0.2, 1), opacity 0.45s ease;
             }
           `}</style>
         </div>
