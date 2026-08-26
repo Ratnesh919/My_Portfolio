@@ -9,16 +9,19 @@ import { CertificationsSection } from '@/components/portfolio/CertificationsSect
 import { ContactSection } from '@/components/portfolio/ContactSection';
 import { RayaAICompanion } from '@/components/portfolio/RayaAICompanion';
 import { ChatbotBar } from '@/components/portfolio/ChatbotBar';
-import { AvatarStudioModal } from '@/components/portfolio/AvatarStudioModal';
+import { AvatarStudioModal, AVATAR_CHARACTERS } from '@/components/portfolio/AvatarStudioModal';
+import { IntroLoader } from '@/components/portfolio/IntroLoader';
+import { VRMCharacterEngine } from '@/components/portfolio/VRMCharacterEngine';
 import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
-import { Bot, Sparkles, ChevronUp, Layers, X, Volume2 } from 'lucide-react';
+import { Bot, Sparkles, ChevronUp, Layers, X } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
   const [isRayaOpen, setIsRayaOpen] = useState<boolean>(false);
   const [isAvatarStudioOpen, setIsAvatarStudioOpen] = useState<boolean>(false);
   const [currentAvatar, setCurrentAvatar] = useState<string>('changli');
+  const [currentAvatarFile, setCurrentAvatarFile] = useState<string>('./Wuwa/changli(fixed).vrm');
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
   const [selectedCert, setSelectedCert] = useState<CertificateItem | null>(null);
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
@@ -36,10 +39,26 @@ export const App: React.FC = () => {
     }
   };
 
+  // Switch Avatar File
+  const handleSelectAvatar = (charId: string) => {
+    setCurrentAvatar(charId);
+    const found = AVATAR_CHARACTERS.find((c) => c.id === charId);
+    if (found) {
+      setCurrentAvatarFile(found.file);
+    }
+  };
+
+  // Expose global character switch
+  useEffect(() => {
+    (window as any).setVRMCharacter = (filePath: string) => {
+      setCurrentAvatarFile(filePath);
+    };
+  }, []);
+
   // ═══ Real-Time Scroll Spy via IntersectionObserver ═══
   useEffect(() => {
     const sectionIds = ['home', 'projects', 'about', 'skills', 'experience', 'certifications', 'contact'];
-    
+
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 400);
     };
@@ -47,10 +66,8 @@ export const App: React.FC = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     const observerCallback: IntersectionObserverCallback = (entries) => {
-      // Find the most prominent intersecting entry
-      const visibleEntries = entries.filter(e => e.isIntersecting);
+      const visibleEntries = entries.filter((e) => e.isIntersecting);
       if (visibleEntries.length > 0) {
-        // Sort by highest intersection ratio
         visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
         const mostVisible = visibleEntries[0];
         if (mostVisible.target.id) {
@@ -62,7 +79,7 @@ export const App: React.FC = () => {
     const observerOptions = {
       root: null,
       rootMargin: '-20% 0px -40% 0px',
-      threshold: [0.1, 0.25, 0.5, 0.75]
+      threshold: [0.1, 0.25, 0.5, 0.75],
     };
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
@@ -83,8 +100,23 @@ export const App: React.FC = () => {
     setIsRayaOpen(true);
   };
 
+  const handleIntroComplete = () => {
+    // Wave animation and Raya introduction
+    if ((window as any).playWaveAnimation) {
+      (window as any).playWaveAnimation();
+    }
+    if ((window as any).introduceRaya) {
+      setTimeout(() => {
+        (window as any).introduceRaya();
+      }, 800);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white">
+      {/* ═══ Phase 1 & 2 Intro Loader & Bubble Pop Screen ═══ */}
+      <IntroLoader onComplete={handleIntroComplete} />
+
       {/* Background Ambient Glows & Cyber Mesh */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-purple-900/15 rounded-full blur-[140px]" />
@@ -93,7 +125,7 @@ export const App: React.FC = () => {
         <div className="absolute inset-0 bg-[radial-gradient(#a855f7_0.8px,transparent_0.8px)] [background-size:32px_32px] opacity-10" />
       </div>
 
-      {/* ═══ Left Fixed/Sticky Navigation Sidebar ═══ */}
+      {/* ═══ Left Fixed Navigation Sidebar (Always Pinned) ═══ */}
       <Sidebar
         activeSection={activeSection}
         onNavigate={handleNavigate}
@@ -101,10 +133,9 @@ export const App: React.FC = () => {
         onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
       />
 
-      {/* ═══ Full-Screen Main Content Container (Edge to Edge) ═══ */}
-      <div className="flex-1 w-full min-h-screen relative z-10 flex flex-col justify-between">
+      {/* ═══ Right Scrolling Content Container (Offset by lg:ml-72) ═══ */}
+      <div className="lg:ml-72 flex-1 w-full min-h-screen relative z-10 flex flex-col justify-between overflow-y-visible">
         <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 space-y-12">
-          
           {/* Welcome Intro Toast Banner */}
           {showWelcomeBanner && (
             <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-purple-950/70 via-[#180e2b] to-slate-900/80 border border-purple-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -115,7 +146,9 @@ export const App: React.FC = () => {
                 <div>
                   <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
                     <span>Welcome to Ratnesh's 3D Engineering Portfolio!</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">Raya AI Active</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                      Raya AI Active
+                    </span>
                   </div>
                   <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
                     Explore real-time Web Audio DSP (±5ms), Android MediaCodec transcoders, AI agents, and 14 custom 3D Resonator avatars.
@@ -175,13 +208,20 @@ export const App: React.FC = () => {
         <footer className="w-full border-t border-purple-500/15 bg-[#090612]/90 backdrop-blur-md px-6 sm:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7]" />
-            <span>&copy; {new Date().getFullYear()} {PORTFOLIO_DATA.name} &bull; Next-Gen 3D Neomorphic Portfolio</span>
+            <span>
+              &copy; {new Date().getFullYear()} {PORTFOLIO_DATA.name} &bull; Next-Gen 3D Neomorphic Portfolio
+            </span>
           </div>
           <div>
             <span>Kolkata, India &bull; MAKAUT ECE Graduate '26</span>
           </div>
         </footer>
       </div>
+
+      {/* ═══ 3D VRM Resonator Character Engine ═══ */}
+      <VRMCharacterEngine
+        currentAvatarFile={currentAvatarFile}
+      />
 
       {/* ═══ Floating Interactive Chatbot Bottom Bar ═══ */}
       <ChatbotBar
@@ -210,6 +250,8 @@ export const App: React.FC = () => {
           setIsRayaOpen(false);
           setIsAvatarStudioOpen(true);
         }}
+        onScrollToSection={handleNavigate}
+        onChangeAvatar={handleSelectAvatar}
         externalMessage={pendingChatMessage}
         onClearExternalMessage={() => setPendingChatMessage(null)}
       />
@@ -219,7 +261,7 @@ export const App: React.FC = () => {
         isOpen={isAvatarStudioOpen}
         onClose={() => setIsAvatarStudioOpen(false)}
         currentAvatar={currentAvatar}
-        onSelectAvatar={(charId) => setCurrentAvatar(charId)}
+        onSelectAvatar={handleSelectAvatar}
       />
 
       {/* Universal Detail Modal (Projects & Verified Certifications) */}

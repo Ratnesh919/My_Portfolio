@@ -9,6 +9,8 @@ import {
   Github, 
   Linkedin, 
   Twitter,
+  Instagram,
+  Facebook,
   MessageSquare
 } from 'lucide-react';
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
@@ -93,7 +95,7 @@ export const ContactSection: React.FC = () => {
           {/* Social Badges */}
           <div>
             <div className="text-xs font-mono uppercase text-purple-400 mb-3">Connect Online</div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <a
                 href={PORTFOLIO_DATA.github}
                 target="_blank"
@@ -109,6 +111,22 @@ export const ContactSection: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#160f24] border border-purple-500/20 text-slate-300 hover:text-white hover:border-purple-400 text-xs font-mono transition-all"
               >
                 <Linkedin size={15} /> LinkedIn
+              </a>
+              <a
+                href={(PORTFOLIO_DATA as any).instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#160f24] border border-purple-500/20 text-slate-300 hover:text-white hover:border-purple-400 text-xs font-mono transition-all"
+              >
+                <Instagram size={15} /> Instagram
+              </a>
+              <a
+                href={(PORTFOLIO_DATA as any).facebook}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#160f24] border border-purple-500/20 text-slate-300 hover:text-white hover:border-purple-400 text-xs font-mono transition-all"
+              >
+                <Facebook size={15} /> Facebook
               </a>
               <a
                 href={PORTFOLIO_DATA.twitter}

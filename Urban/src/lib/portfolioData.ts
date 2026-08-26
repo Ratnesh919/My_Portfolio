@@ -52,8 +52,10 @@ export const PORTFOLIO_DATA = {
   location: "Kolkata, India",
   email: "kumarsinghratnesh3@gmail.com",
   github: "https://github.com/Ratnesh919",
-  linkedin: "https://linkedin.com/in/ratnesh-kumar-singh",
-  twitter: "https://twitter.com",
+  linkedin: "https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b",
+  instagram: "https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==",
+  facebook: "https://www.facebook.com/share/1De11Vypsn/",
+  twitter: "https://x.com",
   stats: [
     { label: "B.Tech ECE (2026)", value: "MAKAUT", icon: "GraduationCap" },
     { label: "Projects Completed", value: "10+", icon: "FolderGit2" },

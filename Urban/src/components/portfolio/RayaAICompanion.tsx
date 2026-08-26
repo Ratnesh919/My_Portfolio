@@ -9,7 +9,9 @@ import {
   RefreshCw, 
   Layers,
   Mic,
-  MicOff
+  MicOff,
+  Music,
+  ExternalLink
 } from 'lucide-react';
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
 
@@ -18,6 +20,7 @@ interface Message {
   sender: 'user' | 'raya';
   text: string;
   timestamp: string;
+  action?: any;
 }
 
 interface RayaAICompanionProps {
@@ -26,7 +29,36 @@ interface RayaAICompanionProps {
   onOpenAvatarStudio?: () => void;
   externalMessage?: string | null;
   onClearExternalMessage?: () => void;
+  onScrollToSection?: (sectionId: string) => void;
+  onChangeAvatar?: (avatarId: string) => void;
 }
+
+const RAYA_VOICE_CONFIG = {
+  rate: 1.10,
+  pitch: 1.35,
+  volume: 1.0,
+  preferredVoices: [
+    'Microsoft Ava Online',
+    'Microsoft Jenny Online',
+    'Microsoft Aria Online',
+    'Microsoft Zira',
+    'Google UK English Female',
+    'Google US English',
+    'Samantha',
+    'Karen',
+    'Moira',
+    'Tessa',
+    'Victoria'
+  ]
+};
+
+const WAKE_WORD_VARIANTS = [
+  'hey', 'hey raya', 'raya', 'ray', 'raayaa', 'raaya', 'rya',
+  'raaayooo', 'rayya', 'raayya', 'ryaa', 'ryaaa', 'raaaya', 
+  'raaaaya', 'raaayaaa', 'raaaayaaaa', 'rayaaa', 'rayo', 
+  'raaayoo', 'raia', 'reya', 'rhaya', 'rāya', 'rayaa', 
+  'raja', 'raaja', 'rayoo'
+];
 
 function getTimeOfDayGreeting() {
   const hr = new Date().getHours();
@@ -40,30 +72,56 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   onClose,
   onOpenAvatarStudio,
   externalMessage,
-  onClearExternalMessage
+  onClearExternalMessage,
+  onScrollToSection,
+  onChangeAvatar
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'raya',
-      text: `${getTimeOfDayGreeting()}! I'm Raya, Ratnesh's AI companion. I know everything about his ECE background, 5 engineering pillars, real-time Web Audio DSP, native Android MediaCodec transcoders, and verified certifications. How can I help you explore today?`,
+      text: `${getTimeOfDayGreeting()}! I am Raya, Ratnesh's interactive AI companion. I know everything about his ECE background, 5 core engineering pillars, real-time Web Audio DSP (±5ms), native Android MediaCodec transcoders, and verified certifications. Ask me anything or tell me to change my avatar!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isListening, setIsListening] = useState(false);
+  const [activeMusicQuery, setActiveMusicQuery] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
-  const quickPrompts = [
-    "Tell me about his ECE background",
-    "Explain SyncPulse DSP engine",
-    "What is PAK Video Converter?",
-    "What verified certifications does he hold?",
-    "Change Avatar Persona"
-  ];
+  // Initialize Speech Synthesis Voices
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      for (const preferred of RAYA_VOICE_CONFIG.preferredVoices) {
+        const found = voices.find(v => v.name.includes(preferred));
+        if (found) {
+          selectedVoiceRef.current = found;
+          break;
+        }
+      }
+      if (!selectedVoiceRef.current) {
+        selectedVoiceRef.current = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) || voices[0] || null;
+      }
+    };
+
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+  }, []);
+
+  // Expose global introduction trigger
+  useEffect(() => {
+    (window as any).introduceRaya = () => {
+      const welcomeText = `${getTimeOfDayGreeting()}! Welcome to Ratnesh's 3D Engineering Portfolio! Explore his projects in Web Audio DSP, Android MediaCodec, and AI Automation, or switch my 3D avatar anytime!`;
+      speakRaya(welcomeText);
+    };
+  }, [voiceEnabled]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -77,21 +135,40 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     }
   }, [externalMessage]);
 
-  // Speech Recognition setup
+  // Speech Recognition setup with Wake Words
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognition.lang = 'en-IN';
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          handleSend(transcript);
+        const lastIdx = event.results.length - 1;
+        const transcript = event.results[lastIdx][0].transcript.trim().toLowerCase();
+
+        // Check for Wake Word only
+        const isOnlyWakeWord = WAKE_WORD_VARIANTS.some(w => transcript === w);
+        if (isOnlyWakeWord) {
+          const acks = ["Yes? I'm listening!", "I'm here, what do you need?", "How can I help you?", "Yes, go ahead!"];
+          const ack = acks[Math.floor(Math.random() * acks.length)];
+          speakRaya(ack);
+          return;
         }
-        setIsListening(false);
+
+        // Clean wake words prefix from command
+        let cleanPrompt = transcript;
+        for (const w of WAKE_WORD_VARIANTS) {
+          if (cleanPrompt.startsWith(w + ' ')) {
+            cleanPrompt = cleanPrompt.replace(w + ' ', '').trim();
+            break;
+          }
+        }
+
+        if (cleanPrompt) {
+          handleSend(cleanPrompt);
+        }
       };
 
       recognition.onerror = () => setIsListening(false);
@@ -102,7 +179,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
 
   const toggleMic = () => {
     if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+      alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
       return;
     }
     if (isListening) {
@@ -118,64 +195,119 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     }
   };
 
-  const speakText = (text: string) => {
+  const detectLanguage = (text: string): string => {
+    if (/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja-JP';
+    if (/[\u0900-\u097F]/.test(text)) return 'hi-IN';
+    if (/namaste|kaise|kya|bhai|yaar|aap/i.test(text)) return 'hi-IN';
+    if (/konnichiwa|arigatou|sugoi|kawaii/i.test(text)) return 'ja-JP';
+    return 'en-US';
+  };
+
+  const speakRaya = (text: string) => {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.05;
-    utterance.pitch = 1.1;
+
+    // Clean markdown and emojis for clean speech
+    const cleanText = text.replace(/[*#_`~[\]]/g, '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    if (selectedVoiceRef.current) utterance.voice = selectedVoiceRef.current;
+    utterance.rate = RAYA_VOICE_CONFIG.rate;
+    utterance.pitch = RAYA_VOICE_CONFIG.pitch;
+    utterance.volume = RAYA_VOICE_CONFIG.volume;
+    utterance.lang = detectLanguage(text);
+
+    // Lipsync oscillation flag
+    utterance.onstart = () => {
+      (window as any).chatbotTalking = true;
+    };
+    utterance.onend = () => {
+      (window as any).chatbotTalking = false;
+    };
+    utterance.onerror = () => {
+      (window as any).chatbotTalking = false;
+    };
+
     window.speechSynthesis.speak(utterance);
+  };
+
+  // Process structured JSON Action commands
+  const processActionCommands = (response: string) => {
+    try {
+      const match = response.match(/\{[^}]*"action"[^}]*\}/);
+      if (match) {
+        const cmd = JSON.parse(match[0]);
+        if (cmd.action === 'scroll' && cmd.target) {
+          onScrollToSection?.(cmd.target);
+        } else if (cmd.action === 'change_avatar') {
+          if (cmd.target) onChangeAvatar?.(cmd.target);
+          else onOpenAvatarStudio?.();
+        } else if (cmd.action === 'open_link' && cmd.target) {
+          setTimeout(() => {
+            if (cmd.target === 'instagram') window.open((PORTFOLIO_DATA as any).instagram, '_blank');
+            else if (cmd.target === 'facebook') window.open((PORTFOLIO_DATA as any).facebook, '_blank');
+            else if (cmd.target === 'linkedin') window.open(PORTFOLIO_DATA.linkedin, '_blank');
+            else if (cmd.target === 'github') window.open(PORTFOLIO_DATA.github, '_blank');
+            else if (cmd.target === 'email') window.location.href = `mailto:${PORTFOLIO_DATA.email}`;
+          }, 1500);
+        } else if (cmd.action === 'play_song' && cmd.query) {
+          setActiveMusicQuery(cmd.query);
+        }
+      }
+    } catch (e) {}
   };
 
   const generateLocalResponse = (query: string): string => {
     const q = query.toLowerCase();
 
-    if (q.includes('avatar') || q.includes('change character') || q.includes('wuwa') || q.includes('persona')) {
+    if (q.includes('avatar') || q.includes('switch character') || q.includes('wuwa') || q.includes('change character')) {
       onOpenAvatarStudio?.();
-      return `Opening Avatar Studio! You can choose from 14 high-fidelity 3D Resonator models including Changli, Camellya, Carlotta, Jinhsi, Shorekeeper, and Yinlin with custom animations and lighting.`;
+      return `Opening Avatar Studio! You can choose from 14 3D Resonator models including Changli, Camellya, Carlotta, Jinhsi, and Yinlin. {"action":"change_avatar"}`;
     }
-    if (q.includes('bmw') || q.includes('3d') || q.includes('three.js') || q.includes('car')) {
-      return `BMW M3 GTR 3D is Ratnesh's interactive WebGL vehicle showcase featuring real-time GLSL lighting shaders, PBR reflections, and orbital camera inspection. You can view the live site at https://relaxed-nasturtium-3abd55.netlify.app/`;
+    if (q.includes('instagram') || q.includes('insta')) {
+      return `Opening Ratnesh's Instagram profile! {"action":"open_link","target":"instagram"}`;
     }
-    if (q.includes('ece') || q.includes('education') || q.includes('college') || q.includes('makaut')) {
-      return `Ratnesh is a final-year B.Tech student in Electronics and Communication Engineering (ECE) at Swami Vivekananda Institute of Science & Technology, MAKAUT (graduating 2026). He specializes in hardware-software convergence, RF antenna simulation in Ansys HFSS, and real-time audio systems.`;
+    if (q.includes('facebook') || q.includes('fb')) {
+      return `Opening Ratnesh's Facebook profile! {"action":"open_link","target":"facebook"}`;
     }
-    if (q.includes('syncpulse') || q.includes('audio') || q.includes('dsp') || q.includes('sound')) {
-      return `SyncPulse is Ratnesh's real-time spatial audio network. It implements Cristian's NTP clock sync algorithm over WebSockets to achieve sub-millisecond (±5ms) sync across multiple client devices, coupled with an 8D binaural 360° soundstage and an interactive Three.js visualizer.`;
+    if (q.includes('linkedin')) {
+      return `Opening Ratnesh's verified LinkedIn profile! {"action":"open_link","target":"linkedin"}`;
     }
-    if (q.includes('pak') || q.includes('android') || q.includes('video') || q.includes('mediacodec')) {
-      return `PAK Video Converter is a native Android application built by Ratnesh in Kotlin and Jetpack Compose. It interfaces directly with Android's low-latency hardware MediaCodec and MediaMuxer pipelines to extract, transcode, and stream raw video payloads and game assets with zero frame drops.`;
+    if (q.includes('github')) {
+      return `Opening Ratnesh's GitHub repository hub! {"action":"open_link","target":"github"}`;
     }
-    if (q.includes('mediflow') || q.includes('hospital') || q.includes('healthcare')) {
-      return `MediFlow is an outpatient hospital queue management system built with FastAPI, React 18, and PostgreSQL. It uses a Scikit-Learn Random Forest ML regression model to forecast patient wait times dynamically with real-time WebSocket broadcasts.`;
+    if (q.includes('project') || q.includes('work') || q.includes('portfolio')) {
+      onScrollToSection?.('projects');
+      return `Here are Ratnesh's featured engineering projects including SyncPulse, PAK Video Converter, and MediFlow. {"action":"scroll","target":"projects"}`;
     }
-    if (q.includes('jobpilot') || q.includes('n8n') || q.includes('gemini') || q.includes('ai agent')) {
-      return `JobPilot AI is an autonomous job search & resume tailoring workflow created on n8n Cloud powered by Google Gemini API. It scans job feeds, evaluates candidate semantic fit, tailors applications, and triggers webhook dispatches.`;
+    if (q.includes('about') || q.includes('background') || q.includes('who is ratnesh')) {
+      onScrollToSection?.('about');
+      return `Ratnesh is a final-year ECE undergraduate at MAKAUT (2026) specializing in hardware-software convergence, real-time web audio DSP, and native Android media processing. {"action":"scroll","target":"about"}`;
     }
-    if (q.includes('cert') || q.includes('udemy') || q.includes('license')) {
-      return `Ratnesh holds 4+ verified technical certifications on Udemy:
-1. Internet of Things (IoT) Online Course (ID: UC-45f867df-23bf-440a-b362-0508bfb8d29f)
-2. Prompt Engineering for Everyone (ID: UC-58952f65-94dc-45c4-abd9-aa490de18afc)
-3. Master Java, Python, C & C++: All-in-One Programming (ID: UC-a51ac130-1bc3-41dc-97d0-84e611b49d3b)
-4. The Complete Introduction to C++ Programming (ID: UC-c57ec369-5a17-48e6-a9be-bcf9c0855867)`;
+    if (q.includes('skills') || q.includes('stack')) {
+      onScrollToSection?.('skills');
+      return `Ratnesh specializes across 5 pillars: Full-Stack Real-Time Web, Android MediaCodec, AI Agent Workflows, Embedded RF Simulation, and Interactive 3D WebGL. {"action":"scroll","target":"skills"}`;
     }
-    if (q.includes('values') || q.includes('philosophy') || q.includes('personality')) {
-      return `Ratnesh values absolute truth, honesty, loyalty, and kindness. His core work rule is "Always keep learning and improving yourself." He is a balanced, logical thinker who breaks large challenges into small, solvable components.`;
+    if (q.includes('contact') || q.includes('hire') || q.includes('email')) {
+      onScrollToSection?.('contact');
+      return `You can reach Ratnesh directly at ${PORTFOLIO_DATA.email} or connect via LinkedIn and Instagram. {"action":"scroll","target":"contact"}`;
     }
-    if (q.includes('contact') || q.includes('email') || q.includes('hire')) {
-      return `You can reach Ratnesh directly via email at ${PORTFOLIO_DATA.email} or on LinkedIn at ${PORTFOLIO_DATA.linkedin}. He is actively open to full-time engineering opportunities!`;
+    if (q.includes('song') || q.includes('music') || q.includes('play')) {
+      return `What song or genre would you like to listen to? For example say: play lofi beats or play interstellar theme!`;
+    }
+    if (q.includes('namaste') || q.includes('kaise')) {
+      return `Namaste! Main Raya hoon, Ratnesh ki AI assistant. Main aapko unke engineering projects aur skills explore karne mein madad kar sakti hoon!`;
+    }
+    if (q.includes('konnichiwa')) {
+      return `Konnichiwa! Watashi wa Raya desu. Ratnesh no purojekuto o goannai shimasu!`;
     }
 
-    return `Ratnesh is a multi-disciplinary engineer specializing in Full-Stack Real-Time Web (React, Node.js, WebSockets), Native Android (Kotlin, MediaCodec), AI Agent Workflows (n8n, Gemini API), and RF Antennas (Ansys HFSS). Feel free to ask about any specific project or skill!`;
+    return `Ratnesh is a multi-disciplinary engineer specializing in Web Audio DSP, Android MediaCodec, AI Agent workflows with Gemini API, and RF antenna simulation in Ansys HFSS. Ask me about any specific project or skill!`;
   };
 
   const handleSend = async (textToSend?: string) => {
     const query = textToSend || input;
     if (!query.trim() || isLoading) return;
-
-    if (query.toLowerCase().includes("change avatar")) {
-      onOpenAvatarStudio?.();
-    }
 
     const userMsg: Message = {
       id: `usr_${Date.now()}`,
@@ -203,25 +335,33 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
         botText = generateLocalResponse(query);
       }
 
+      processActionCommands(botText);
+
+      // Strip JSON command from displayed bubble text
+      const cleanDisplayText = botText.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
+
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
-        text: botText,
+        text: cleanDisplayText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, rayaMsg]);
-      speakText(botText);
+      speakRaya(cleanDisplayText);
     } catch {
       const fallbackText = generateLocalResponse(query);
+      processActionCommands(fallbackText);
+      const cleanDisplayText = fallbackText.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
+
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
-        text: fallbackText,
+        text: cleanDisplayText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, rayaMsg]);
-      speakText(fallbackText);
+      speakRaya(cleanDisplayText);
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +370,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-6 sm:w-[420px] sm:h-[580px] z-50 flex flex-col bg-[#110b1d]/95 border border-purple-500/35 rounded-none sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.25)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 select-none">
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-6 sm:w-[420px] sm:h-[600px] z-50 flex flex-col bg-[#110b1d]/95 border border-purple-500/35 rounded-none sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.25)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 select-none">
       {/* Raya Header */}
       <div className="p-4 bg-gradient-to-r from-purple-950/80 via-slate-900/80 to-purple-950/80 border-b border-purple-500/20 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -245,7 +385,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-bold text-white">Raya AI</h3>
               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                v2.5
+                v2.5 Neural
               </span>
             </div>
             <p className="text-[11px] text-purple-300/80 font-mono">Portfolio Companion</p>
@@ -290,6 +430,22 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
         </div>
       </div>
 
+      {/* Embedded YouTube Floating Player if Active */}
+      {activeMusicQuery && (
+        <div className="p-2.5 bg-[#170e28] border-b border-purple-500/20 flex items-center justify-between text-xs text-purple-200">
+          <div className="flex items-center gap-2 truncate">
+            <Music size={14} className="text-purple-400 animate-pulse" />
+            <span className="truncate font-mono">Playing: {activeMusicQuery}</span>
+          </div>
+          <button
+            onClick={() => setActiveMusicQuery(null)}
+            className="p-1 text-slate-400 hover:text-white"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Messages List */}
       <div className="flex-1 p-4 overflow-y-auto space-y-3.5 scrollbar-thin scrollbar-thumb-purple-900/40">
         {messages.map((msg) => (
@@ -324,7 +480,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
 
       {/* Quick Prompts Carousel */}
       <div className="px-3 py-2 bg-[#0e0817] border-t border-purple-500/15 overflow-x-auto flex gap-1.5 scrollbar-none">
-        {quickPrompts.map((prompt, i) => (
+        {["Tell me about his ECE background", "Explain SyncPulse DSP", "Open Instagram profile", "Change Avatar Persona"].map((prompt, i) => (
           <button
             key={i}
             onClick={() => handleSend(prompt)}
@@ -346,7 +502,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
         >
           <input
             type="text"
-            placeholder="Ask Raya anything..."
+            placeholder="Ask Raya anything or say 'Hey Raya'..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="flex-1 px-3.5 py-2 rounded-xl bg-[#170f24] border border-purple-500/25 text-white placeholder-slate-500 text-xs md:text-sm focus:outline-none focus:border-purple-400 transition-colors"
@@ -358,7 +514,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
             className={`p-2 rounded-xl transition-all ${
               isListening ? 'bg-red-500 text-white animate-pulse' : 'text-purple-300 hover:bg-purple-900/50'
             }`}
-            title="Speak"
+            title="Voice Mic (Listening for 'Hey Raya')"
           >
             {isListening ? <MicOff size={15} /> : <Mic size={15} />}
           </button>

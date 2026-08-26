@@ -60,9 +60,12 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
 
   const handleApply = () => {
     onSelectAvatar(selectedChar);
-    if ((window as any).setVRMCharacter) {
-      const charObj = AVATAR_CHARACTERS.find(c => c.id === selectedChar);
-      if (charObj) (window as any).setVRMCharacter(charObj.file);
+    const charObj = AVATAR_CHARACTERS.find(c => c.id === selectedChar);
+    if (charObj && (window as any).setVRMCharacter) {
+      (window as any).setVRMCharacter(charObj.file);
+    }
+    if ((window as any).playWaveAnimation) {
+      (window as any).playWaveAnimation();
     }
     onClose();
   };

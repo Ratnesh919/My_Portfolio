@@ -9,6 +9,8 @@ import {
   Github, 
   Linkedin, 
   Twitter,
+  Instagram,
+  Facebook,
   Bot,
   Sparkles,
   Layers
@@ -38,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 shrink-0 flex flex-col justify-between p-4 lg:p-6 bg-[#0c0816]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-purple-500/15 select-none z-30 overflow-y-auto scrollbar-none">
+    <aside className="w-full lg:w-72 lg:h-screen lg:fixed lg:left-0 lg:top-0 shrink-0 flex flex-col justify-between p-4 lg:p-6 bg-[#0c0816]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-purple-500/15 select-none z-30 overflow-y-auto scrollbar-none">
       {/* Top Brand / 3D Logo ("R" matching reference image) */}
       <div className="flex items-center justify-between lg:justify-start lg:flex-col lg:items-start gap-4">
         <div 
@@ -125,40 +127,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         {/* Social Icons matching mockup bottom left */}
-        <div className="flex items-center justify-between px-2 text-slate-400 pt-1">
+        <div className="flex items-center justify-between px-1 text-slate-400 pt-1">
           <a 
             href={PORTFOLIO_DATA.github} 
             target="_blank" 
             rel="noreferrer"
-            className="hover:text-purple-300 hover:scale-110 transition-all p-1.5"
+            className="hover:text-purple-300 hover:scale-110 transition-all p-1"
             title="GitHub Profile"
           >
-            <Github size={18} />
+            <Github size={17} />
           </a>
           <a 
             href={PORTFOLIO_DATA.linkedin} 
             target="_blank" 
             rel="noreferrer"
-            className="hover:text-purple-300 hover:scale-110 transition-all p-1.5"
+            className="hover:text-purple-300 hover:scale-110 transition-all p-1"
             title="LinkedIn Profile"
           >
-            <Linkedin size={18} />
+            <Linkedin size={17} />
           </a>
           <a 
-            href={PORTFOLIO_DATA.twitter} 
+            href={(PORTFOLIO_DATA as any).instagram} 
             target="_blank" 
             rel="noreferrer"
-            className="hover:text-purple-300 hover:scale-110 transition-all p-1.5"
-            title="Twitter / X"
+            className="hover:text-purple-300 hover:scale-110 transition-all p-1"
+            title="Instagram Profile"
           >
-            <Twitter size={18} />
+            <Instagram size={17} />
+          </a>
+          <a 
+            href={(PORTFOLIO_DATA as any).facebook} 
+            target="_blank" 
+            rel="noreferrer"
+            className="hover:text-purple-300 hover:scale-110 transition-all p-1"
+            title="Facebook Profile"
+          >
+            <Facebook size={17} />
           </a>
           <a 
             href={`mailto:${PORTFOLIO_DATA.email}`}
-            className="hover:text-purple-300 hover:scale-110 transition-all p-1.5"
+            className="hover:text-purple-300 hover:scale-110 transition-all p-1"
             title="Direct Email"
           >
-            <Mail size={18} />
+            <Mail size={17} />
           </a>
         </div>
       </div>
