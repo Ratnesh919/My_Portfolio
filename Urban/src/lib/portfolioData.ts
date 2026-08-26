@@ -154,6 +154,7 @@ export const PORTFOLIO_DATA = {
       accent: "#f59e0b",
       glowColor: "rgba(245, 158, 11, 0.4)",
       badge: "WebGL / Three.js",
+      liveUrl: "https://relaxed-nasturtium-3abd55.netlify.app/",
       githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR",
       highlights: [
         "Physically Based Rendering (PBR) with custom GLSL reflection shaders",

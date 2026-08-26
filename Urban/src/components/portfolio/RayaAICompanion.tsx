@@ -7,10 +7,9 @@ import {
   Volume2, 
   VolumeX, 
   RefreshCw, 
-  User, 
-  Maximize2, 
-  Minimize2,
-  ChevronDown
+  Layers,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
 
@@ -24,33 +23,100 @@ interface Message {
 interface RayaAICompanionProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenAvatarStudio?: () => void;
+  externalMessage?: string | null;
+  onClearExternalMessage?: () => void;
 }
 
-export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClose }) => {
+function getTimeOfDayGreeting() {
+  const hr = new Date().getHours();
+  if (hr >= 5 && hr < 12) return "Good morning";
+  if (hr >= 12 && hr < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ 
+  isOpen, 
+  onClose,
+  onOpenAvatarStudio,
+  externalMessage,
+  onClearExternalMessage
+}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'raya',
-      text: `Hello! I'm Raya, Ratnesh's AI companion. I know everything about his engineering projects, ECE background, AI workflows, and skills. What would you like to explore?`,
+      text: `${getTimeOfDayGreeting()}! I'm Raya, Ratnesh's AI companion. I know everything about his ECE background, 5 engineering pillars, real-time Web Audio DSP, native Android MediaCodec transcoders, and verified certifications. How can I help you explore today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const quickPrompts = [
     "Tell me about his ECE background",
     "Explain SyncPulse DSP engine",
     "What is PAK Video Converter?",
     "What verified certifications does he hold?",
-    "What are his core work values?"
+    "Change Avatar Persona"
   ];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Handle external message triggered from bottom input bar
+  useEffect(() => {
+    if (externalMessage) {
+      handleSend(externalMessage);
+      onClearExternalMessage?.();
+    }
+  }, [externalMessage]);
+
+  // Speech Recognition setup
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          handleSend(transcript);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleMic = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
 
   const speakText = (text: string) => {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
@@ -64,17 +130,24 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
   const generateLocalResponse = (query: string): string => {
     const q = query.toLowerCase();
 
+    if (q.includes('avatar') || q.includes('change character') || q.includes('wuwa') || q.includes('persona')) {
+      onOpenAvatarStudio?.();
+      return `Opening Avatar Studio! You can choose from 14 high-fidelity 3D Resonator models including Changli, Camellya, Carlotta, Jinhsi, Shorekeeper, and Yinlin with custom animations and lighting.`;
+    }
+    if (q.includes('bmw') || q.includes('3d') || q.includes('three.js') || q.includes('car')) {
+      return `BMW M3 GTR 3D is Ratnesh's interactive WebGL vehicle showcase featuring real-time GLSL lighting shaders, PBR reflections, and orbital camera inspection. You can view the live site at https://relaxed-nasturtium-3abd55.netlify.app/`;
+    }
     if (q.includes('ece') || q.includes('education') || q.includes('college') || q.includes('makaut')) {
-      return `Ratnesh is a final-year B.Tech student in Electronics and Communication Engineering (ECE) at MAKAUT (Swami Vivekananda Institute of Science & Technology), graduating in 2026. He excels at hardware-software convergence, RF simulation in Ansys HFSS, and real-time computing.`;
+      return `Ratnesh is a final-year B.Tech student in Electronics and Communication Engineering (ECE) at Swami Vivekananda Institute of Science & Technology, MAKAUT (graduating 2026). He specializes in hardware-software convergence, RF antenna simulation in Ansys HFSS, and real-time audio systems.`;
     }
     if (q.includes('syncpulse') || q.includes('audio') || q.includes('dsp') || q.includes('sound')) {
-      return `SyncPulse is Ratnesh's real-time spatial audio network. It implements Cristian's NTP clock sync algorithm over WebSockets to achieve sub-millisecond (±5ms) sync across multiple client devices, coupled with an 8D binaural 360° soundstage and an interactive Three.js 3D visualizer.`;
+      return `SyncPulse is Ratnesh's real-time spatial audio network. It implements Cristian's NTP clock sync algorithm over WebSockets to achieve sub-millisecond (±5ms) sync across multiple client devices, coupled with an 8D binaural 360° soundstage and an interactive Three.js visualizer.`;
     }
     if (q.includes('pak') || q.includes('android') || q.includes('video') || q.includes('mediacodec')) {
-      return `PAK Video Converter is a native Android application built by Ratnesh in Kotlin and Jetpack Compose. It uses Android's low-latency hardware MediaCodec and MediaMuxer pipelines to extract, transcode, and stream raw video payloads and game assets with zero frame drops.`;
+      return `PAK Video Converter is a native Android application built by Ratnesh in Kotlin and Jetpack Compose. It interfaces directly with Android's low-latency hardware MediaCodec and MediaMuxer pipelines to extract, transcode, and stream raw video payloads and game assets with zero frame drops.`;
     }
     if (q.includes('mediflow') || q.includes('hospital') || q.includes('healthcare')) {
-      return `MediFlow is an outpatient hospital queue management system built with FastAPI, React 18, and PostgreSQL. It uses a Scikit-Learn Random Forest ML regression model to forecast patient wait times dynamically with real-time WebSocket token broadcasts.`;
+      return `MediFlow is an outpatient hospital queue management system built with FastAPI, React 18, and PostgreSQL. It uses a Scikit-Learn Random Forest ML regression model to forecast patient wait times dynamically with real-time WebSocket broadcasts.`;
     }
     if (q.includes('jobpilot') || q.includes('n8n') || q.includes('gemini') || q.includes('ai agent')) {
       return `JobPilot AI is an autonomous job search & resume tailoring workflow created on n8n Cloud powered by Google Gemini API. It scans job feeds, evaluates candidate semantic fit, tailors applications, and triggers webhook dispatches.`;
@@ -90,7 +163,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
       return `Ratnesh values absolute truth, honesty, loyalty, and kindness. His core work rule is "Always keep learning and improving yourself." He is a balanced, logical thinker who breaks large challenges into small, solvable components.`;
     }
     if (q.includes('contact') || q.includes('email') || q.includes('hire')) {
-      return `You can reach Ratnesh directly via email at ${PORTFOLIO_DATA.email} or on LinkedIn at ${PORTFOLIO_DATA.linkedin}. He is actively open to full-time opportunities and engineering collaborations!`;
+      return `You can reach Ratnesh directly via email at ${PORTFOLIO_DATA.email} or on LinkedIn at ${PORTFOLIO_DATA.linkedin}. He is actively open to full-time engineering opportunities!`;
     }
 
     return `Ratnesh is a multi-disciplinary engineer specializing in Full-Stack Real-Time Web (React, Node.js, WebSockets), Native Android (Kotlin, MediaCodec), AI Agent Workflows (n8n, Gemini API), and RF Antennas (Ansys HFSS). Feel free to ask about any specific project or skill!`;
@@ -99,6 +172,10 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
   const handleSend = async (textToSend?: string) => {
     const query = textToSend || input;
     if (!query.trim() || isLoading) return;
+
+    if (query.toLowerCase().includes("change avatar")) {
+      onOpenAvatarStudio?.();
+    }
 
     const userMsg: Message = {
       id: `usr_${Date.now()}`,
@@ -112,7 +189,6 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
     setIsLoading(true);
 
     try {
-      // Try backend /api/chat endpoint
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,7 +230,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[420px] sm:h-[600px] z-50 flex flex-col bg-[#110b1d]/95 border border-purple-500/30 rounded-none sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(168,85,247,0.25)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 select-none">
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-6 sm:w-[420px] sm:h-[580px] z-50 flex flex-col bg-[#110b1d]/95 border border-purple-500/35 rounded-none sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.25)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 select-none">
       {/* Raya Header */}
       <div className="p-4 bg-gradient-to-r from-purple-950/80 via-slate-900/80 to-purple-950/80 border-b border-purple-500/20 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -176,8 +252,16 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
           </div>
         </div>
 
-        {/* Controls */}
+        {/* Header Controls */}
         <div className="flex items-center gap-1 text-slate-400">
+          <button
+            onClick={onOpenAvatarStudio}
+            className="p-2 rounded-xl text-purple-300 hover:text-white hover:bg-purple-900/50 transition-all"
+            title="Open Avatar Studio (14 Characters)"
+          >
+            <Layers size={16} />
+          </button>
+
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
             className={`p-2 rounded-xl transition-all ${
@@ -251,7 +335,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
         ))}
       </div>
 
-      {/* Input Box */}
+      {/* Bottom Input Box */}
       <div className="p-3 bg-[#0d0716] border-t border-purple-500/20">
         <form
           onSubmit={(e) => {
@@ -262,17 +346,29 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ isOpen, onClos
         >
           <input
             type="text"
-            placeholder="Ask Raya about Ratnesh's work..."
+            placeholder="Ask Raya anything..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#170f24] border border-purple-500/25 text-white placeholder-slate-500 text-xs md:text-sm focus:outline-none focus:border-purple-400 transition-colors"
+            className="flex-1 px-3.5 py-2 rounded-xl bg-[#170f24] border border-purple-500/25 text-white placeholder-slate-500 text-xs md:text-sm focus:outline-none focus:border-purple-400 transition-colors"
           />
+
+          <button
+            type="button"
+            onClick={toggleMic}
+            className={`p-2 rounded-xl transition-all ${
+              isListening ? 'bg-red-500 text-white animate-pulse' : 'text-purple-300 hover:bg-purple-900/50'
+            }`}
+            title="Speak"
+          >
+            {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+          </button>
+
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="p-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white disabled:opacity-40 transition-all hover:scale-105 active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.4)]"
+            className="p-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white disabled:opacity-40 transition-all hover:scale-105 active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.4)]"
           >
-            <Send size={16} />
+            <Send size={15} />
           </button>
         </form>
       </div>

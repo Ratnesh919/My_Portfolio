@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/portfolio/Sidebar';
 import { HeroSection } from '@/components/portfolio/HeroSection';
 import { ProjectsSection } from '@/components/portfolio/ProjectsSection';
@@ -8,69 +8,140 @@ import { ExperienceSection } from '@/components/portfolio/ExperienceSection';
 import { CertificationsSection } from '@/components/portfolio/CertificationsSection';
 import { ContactSection } from '@/components/portfolio/ContactSection';
 import { RayaAICompanion } from '@/components/portfolio/RayaAICompanion';
+import { ChatbotBar } from '@/components/portfolio/ChatbotBar';
+import { AvatarStudioModal } from '@/components/portfolio/AvatarStudioModal';
 import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
-import { Bot, Sparkles, ChevronUp } from 'lucide-react';
+import { Bot, Sparkles, ChevronUp, Layers, X, Volume2 } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
   const [isRayaOpen, setIsRayaOpen] = useState<boolean>(false);
+  const [isAvatarStudioOpen, setIsAvatarStudioOpen] = useState<boolean>(false);
+  const [currentAvatar, setCurrentAvatar] = useState<string>('changli');
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
   const [selectedCert, setSelectedCert] = useState<CertificateItem | null>(null);
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
+  const [pendingChatMessage, setPendingChatMessage] = useState<string | null>(null);
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState<boolean>(true);
 
+  // Smooth Navigation Trigger
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const yOffset = -20;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
+  // ═══ Real-Time Scroll Spy via IntersectionObserver ═══
   useEffect(() => {
+    const sectionIds = ['home', 'projects', 'about', 'skills', 'experience', 'certifications', 'contact'];
+    
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setShowBackToTop(scrollY > 400);
+      setShowBackToTop(window.scrollY > 400);
+    };
 
-      const sections = ['home', 'projects', 'about', 'skills', 'experience', 'certifications', 'contact'];
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom >= 200) {
-            setActiveSection(sectionId);
-            break;
-          }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      // Find the most prominent intersecting entry
+      const visibleEntries = entries.filter(e => e.isIntersecting);
+      if (visibleEntries.length > 0) {
+        // Sort by highest intersection ratio
+        visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        const mostVisible = visibleEntries[0];
+        if (mostVisible.target.id) {
+          setActiveSection(mostVisible.target.id);
         }
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -40% 0px',
+      threshold: [0.1, 0.25, 0.5, 0.75]
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
   }, []);
 
+  const handleSendMessageFromBar = (msg: string) => {
+    setPendingChatMessage(msg);
+    setIsRayaOpen(true);
+  };
+
   return (
-    <div className="min-h-screen bg-[#07050d] text-slate-100 flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8 font-sans antialiased selection:bg-purple-600 selection:text-white">
-      {/* Background Ambient Cyber Glows */}
+    <div className="min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white">
+      {/* Background Ambient Glows & Cyber Mesh */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-900/20 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-900/15 rounded-full blur-[140px]" />
-        <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-fuchsia-900/15 rounded-full blur-[130px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(#a855f7_0.7px,transparent_0.7px)] [background-size:24px_24px] opacity-10" />
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-purple-900/15 rounded-full blur-[140px]" />
+        <div className="absolute top-1/2 -right-40 w-[600px] h-[600px] bg-indigo-900/15 rounded-full blur-[160px]" />
+        <div className="absolute -bottom-40 left-1/3 w-[500px] h-[500px] bg-fuchsia-900/10 rounded-full blur-[150px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#a855f7_0.8px,transparent_0.8px)] [background-size:32px_32px] opacity-10" />
       </div>
 
-      {/* ═══ Main Portfolio Hardware Chassis / Frame (Matching Reference Image) ═══ */}
-      <div className="relative z-10 w-full max-w-7xl rounded-3xl md:rounded-[36px] bg-[#0c0816]/95 border border-purple-500/20 shadow-[0_20px_80px_rgba(0,0,0,0.8),0_0_60px_rgba(147,51,234,0.15),inset_0_1px_1px_rgba(255,255,255,0.08)] overflow-hidden flex flex-col lg:flex-row">
-        
-        {/* Left Floating Sidebar */}
-        <Sidebar
-          activeSection={activeSection}
-          onNavigate={handleNavigate}
-          onToggleRaya={() => setIsRayaOpen(!isRayaOpen)}
-        />
+      {/* ═══ Left Fixed/Sticky Navigation Sidebar ═══ */}
+      <Sidebar
+        activeSection={activeSection}
+        onNavigate={handleNavigate}
+        onToggleRaya={() => setIsRayaOpen(!isRayaOpen)}
+        onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
+      />
 
-        {/* Right Scrollable Main Content Canvas */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 max-h-[92vh] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-950/60 scrollbar-track-transparent">
+      {/* ═══ Full-Screen Main Content Container (Edge to Edge) ═══ */}
+      <div className="flex-1 w-full min-h-screen relative z-10 flex flex-col justify-between">
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 space-y-12">
+          
+          {/* Welcome Intro Toast Banner */}
+          {showWelcomeBanner && (
+            <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-purple-950/70 via-[#180e2b] to-slate-900/80 border border-purple-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-900/60 flex items-center justify-center border border-purple-400/30 shrink-0">
+                  <Bot size={18} className="text-purple-300 animate-pulse" />
+                </div>
+                <div>
+                  <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                    <span>Welcome to Ratnesh's 3D Engineering Portfolio!</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">Raya AI Active</span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
+                    Explore real-time Web Audio DSP (±5ms), Android MediaCodec transcoders, AI agents, and 14 custom 3D Resonator avatars.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setIsAvatarStudioOpen(true)}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-900/50 hover:bg-purple-800/60 text-purple-200 text-xs font-mono border border-purple-500/30 transition-all"
+                >
+                  <Layers size={13} />
+                  <span>Avatar Studio</span>
+                </button>
+                <button
+                  onClick={() => setShowWelcomeBanner(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05]"
+                  title="Dismiss"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Hero Section */}
           <HeroSection
             onNavigate={handleNavigate}
@@ -98,37 +169,33 @@ export const App: React.FC = () => {
 
           {/* Contact Section */}
           <ContactSection />
-
-          {/* Portfolio Footer */}
-          <footer className="w-full py-8 mt-8 border-t border-purple-500/15 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_6px_#a855f7]" />
-              <span>&copy; {new Date().getFullYear()} {PORTFOLIO_DATA.name} &bull; Designed & Built with Next-Gen 3D & AI</span>
-            </div>
-            <div>
-              <span>Kolkata, India &bull; All Rights Reserved</span>
-            </div>
-          </footer>
         </main>
+
+        {/* Global Footer */}
+        <footer className="w-full border-t border-purple-500/15 bg-[#090612]/90 backdrop-blur-md px-6 sm:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7]" />
+            <span>&copy; {new Date().getFullYear()} {PORTFOLIO_DATA.name} &bull; Next-Gen 3D Neomorphic Portfolio</span>
+          </div>
+          <div>
+            <span>Kolkata, India &bull; MAKAUT ECE Graduate '26</span>
+          </div>
+        </footer>
       </div>
 
-      {/* ═══ Floating Raya AI Companion Trigger (Bottom Right) ═══ */}
-      <button
-        onClick={() => setIsRayaOpen(true)}
-        className="fixed bottom-6 right-6 z-40 group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs md:text-sm shadow-[0_8px_30px_rgba(147,51,234,0.5),0_0_15px_rgba(168,85,247,0.3)] border border-purple-300/40 transition-all duration-300 transform hover:scale-105 active:scale-95 select-none"
-      >
-        <div className="relative">
-          <Bot size={18} className="animate-pulse" />
-          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400" />
-        </div>
-        <span className="hidden sm:inline">Ask Raya AI</span>
-      </button>
+      {/* ═══ Floating Interactive Chatbot Bottom Bar ═══ */}
+      <ChatbotBar
+        onSendMessage={handleSendMessageFromBar}
+        onOpenFullChat={() => setIsRayaOpen(true)}
+        onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
+        isOpen={isRayaOpen}
+      />
 
-      {/* Back To Top Button */}
+      {/* Back To Top Floating Action */}
       {showBackToTop && (
         <button
           onClick={() => handleNavigate('home')}
-          className="fixed bottom-20 right-6 z-40 p-2.5 rounded-full bg-[#170f26]/90 hover:bg-purple-900/60 text-purple-300 hover:text-white border border-purple-500/30 shadow-lg backdrop-blur-md transition-all active:scale-95"
+          className="fixed bottom-20 right-6 z-30 p-3 rounded-full bg-[#160d26]/90 hover:bg-purple-900/70 text-purple-300 hover:text-white border border-purple-500/35 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md transition-all active:scale-95 hover:scale-105"
           title="Scroll to Top"
         >
           <ChevronUp size={18} />
@@ -139,9 +206,23 @@ export const App: React.FC = () => {
       <RayaAICompanion
         isOpen={isRayaOpen}
         onClose={() => setIsRayaOpen(false)}
+        onOpenAvatarStudio={() => {
+          setIsRayaOpen(false);
+          setIsAvatarStudioOpen(true);
+        }}
+        externalMessage={pendingChatMessage}
+        onClearExternalMessage={() => setPendingChatMessage(null)}
       />
 
-      {/* Universal Detail Modal (for Projects & Certifications) */}
+      {/* 14-Character 3D Avatar Studio Modal */}
+      <AvatarStudioModal
+        isOpen={isAvatarStudioOpen}
+        onClose={() => setIsAvatarStudioOpen(false)}
+        currentAvatar={currentAvatar}
+        onSelectAvatar={(charId) => setCurrentAvatar(charId)}
+      />
+
+      {/* Universal Detail Modal (Projects & Verified Certifications) */}
       <Modal
         isOpen={!!selectedProject || !!selectedCert}
         onClose={() => {
