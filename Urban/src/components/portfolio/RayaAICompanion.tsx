@@ -31,6 +31,7 @@ interface RayaAICompanionProps {
   onClearExternalMessage?: () => void;
   onScrollToSection?: (sectionId: string) => void;
   onChangeAvatar?: (avatarId: string) => void;
+  onUpdateSpeechText?: (text: string) => void;
 }
 
 const RAYA_VOICE_CONFIG = {
@@ -74,7 +75,8 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   externalMessage,
   onClearExternalMessage,
   onScrollToSection,
-  onChangeAvatar
+  onChangeAvatar,
+  onUpdateSpeechText
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -118,10 +120,11 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   // Expose global introduction trigger
   useEffect(() => {
     (window as any).introduceRaya = () => {
-      const welcomeText = `${getTimeOfDayGreeting()}! Welcome to Ratnesh's 3D Engineering Portfolio! Explore his projects in Web Audio DSP, Android MediaCodec, and AI Automation, or switch my 3D avatar anytime!`;
+      const welcomeText = `Welcome back! It's so nice to see you. I am Raya, Ratnesh's interactive AI companion. Explore his projects in Web Audio DSP, Android MediaCodec, and AI Automation, or tell me to change my avatar anytime!`;
+      onUpdateSpeechText?.(welcomeText);
       speakRaya(welcomeText);
     };
-  }, [voiceEnabled]);
+  }, [voiceEnabled, onUpdateSpeechText]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -348,6 +351,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       };
 
       setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(cleanDisplayText);
       speakRaya(cleanDisplayText);
     } catch {
       const fallbackText = generateLocalResponse(query);
@@ -361,6 +365,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(cleanDisplayText);
       speakRaya(cleanDisplayText);
     } finally {
       setIsLoading(false);

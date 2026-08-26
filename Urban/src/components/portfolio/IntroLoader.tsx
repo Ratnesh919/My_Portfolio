@@ -1,210 +1,226 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Bot, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Zap } from 'lucide-react';
 
 interface IntroLoaderProps {
   onComplete: () => void;
 }
 
-interface Bubble {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  speed: number;
-  label: string;
-  color: string;
-  popped: boolean;
-}
-
-const INITIAL_BUBBLES: Bubble[] = [
-  { id: 1, x: 22, y: 32, size: 75, speed: 1.2, label: "Audio DSP", color: "#a855f7", popped: false },
-  { id: 2, x: 74, y: 26, size: 85, speed: 1.0, label: "MediaCodec", color: "#6366f1", popped: false },
-  { id: 3, x: 48, y: 52, size: 90, speed: 1.4, label: "AI Agents", color: "#ec4899", popped: false },
-  { id: 4, x: 16, y: 68, size: 70, speed: 0.9, label: "HFSS RF", color: "#8b5cf6", popped: false },
-  { id: 5, x: 82, y: 62, size: 80, speed: 1.1, label: "Three.js", color: "#38bdf8", popped: false },
-  { id: 6, x: 50, y: 18, size: 65, speed: 1.3, label: "Raya AI", color: "#c084fc", popped: false },
-  { id: 7, x: 28, y: 82, size: 75, speed: 1.0, label: "SyncPulse", color: "#f472b6", popped: false },
-  { id: 8, x: 70, y: 44, size: 70, speed: 1.2, label: "MAKAUT", color: "#818cf8", popped: false }
-];
-
 export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'loading' | 'bubbles' | 'done'>('loading');
+  const [phase, setPhase] = useState<'loader' | 'bubbles' | 'done'>('loader');
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Initializing Raya AI Engine...");
-  const [bubbles, setBubbles] = useState<Bubble[]>(INITIAL_BUBBLES);
-  const [poppedCount, setPoppedCount] = useState(0);
-  const [isUnveiling, setIsUnveiling] = useState(false);
-  const hasFinishedRef = useRef(false);
+  const [statusText, setStatusText] = useState('Processing Asset...');
+  const [isLoaderHidden, setIsLoaderHidden] = useState(false);
+  const [isBubbleHidden, setIsBubbleHidden] = useState(false);
 
-  // Check if user already completed intro this session
   useEffect(() => {
-    const alreadyDone = sessionStorage.getItem('raya_bubble_done');
-    if (alreadyDone) {
+    if (sessionStorage.getItem('raya_bubble_done')) {
       setPhase('done');
       return;
     }
 
-    // Phase 1: Loading progression
+    // Progress bar simulation matching original site loader
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => setPhase('bubbles'), 350);
+          setTimeout(() => {
+            setIsLoaderHidden(true);
+            setTimeout(() => setPhase('bubbles'), 600);
+          }, 300);
           return 100;
         }
 
-        const next = prev + Math.floor(Math.random() * 16) + 10;
-        if (next > 25 && next < 55) setStatusText("Loading 3D Spatial Audio & Assets...");
-        else if (next >= 55 && next < 85) setStatusText("Decrypting VRM Character Matrix...");
-        else if (next >= 85) setStatusText("Interface Calibrated — Ready!");
+        const next = prev + Math.floor(Math.random() * 12) + 6;
+        if (next > 30 && next < 60) setStatusText("Loading Character Engine...");
+        else if (next >= 60 && next < 90) setStatusText("Decrypting VRM Animations...");
+        else if (next >= 90) setStatusText("Processing Asset...");
 
         return Math.min(next, 100);
       });
-    }, 110);
+    }, 90);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Handle Bubble Pop
-  const handlePopBubble = (id: number) => {
-    setBubbles((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, popped: true } : b))
-    );
-    const newCount = poppedCount + 1;
-    setPoppedCount(newCount);
+  // Bubble Screen mechanics
+  useEffect(() => {
+    if (phase !== 'bubbles') return;
 
-    if (newCount >= 3) {
-      finishIntro();
-    }
-  };
+    const container = document.getElementById('bubble-container-el');
+    if (!container) return;
 
-  const finishIntro = () => {
-    if (hasFinishedRef.current) return;
-    hasFinishedRef.current = true;
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    const spawnMs = isMobile ? 1400 : 650;
 
-    setIsUnveiling(true);
-    sessionStorage.setItem('raya_bubble_done', 'true');
-    setTimeout(() => {
-      setPhase('done');
-      onComplete();
-    }, 550);
-  };
+    const spawnInterval = setInterval(() => {
+      if (!document.getElementById('bubble-container-el')) {
+        clearInterval(spawnInterval);
+        return;
+      }
+
+      const b = document.createElement('div');
+      b.className = 'bubble-item-el';
+      const size = 35 + Math.random() * 75;
+      b.style.cssText = `width:${size}px;height:${size}px;left:${5 + Math.random() * 85}vw;animation-duration:${(isMobile ? 8 : 4.5) + Math.random() * 4}s;`;
+
+      b.addEventListener('pointerdown', (e) => {
+        clearInterval(spawnInterval);
+        document.querySelectorAll('.bubble-item-el').forEach((x: any) => (x.style.opacity = '0'));
+
+        // Crack + mist burst particle effect
+        const cx = e.clientX;
+        const cy = e.clientY;
+        const r = b.getBoundingClientRect().width * 0.5;
+
+        for (let i = 0; i < 4; i++) {
+          const ang = (i / 4) * Math.PI;
+          const len = r * (1.1 + Math.random() * 0.4);
+          const l = document.createElement('div');
+          l.className = 'bubble-crack-line-el';
+          l.style.cssText = `left:${cx}px;top:${cy}px;width:${len * 2}px;height:${1 + Math.random()}px;margin-left:${-len}px;margin-top:-0.5px;background:linear-gradient(90deg,transparent,rgba(200,235,255,0.9) 30%,#fff 50%,rgba(200,235,255,0.9) 70%,transparent);transform:rotate(${ang}rad) scaleX(0);animation-delay:${i * 0.03}s;`;
+          document.body.appendChild(l);
+          setTimeout(() => l.remove(), 500);
+        }
+
+        for (let i = 0; i < 6; i++) {
+          const ang = (i / 6) * 2 * Math.PI + Math.random() * 0.4;
+          const dist = r * (0.5 + Math.random() * 0.8);
+          const sz = 2 + Math.random() * 3;
+          const m = document.createElement('div');
+          m.className = 'bubble-mist-dot-el';
+          m.style.cssText = `left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;margin-left:${-sz / 2}px;margin-top:${-sz / 2}px;`;
+          document.body.appendChild(m);
+          requestAnimationFrame(() => {
+            m.style.transform = `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist}px) scale(0)`;
+          });
+          setTimeout(() => m.remove(), 550);
+        }
+
+        // Fade out overlay after burst
+        setTimeout(() => {
+          setIsBubbleHidden(true);
+          sessionStorage.setItem('raya_bubble_done', '1');
+          setTimeout(() => {
+            setPhase('done');
+            onComplete();
+          }, 400);
+        }, 280);
+      });
+
+      container.appendChild(b);
+      setTimeout(() => {
+        if (b.parentNode) b.remove();
+      }, isMobile ? 15000 : 8500);
+    }, spawnMs);
+
+    return () => clearInterval(spawnInterval);
+  }, [phase, onComplete]);
 
   if (phase === 'done') return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center select-none transition-opacity duration-600 ${
-        isUnveiling ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      } bg-[#06040a]`}
-    >
-      {/* Ambient Depth Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/30 rounded-full blur-[140px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-900/30 rounded-full blur-[140px] animate-pulse" />
-        <div className="absolute inset-0 bg-[radial-gradient(#a855f7_0.8px,transparent_0.8px)] [background-size:24px_24px] opacity-15" />
-      </div>
+    <>
+      {/* ═══ Phase 1: Site Global Loading Screen (Matching Original Screenshot) ═══ */}
+      {phase === 'loader' && (
+        <div
+          className={`fixed inset-0 z-[9999] bg-[#080808] flex items-center justify-center transition-all duration-700 select-none ${
+            isLoaderHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          {/* Radial Center Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,65,108,0.18)_0%,transparent_60%)] pointer-events-none" />
 
-      {/* ═══ PHASE 1: Loading Progress Bar ═══ */}
-      {phase === 'loading' && (
-        <div className="relative z-10 flex flex-col items-center gap-6 p-8 max-w-md w-full text-center animate-in fade-in zoom-in-95 duration-300">
-          {/* Glowing 3D Logo */}
-          <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-b from-purple-600 via-purple-700 to-indigo-900 p-0.5 shadow-[0_0_40px_rgba(168,85,247,0.5)] flex items-center justify-center animate-bounce">
-            <div className="w-full h-full rounded-[22px] bg-[#120822] flex items-center justify-center border border-purple-400/40">
-              <span className="font-black text-4xl bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_2px_12px_rgba(168,85,247,0.9)]">
-                R
-              </span>
+          <div className="relative z-10 w-[85%] max-w-[500px] flex flex-col items-center gap-5 text-center">
+            {/* Glowing Lightning Bolt Logo */}
+            <div className="animate-pulse flex items-center justify-center">
+              <Zap size={44} className="text-[#ff416c] fill-[#ff416c]/40 drop-shadow-[0_0_15px_#ff416c]" />
             </div>
-          </div>
 
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-wider uppercase">
-              Ratnesh Kumar Singh
-            </h2>
-            <p className="text-xs font-mono text-purple-400 mt-1">
-              3D Engineering Portfolio &bull; ECE '26
-            </p>
-          </div>
+            {/* Glowing Title */}
+            <h1 className="font-sans font-black text-2xl sm:text-3xl text-white tracking-[0.18em] uppercase drop-shadow-[0_0_18px_rgba(255,65,108,0.85)]">
+              SYSTEM INITIALIZING
+            </h1>
 
-          {/* Progress Bar */}
-          <div className="w-full space-y-2">
-            <div className="w-full h-2.5 rounded-full bg-purple-950/80 border border-purple-500/30 overflow-hidden relative shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]">
+            {/* Progressive Bar (Red-Pink Gradient) */}
+            <div className="w-full h-[6px] bg-white/[0.06] border border-white/10 rounded-full overflow-hidden shadow-[inset_0_2px_5px_rgba(0,0,0,0.9)] relative">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-400 rounded-full transition-all duration-150 shadow-[0_0_12px_#a855f7]"
+                className="h-full bg-gradient-to-r from-[#ff4b2b] to-[#ff416c] shadow-[0_0_15px_#ff416c] transition-all duration-100 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span className="flex items-center gap-1 text-purple-300">
-                <Sparkles size={11} className="animate-spin text-purple-400" />
-                {statusText}
-              </span>
-              <span className="font-bold text-white">{progress}%</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ PHASE 2: Interactive Bubble Overlay ("Pop the Bubbles") ═══ */}
-      {phase === 'bubbles' && (
-        <div className="relative z-10 w-full h-full flex flex-col items-center justify-between p-6 sm:p-10 animate-in fade-in duration-400">
-          {/* Top Title */}
-          <div className="text-center mt-6 sm:mt-10 space-y-2 max-w-lg">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300 text-xs font-mono shadow-md backdrop-blur-md">
-              <Bot size={14} className="text-purple-400 animate-pulse" />
-              <span>Raya AI Interface Ready</span>
+            {/* Footer Status & Percentage */}
+            <div className="w-full flex items-center justify-between text-xs sm:text-sm font-semibold tracking-wider text-slate-400 font-mono">
+              <span className="text-slate-300">{statusText}</span>
+              <span className="text-[#ff416c] font-bold">{progress}%</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-[0_4px_16px_rgba(168,85,247,0.4)]">
-              Pop the Bubbles to Enter!
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 font-light">
-              Tap floating neural nodes to unveil Ratnesh's 3D Engineering Portfolio ({poppedCount}/3 popped)
+            {/* Hint */}
+            <p className="text-[11px] text-[#ff416c]/70 font-mono mt-2 tracking-wide">
+              Switch to desktop or rotate your phone for better experience
             </p>
           </div>
-
-          {/* Floating Interactive Bubbles */}
-          <div className="relative w-full max-w-4xl h-[400px] sm:h-[460px] my-auto">
-            {bubbles.map((bubble) => {
-              if (bubble.popped) return null;
-
-              return (
-                <button
-                  key={bubble.id}
-                  onClick={() => handlePopBubble(bubble.id)}
-                  style={{
-                    left: `${bubble.x}%`,
-                    top: `${bubble.y}%`,
-                    width: `${bubble.size}px`,
-                    height: `${bubble.size}px`,
-                    animationDuration: `${3.2 / bubble.speed}s`
-                  }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-transform duration-200 hover:scale-115 active:scale-90 animate-bounce shadow-[0_0_25px_rgba(168,85,247,0.4),inset_0_0_15px_rgba(255,255,255,0.25)] border border-purple-400/40 bg-gradient-to-tr from-[#251342]/90 via-[#3d1a6e]/70 to-[#1b0d32]/90 backdrop-blur-md group"
-                >
-                  <Sparkles size={12} className="text-purple-300 mb-0.5 group-hover:rotate-45 transition-transform" />
-                  <span className="text-[10px] sm:text-xs font-bold text-white font-mono leading-tight drop-shadow-md">
-                    {bubble.label}
-                  </span>
-                  <span className="text-[8px] text-purple-300/80 font-mono">TAP</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Bottom Direct Skip Action */}
-          <div className="mb-6 sm:mb-10 flex flex-col items-center gap-2">
-            <button
-              onClick={finishIntro}
-              className="inline-flex items-center gap-2.5 px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all hover:scale-105 active:scale-95"
-            >
-              <span>Enter Portfolio</span>
-              <ArrowRight size={16} />
-            </button>
-            <span className="text-[11px] text-slate-500 font-mono">Or tap 3 bubbles above</span>
-          </div>
         </div>
       )}
-    </div>
+
+      {/* ═══ Phase 2: Bubble Entry Screen ("Tap a Bubble to Enter") ═══ */}
+      {phase === 'bubbles' && (
+        <div
+          id="bubble-screen"
+          className={`fixed inset-0 z-[9998] bg-[#080808]/95 backdrop-blur-[12px] flex flex-col items-center justify-center transition-all duration-700 select-none ${
+            isBubbleHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          <div className="text-2xl sm:text-4xl md:text-5xl font-black text-white font-sans tracking-wide text-center drop-shadow-[0_0_25px_rgba(255,65,108,0.85)] pointer-events-none animate-pulse">
+            Tap a Bubble to Enter
+          </div>
+          <div id="bubble-container-el" className="absolute inset-0 overflow-hidden pointer-events-none" />
+
+          <style>{`
+            .bubble-item-el {
+              position: absolute;
+              bottom: -100px;
+              border-radius: 50%;
+              background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 65, 108, 0.25) 60%, rgba(79, 172, 254, 0.3) 100%);
+              border: 1px solid rgba(255, 255, 255, 0.4);
+              box-shadow: 0 0 20px rgba(255, 65, 108, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.3);
+              animation: floatBubbleUp linear infinite;
+              cursor: pointer;
+              pointer-events: auto !important;
+              transition: transform 0.2s ease, opacity 0.3s ease;
+            }
+            .bubble-item-el:hover {
+              transform: scale(1.15);
+              box-shadow: 0 0 30px rgba(255, 65, 108, 0.9), inset 0 0 20px #fff;
+            }
+            @keyframes floatBubbleUp {
+              0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+              10% { opacity: 0.9; }
+              90% { opacity: 0.9; }
+              100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+            }
+            .bubble-crack-line-el {
+              position: fixed;
+              pointer-events: none;
+              z-index: 10000;
+              animation: crackAnim 0.45s ease-out forwards;
+            }
+            @keyframes crackAnim {
+              0% { transform: scaleX(0); opacity: 1; }
+              100% { transform: scaleX(1); opacity: 0; }
+            }
+            .bubble-mist-dot-el {
+              position: fixed;
+              border-radius: 50%;
+              background: rgba(255, 255, 255, 0.9);
+              box-shadow: 0 0 8px #ff416c;
+              pointer-events: none;
+              z-index: 10000;
+              transition: transform 0.5s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.5s ease;
+            }
+          `}</style>
+        </div>
+      )}
+    </>
   );
 };

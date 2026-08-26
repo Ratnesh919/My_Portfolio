@@ -16,6 +16,13 @@ import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
 import { Bot, Sparkles, ChevronUp, Layers, X } from 'lucide-react';
 
+function getTimeOfDayGreeting() {
+  const hr = new Date().getHours();
+  if (hr >= 5 && hr < 12) return "Good morning";
+  if (hr >= 12 && hr < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
   const [isRayaOpen, setIsRayaOpen] = useState<boolean>(false);
@@ -27,6 +34,11 @@ export const App: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
   const [pendingChatMessage, setPendingChatMessage] = useState<string | null>(null);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState<boolean>(true);
+  
+  // Raya Speech Bubble state (matching original screenshot)
+  const [rayaBubbleText, setRayaBubbleText] = useState<string>(
+    `Welcome! I am Raya, your AI guide. Ask me anything about Ratnesh's projects, ECE background, or verified certifications!`
+  );
   const introSpokenRef = useRef(false);
 
   // Smooth Navigation Trigger
@@ -99,11 +111,9 @@ export const App: React.FC = () => {
 
   const handleSendMessageFromBar = (msg: string) => {
     setPendingChatMessage(msg);
-    setIsRayaOpen(true);
   };
 
   const handleIntroComplete = () => {
-    // Only introduce once in the lifetime of this session
     if (introSpokenRef.current || sessionStorage.getItem('raya_intro_spoken')) return;
     introSpokenRef.current = true;
     sessionStorage.setItem('raya_intro_spoken', 'true');
@@ -224,31 +234,30 @@ export const App: React.FC = () => {
         </footer>
       </div>
 
-      {/* ═══ 3D VRM Resonator Character (100% Transparent Background) ═══ */}
+      {/* ═══ 3D VRM Resonator Character (100% Transparent, Sitting Above Chat Bubble) ═══ */}
       <VRMCharacterEngine
         currentAvatarFile={currentAvatarFile}
       />
 
-      {/* ═══ Floating Interactive Chatbot Bottom Bar ═══ */}
+      {/* ═══ Floating Interactive Chatbot Bottom Bar (Matching Screenshot) ═══ */}
       <ChatbotBar
         onSendMessage={handleSendMessageFromBar}
-        onOpenFullChat={() => setIsRayaOpen(true)}
         onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
-        isOpen={isRayaOpen}
+        rayaSpeechText={rayaBubbleText}
       />
 
       {/* Back To Top Floating Action */}
       {showBackToTop && (
         <button
           onClick={() => handleNavigate('home')}
-          className="fixed bottom-20 right-6 z-30 p-3 rounded-full bg-[#160d26]/90 hover:bg-purple-900/70 text-purple-300 hover:text-white border border-purple-500/35 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md transition-all active:scale-95 hover:scale-105"
+          className="fixed bottom-28 left-80 z-30 p-3 rounded-full bg-[#160d26]/90 hover:bg-purple-900/70 text-purple-300 hover:text-white border border-purple-500/35 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md transition-all active:scale-95 hover:scale-105"
           title="Scroll to Top"
         >
           <ChevronUp size={18} />
         </button>
       )}
 
-      {/* Raya AI Companion Modal */}
+      {/* Raya AI Companion Full Engine */}
       <RayaAICompanion
         isOpen={isRayaOpen}
         onClose={() => setIsRayaOpen(false)}
@@ -260,6 +269,7 @@ export const App: React.FC = () => {
         onChangeAvatar={handleSelectAvatar}
         externalMessage={pendingChatMessage}
         onClearExternalMessage={() => setPendingChatMessage(null)}
+        onUpdateSpeechText={(text) => setRayaBubbleText(text)}
       />
 
       {/* 14-Character 3D Avatar Studio Modal */}

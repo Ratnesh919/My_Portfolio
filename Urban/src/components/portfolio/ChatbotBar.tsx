@@ -5,26 +5,21 @@ import {
   MicOff, 
   Info, 
   Sparkles, 
-  Bot, 
-  ChevronUp, 
-  X,
-  Volume2,
-  Sliders,
-  CornerDownLeft
+  X
 } from 'lucide-react';
 
 interface ChatbotBarProps {
   onSendMessage: (msg: string) => void;
-  onOpenFullChat: () => void;
   onOpenAvatarStudio: () => void;
-  isOpen: boolean;
+  rayaSpeechText?: string;
+  isSpeaking?: boolean;
 }
 
 export const ChatbotBar: React.FC<ChatbotBarProps> = ({
   onSendMessage,
-  onOpenFullChat,
   onOpenAvatarStudio,
-  isOpen
+  rayaSpeechText,
+  isSpeaking
 }) => {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -40,7 +35,7 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
     { label: "Change Raya's 3D Avatar", category: "Action", isAvatarAction: true },
   ];
 
-  // Initialize Speech Recognition if supported
+  // Initialize Speech Recognition
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -66,7 +61,7 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
 
   const toggleMic = () => {
     if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+      alert("Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
       return;
     }
 
@@ -101,14 +96,29 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex flex-col items-end gap-2 select-none">
-      {/* ═══ Built-In Commands & Info Popup Menu ═══ */}
+    <div className="fixed bottom-4 sm:bottom-7 right-4 sm:right-7 z-[999999] flex flex-col items-end gap-2.5 select-none max-w-[360px] sm:max-w-[400px]">
+      {/* ═══ Speech Bubble (Matching Screenshot) ═══ */}
+      {rayaSpeechText && (
+        <div className="w-full relative p-4 rounded-2xl bg-[#0c0c12]/95 border border-[#ff416c]/45 text-white text-xs sm:text-sm font-sans leading-relaxed shadow-[0_6px_24px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <p className="whitespace-pre-line text-slate-100">{rayaSpeechText}</p>
+
+          {/* Right Red/Pink Accent Bar */}
+          <div className="absolute right-0 top-3 bottom-3 w-1 bg-[#ff416c] rounded-l-full shadow-[0_0_8px_#ff416c]" />
+        </div>
+      )}
+
+      {/* Floating Prompt Pill */}
+      <div className="px-3 py-1 rounded-full bg-[#140c1e]/90 border border-purple-500/30 text-[11px] font-mono text-purple-300 shadow-md backdrop-blur-md self-center">
+        Say wake word 'Hey Raya' to chat
+      </div>
+
+      {/* ═══ Built-In Commands Popup Menu ═══ */}
       {showCommandsMenu && (
-        <div className="w-[320px] sm:w-[380px] rounded-2xl bg-[#150d24]/95 border border-purple-500/30 p-3 shadow-[0_15px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(168,85,247,0.2)] backdrop-blur-xl mb-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div className="w-full rounded-2xl bg-[#140d22]/95 border border-[#ff416c]/35 p-3 shadow-[0_15px_40px_rgba(0,0,0,0.85)] backdrop-blur-2xl mb-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
           <div className="flex items-center justify-between pb-2 border-b border-purple-500/20 mb-2">
             <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300 font-bold">
-              <Sparkles size={13} className="text-purple-400" />
-              <span>Built-In Raya Commands & Prompts</span>
+              <Sparkles size={13} className="text-[#ff416c]" />
+              <span>Raya Commands & Options</span>
             </div>
             <button
               onClick={() => setShowCommandsMenu(false)}
@@ -123,10 +133,10 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
               <button
                 key={idx}
                 onClick={() => handleCommandClick(cmd)}
-                className="w-full p-2 rounded-xl bg-[#1d1330] hover:bg-purple-900/40 text-left text-xs text-slate-200 hover:text-white border border-purple-500/15 hover:border-purple-500/40 transition-all flex items-center justify-between group"
+                className="w-full p-2 rounded-xl bg-[#1d1330] hover:bg-purple-900/50 text-left text-xs text-slate-200 hover:text-white border border-purple-500/15 hover:border-[#ff416c]/40 transition-all flex items-center justify-between group"
               >
                 <span>{cmd.label}</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-500/25 group-hover:bg-purple-800">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-500/25">
                   {cmd.category}
                 </span>
               </button>
@@ -135,72 +145,52 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
         </div>
       )}
 
-      {/* ═══ Floating Interactive Chat Input Bar ═══ */}
-      <div className="flex items-center gap-2 p-1.5 sm:p-2 rounded-full bg-[#120a20]/90 border border-purple-500/35 shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_20px_rgba(147,51,234,0.25)] backdrop-blur-2xl transition-all max-w-[95vw]">
-        {/* Avatar Trigger / Open Chat Window */}
-        <button
-          onClick={onOpenFullChat}
-          className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-purple-600 via-purple-700 to-indigo-600 p-0.5 shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-          title="Open Full Chat Dialogue"
-        >
-          <div className="w-full h-full rounded-full bg-[#170e28] flex items-center justify-center">
-            <Bot size={18} className="text-purple-300 animate-pulse" />
-          </div>
-          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#120a20]" />
-        </button>
-
-        {/* Input Form */}
-        <form onSubmit={handleSend} className="flex items-center gap-1.5">
+      {/* ═══ Bottom Input Row (Matching Screenshot) ═══ */}
+      <form onSubmit={handleSend} className="w-full flex items-center gap-2">
+        {/* Text Input Pill */}
+        <div className="flex-1 flex items-center bg-[#0c0c14]/90 border border-[#ff416c]/35 rounded-2xl px-3.5 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur-xl focus-within:border-[#ff416c] transition-colors">
           <input
             type="text"
             placeholder="Type to Raya..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onFocus={() => {
-              if (!isOpen) onOpenFullChat();
-            }}
-            className="w-36 sm:w-60 md:w-72 px-3 py-1.5 text-xs sm:text-sm bg-transparent text-white placeholder-slate-400 focus:outline-none"
+            className="w-full bg-transparent text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none"
           />
 
-          {/* Info / Built-In Commands Button ('i') */}
           <button
             type="button"
             onClick={() => setShowCommandsMenu(!showCommandsMenu)}
-            className={`p-2 rounded-full transition-all ${
-              showCommandsMenu 
-                ? 'bg-purple-600 text-white shadow-[0_0_10px_#a855f7]' 
-                : 'text-purple-300 hover:text-white hover:bg-purple-950/60'
-            }`}
-            title="Built-In Options & Commands"
+            className="p-1 text-slate-400 hover:text-purple-300 transition-colors ml-1"
+            title="Commands & Info"
           >
-            <Info size={16} />
+            <Info size={15} />
           </button>
+        </div>
 
-          {/* Voice Mic Button */}
-          <button
-            type="button"
-            onClick={toggleMic}
-            className={`p-2 rounded-full transition-all ${
-              isListening
-                ? 'bg-red-500 text-white animate-pulse shadow-[0_0_12px_#ef4444]'
-                : 'text-purple-300 hover:text-white hover:bg-purple-950/60'
-            }`}
-            title={isListening ? "Listening... (Click to Stop)" : "Voice Speak to Raya"}
-          >
-            {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-          </button>
+        {/* Send Button (Dark Red/Maroon Rounded Circle) */}
+        <button
+          type="submit"
+          disabled={!input.trim()}
+          className="w-10 h-10 rounded-2xl bg-[#36101d] hover:bg-[#52172b] disabled:opacity-40 border border-[#ff416c]/40 text-white flex items-center justify-center shadow-[0_4px_14px_rgba(255,65,108,0.3)] transition-all hover:scale-105 active:scale-95 shrink-0"
+          title="Send Message"
+        >
+          <Send size={16} className="text-[#ff758c] -translate-x-0.5 translate-y-0.5" />
+        </button>
 
-          {/* Send Button */}
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="p-2 sm:p-2.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white disabled:opacity-40 hover:from-purple-500 hover:to-indigo-500 transition-all shadow-[0_0_12px_rgba(168,85,247,0.5)] active:scale-95"
-            title="Send Message"
-          >
-            <Send size={15} />
-          </button>
-        </form>
-      </div>
+        {/* Mic Button (Dark Red/Maroon Rounded Circle) */}
+        <button
+          type="button"
+          onClick={toggleMic}
+          className={`w-10 h-10 rounded-2xl border flex items-center justify-center shadow-[0_4px_14px_rgba(255,65,108,0.3)] transition-all hover:scale-105 active:scale-95 shrink-0 ${
+            isListening
+              ? 'bg-red-600 text-white border-red-400 animate-pulse'
+              : 'bg-[#36101d] hover:bg-[#52172b] border-[#ff416c]/40 text-[#ff758c]'
+          }`}
+          title={isListening ? 'Listening...' : 'Voice Input'}
+        >
+          {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+        </button>
+      </form>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRM, VRMUtils } from '@pixiv/three-vrm';
-import { Sparkles, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
+import { RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
 
 interface VRMCharacterEngineProps {
   currentAvatarFile?: string;
@@ -29,8 +29,8 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
 
     setLoading(true);
     const canvas = canvasRef.current;
-    const width = 280;
-    const height = 360;
+    const width = 320;
+    const height = 400;
 
     // Renderer with 100% transparent alpha channel
     const renderer = new THREE.WebGLRenderer({
@@ -51,10 +51,10 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     camera.lookAt(0.0, 1.15, 0.0);
 
     // Dynamic Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xa855f7, 2.2);
+    const dirLight = new THREE.DirectionalLight(0xff416c, 2.2);
     dirLight.position.set(1.0, 2.0, 1.0);
     scene.add(dirLight);
 
@@ -130,7 +130,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
       if (vrmRef.current) {
         vrmRef.current.update(delta);
 
-        // Procedural Idle Breathing
+        // Procedural Idle Breathing & Natural Body Motion
         const humanoid = vrmRef.current.humanoid;
         if (humanoid) {
           const spine = humanoid.getNormalizedBoneNode('spine');
@@ -194,7 +194,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     return (
       <button
         onClick={() => setIsMinimized(false)}
-        className="fixed bottom-24 right-6 z-30 p-2.5 rounded-full bg-[#180f2c]/90 border border-purple-500/40 text-purple-300 hover:text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+        className="fixed bottom-24 right-6 z-[99999] p-2.5 rounded-full bg-[#180f2c]/90 border border-purple-500/40 text-purple-300 hover:text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95"
         title="Restore 3D Avatar"
       >
         <Maximize2 size={16} />
@@ -205,15 +205,15 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed bottom-16 right-4 sm:right-6 z-30 pointer-events-none transition-all duration-300 select-none w-[240px] sm:w-[280px] h-[300px] sm:h-[360px] flex items-end justify-center drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]"
+      className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 z-[99999] pointer-events-none transition-all duration-300 select-none w-[260px] sm:w-[320px] h-[320px] sm:h-[400px] flex items-end justify-center drop-shadow-[0_15px_30px_rgba(0,0,0,0.85)]"
     >
       {/* 100% Transparent 3D Character Canvas */}
       <div className="relative w-full h-full bg-transparent flex items-end justify-center">
         {/* Loading Spinner */}
         {loading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-purple-300 pointer-events-none">
-            <RefreshCw size={18} className="animate-spin text-purple-400" />
-            <span className="text-[10px] font-mono bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm">
+            <RefreshCw size={18} className="animate-spin text-[#ff416c]" />
+            <span className="text-[10px] font-mono bg-black/70 px-2 py-0.5 rounded-full backdrop-blur-sm">
               Loading VRM...
             </span>
           </div>
@@ -229,14 +229,14 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
         <div className="absolute top-2 right-2 flex items-center gap-1 pointer-events-auto">
           <button
             onClick={() => (window as any).playWaveAnimation?.()}
-            className="p-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 text-xs shadow-md transition-all active:scale-95"
+            className="p-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 text-xs shadow-md transition-all active:scale-95"
             title="Wave Greeting"
           >
             👋
           </button>
           <button
             onClick={() => setIsMinimized(true)}
-            className="p-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 shadow-md transition-all active:scale-95"
+            className="p-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 shadow-md transition-all active:scale-95"
             title="Minimize"
           >
             <Minimize2 size={13} />
