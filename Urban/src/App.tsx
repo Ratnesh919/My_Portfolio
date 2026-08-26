@@ -27,6 +27,7 @@ export const App: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
   const [pendingChatMessage, setPendingChatMessage] = useState<string | null>(null);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState<boolean>(true);
+  const introSpokenRef = useRef(false);
 
   // Smooth Navigation Trigger
   const handleNavigate = (sectionId: string) => {
@@ -56,6 +57,7 @@ export const App: React.FC = () => {
   }, []);
 
   // ═══ Real-Time Scroll Spy via IntersectionObserver ═══
+  // Strictly serial order matching right-side page flow
   useEffect(() => {
     const sectionIds = ['home', 'projects', 'about', 'skills', 'experience', 'certifications', 'contact'];
 
@@ -101,14 +103,18 @@ export const App: React.FC = () => {
   };
 
   const handleIntroComplete = () => {
-    // Wave animation and Raya introduction
+    // Only introduce once in the lifetime of this session
+    if (introSpokenRef.current || sessionStorage.getItem('raya_intro_spoken')) return;
+    introSpokenRef.current = true;
+    sessionStorage.setItem('raya_intro_spoken', 'true');
+
     if ((window as any).playWaveAnimation) {
       (window as any).playWaveAnimation();
     }
     if ((window as any).introduceRaya) {
       setTimeout(() => {
         (window as any).introduceRaya();
-      }, 800);
+      }, 700);
     }
   };
 
@@ -175,32 +181,32 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Hero Section */}
+          {/* 1. Hero Section */}
           <HeroSection
             onNavigate={handleNavigate}
             onOpenProjects={() => handleNavigate('projects')}
           />
 
-          {/* Featured Projects Section */}
+          {/* 2. Featured Projects Section */}
           <ProjectsSection
             onSelectProject={(project) => setSelectedProject(project)}
           />
 
-          {/* About Section */}
+          {/* 3. About Section */}
           <AboutSection />
 
-          {/* Skills 5 Pillars Section */}
+          {/* 4. Skills 5 Pillars Section */}
           <SkillsSection />
 
-          {/* Experience & Academics Section */}
+          {/* 5. Experience & Academics Section */}
           <ExperienceSection />
 
-          {/* Certifications Section */}
+          {/* 6. Certifications Section */}
           <CertificationsSection
             onSelectCert={(cert) => setSelectedCert(cert)}
           />
 
-          {/* Contact Section */}
+          {/* 7. Contact Section */}
           <ContactSection />
         </main>
 
@@ -218,7 +224,7 @@ export const App: React.FC = () => {
         </footer>
       </div>
 
-      {/* ═══ 3D VRM Resonator Character Engine ═══ */}
+      {/* ═══ 3D VRM Resonator Character (100% Transparent Background) ═══ */}
       <VRMCharacterEngine
         currentAvatarFile={currentAvatarFile}
       />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Bot, ArrowRight } from 'lucide-react';
 
 interface IntroLoaderProps {
@@ -17,53 +17,53 @@ interface Bubble {
 }
 
 const INITIAL_BUBBLES: Bubble[] = [
-  { id: 1, x: 20, y: 35, size: 75, speed: 1.2, label: "Audio DSP", color: "#a855f7", popped: false },
-  { id: 2, x: 75, y: 25, size: 85, speed: 1.0, label: "MediaCodec", color: "#6366f1", popped: false },
-  { id: 3, x: 45, y: 55, size: 90, speed: 1.4, label: "AI Agents", color: "#ec4899", popped: false },
-  { id: 4, x: 15, y: 70, size: 70, speed: 0.9, label: "HFSS RF", color: "#8b5cf6", popped: false },
-  { id: 5, x: 80, y: 65, size: 80, speed: 1.1, label: "Three.js", color: "#38bdf8", popped: false },
-  { id: 6, x: 50, y: 20, size: 65, speed: 1.3, label: "Raya AI", color: "#c084fc", popped: false },
-  { id: 7, x: 30, y: 80, size: 75, speed: 1.0, label: "SyncPulse", color: "#f472b6", popped: false },
-  { id: 8, x: 68, y: 45, size: 70, speed: 1.2, label: "MAKAUT", color: "#818cf8", popped: false }
+  { id: 1, x: 22, y: 32, size: 75, speed: 1.2, label: "Audio DSP", color: "#a855f7", popped: false },
+  { id: 2, x: 74, y: 26, size: 85, speed: 1.0, label: "MediaCodec", color: "#6366f1", popped: false },
+  { id: 3, x: 48, y: 52, size: 90, speed: 1.4, label: "AI Agents", color: "#ec4899", popped: false },
+  { id: 4, x: 16, y: 68, size: 70, speed: 0.9, label: "HFSS RF", color: "#8b5cf6", popped: false },
+  { id: 5, x: 82, y: 62, size: 80, speed: 1.1, label: "Three.js", color: "#38bdf8", popped: false },
+  { id: 6, x: 50, y: 18, size: 65, speed: 1.3, label: "Raya AI", color: "#c084fc", popped: false },
+  { id: 7, x: 28, y: 82, size: 75, speed: 1.0, label: "SyncPulse", color: "#f472b6", popped: false },
+  { id: 8, x: 70, y: 44, size: 70, speed: 1.2, label: "MAKAUT", color: "#818cf8", popped: false }
 ];
 
 export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<'loading' | 'bubbles' | 'done'>('loading');
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Initializing Raya AI System...");
+  const [statusText, setStatusText] = useState("Initializing Raya AI Engine...");
   const [bubbles, setBubbles] = useState<Bubble[]>(INITIAL_BUBBLES);
   const [poppedCount, setPoppedCount] = useState(0);
   const [isUnveiling, setIsUnveiling] = useState(false);
+  const hasFinishedRef = useRef(false);
 
-  // Check if user already saw intro this session
+  // Check if user already completed intro this session
   useEffect(() => {
     const alreadyDone = sessionStorage.getItem('raya_bubble_done');
     if (alreadyDone) {
       setPhase('done');
-      onComplete();
       return;
     }
 
-    // Phase 1: Simulate loading progression
+    // Phase 1: Loading progression
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => setPhase('bubbles'), 400);
+          setTimeout(() => setPhase('bubbles'), 350);
           return 100;
         }
 
-        const next = prev + Math.floor(Math.random() * 15) + 8;
-        if (next > 30 && next < 60) setStatusText("Loading 3D Spatial Audio & Assets...");
-        else if (next >= 60 && next < 90) setStatusText("Decrypting VRM Character Matrix...");
-        else if (next >= 90) setStatusText("Interface Calibrated — Ready!");
+        const next = prev + Math.floor(Math.random() * 16) + 10;
+        if (next > 25 && next < 55) setStatusText("Loading 3D Spatial Audio & Assets...");
+        else if (next >= 55 && next < 85) setStatusText("Decrypting VRM Character Matrix...");
+        else if (next >= 85) setStatusText("Interface Calibrated — Ready!");
 
         return Math.min(next, 100);
       });
-    }, 120);
+    }, 110);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, []);
 
   // Handle Bubble Pop
   const handlePopBubble = (id: number) => {
@@ -73,33 +73,35 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     const newCount = poppedCount + 1;
     setPoppedCount(newCount);
 
-    // After 3 bubbles popped, finish automatically
     if (newCount >= 3) {
       finishIntro();
     }
   };
 
   const finishIntro = () => {
+    if (hasFinishedRef.current) return;
+    hasFinishedRef.current = true;
+
     setIsUnveiling(true);
     sessionStorage.setItem('raya_bubble_done', 'true');
     setTimeout(() => {
       setPhase('done');
       onComplete();
-    }, 600);
+    }, 550);
   };
 
   if (phase === 'done') return null;
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center select-none transition-opacity duration-700 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center select-none transition-opacity duration-600 ${
         isUnveiling ? 'opacity-0 pointer-events-none' : 'opacity-100'
       } bg-[#06040a]`}
     >
-      {/* Background Ambient Mesh */}
+      {/* Ambient Depth Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/25 rounded-full blur-[140px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-900/25 rounded-full blur-[140px] animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/30 rounded-full blur-[140px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-900/30 rounded-full blur-[140px] animate-pulse" />
         <div className="absolute inset-0 bg-[radial-gradient(#a855f7_0.8px,transparent_0.8px)] [background-size:24px_24px] opacity-15" />
       </div>
 
@@ -126,9 +128,9 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
 
           {/* Progress Bar */}
           <div className="w-full space-y-2">
-            <div className="w-full h-2 rounded-full bg-purple-950/80 border border-purple-500/30 overflow-hidden relative shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]">
+            <div className="w-full h-2.5 rounded-full bg-purple-950/80 border border-purple-500/30 overflow-hidden relative shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-400 rounded-full transition-all duration-200 shadow-[0_0_12px_#a855f7]"
+                className="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-400 rounded-full transition-all duration-150 shadow-[0_0_12px_#a855f7]"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -147,7 +149,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       {/* ═══ PHASE 2: Interactive Bubble Overlay ("Pop the Bubbles") ═══ */}
       {phase === 'bubbles' && (
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-between p-6 sm:p-10 animate-in fade-in duration-400">
-          {/* Top Title Banner */}
+          {/* Top Title */}
           <div className="text-center mt-6 sm:mt-10 space-y-2 max-w-lg">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300 text-xs font-mono shadow-md backdrop-blur-md">
               <Bot size={14} className="text-purple-400 animate-pulse" />
@@ -162,8 +164,8 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
             </p>
           </div>
 
-          {/* Floating Interactive Bubbles Field */}
-          <div className="relative w-full max-w-4xl h-[420px] sm:h-[480px] my-auto">
+          {/* Floating Interactive Bubbles */}
+          <div className="relative w-full max-w-4xl h-[400px] sm:h-[460px] my-auto">
             {bubbles.map((bubble) => {
               if (bubble.popped) return null;
 
@@ -176,9 +178,9 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
                     top: `${bubble.y}%`,
                     width: `${bubble.size}px`,
                     height: `${bubble.size}px`,
-                    animationDuration: `${3.5 / bubble.speed}s`
+                    animationDuration: `${3.2 / bubble.speed}s`
                   }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-transform duration-200 hover:scale-115 active:scale-90 animate-bounce shadow-[0_0_25px_rgba(168,85,247,0.35),inset_0_0_15px_rgba(255,255,255,0.2)] border border-purple-400/40 bg-gradient-to-tr from-[#251342]/90 via-[#3d1a6e]/70 to-[#1b0d32]/90 backdrop-blur-md group"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-transform duration-200 hover:scale-115 active:scale-90 animate-bounce shadow-[0_0_25px_rgba(168,85,247,0.4),inset_0_0_15px_rgba(255,255,255,0.25)] border border-purple-400/40 bg-gradient-to-tr from-[#251342]/90 via-[#3d1a6e]/70 to-[#1b0d32]/90 backdrop-blur-md group"
                 >
                   <Sparkles size={12} className="text-purple-300 mb-0.5 group-hover:rotate-45 transition-transform" />
                   <span className="text-[10px] sm:text-xs font-bold text-white font-mono leading-tight drop-shadow-md">

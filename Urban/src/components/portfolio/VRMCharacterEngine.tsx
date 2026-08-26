@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRM, VRMUtils } from '@pixiv/three-vrm';
-import { Sparkles, RefreshCw, Eye, Maximize2, Minimize2 } from 'lucide-react';
+import { Sparkles, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
 
 interface VRMCharacterEngineProps {
   currentAvatarFile?: string;
@@ -18,7 +18,6 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const vrmRef = useRef<VRM | null>(null);
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const clockRef = useRef(new THREE.Clock());
   const [loading, setLoading] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -30,16 +29,17 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
 
     setLoading(true);
     const canvas = canvasRef.current;
-    const width = 240;
-    const height = 300;
+    const width = 280;
+    const height = 360;
 
-    // Renderer
+    // Renderer with 100% transparent alpha channel
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
       antialias: true,
       powerPreference: 'high-performance',
     });
+    renderer.setClearColor(0x000000, 0); // 100% transparent background
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -50,11 +50,11 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     camera.position.set(0.0, 1.25, 1.6);
     camera.lookAt(0.0, 1.15, 0.0);
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // Dynamic Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xa855f7, 2.0);
+    const dirLight = new THREE.DirectionalLight(0xa855f7, 2.2);
     dirLight.position.set(1.0, 2.0, 1.0);
     scene.add(dirLight);
 
@@ -97,7 +97,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
         setLoading(false);
         onAvatarLoaded?.();
 
-        // Trigger welcome wave pose
+        // Trigger initial welcome wave pose
         triggerWave();
       },
       undefined,
@@ -190,48 +190,57 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     };
   }, [currentAvatarFile, onAvatarLoaded]);
 
+  if (isMinimized) {
+    return (
+      <button
+        onClick={() => setIsMinimized(false)}
+        className="fixed bottom-24 right-6 z-30 p-2.5 rounded-full bg-[#180f2c]/90 border border-purple-500/40 text-purple-300 hover:text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+        title="Restore 3D Avatar"
+      >
+        <Maximize2 size={16} />
+      </button>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
-      className={`fixed bottom-24 right-6 z-30 transition-all duration-300 select-none ${
-        isMinimized ? 'w-12 h-12 rounded-full overflow-hidden' : 'w-[220px] sm:w-[240px] h-[280px] sm:h-[300px]'
-      }`}
+      className="fixed bottom-16 right-4 sm:right-6 z-30 pointer-events-none transition-all duration-300 select-none w-[240px] sm:w-[280px] h-[300px] sm:h-[360px] flex items-end justify-center drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]"
     >
-      {/* 3D Canvas Container */}
-      <div className="relative w-full h-full rounded-3xl bg-gradient-to-b from-[#180f2c]/85 via-[#120a22]/90 to-[#0c0617]/95 border border-purple-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(168,85,247,0.25)] backdrop-blur-xl overflow-hidden flex items-center justify-center">
+      {/* 100% Transparent 3D Character Canvas */}
+      <div className="relative w-full h-full bg-transparent flex items-end justify-center">
         {/* Loading Spinner */}
         {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0c0617]/90 z-10 text-purple-300">
-            <RefreshCw size={20} className="animate-spin text-purple-400" />
-            <span className="text-[10px] font-mono">Calibrating VRM...</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-purple-300 pointer-events-none">
+            <RefreshCw size={18} className="animate-spin text-purple-400" />
+            <span className="text-[10px] font-mono bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm">
+              Loading VRM...
+            </span>
           </div>
         )}
 
         {/* 3D Canvas */}
-        <canvas ref={canvasRef} className="w-full h-full object-contain cursor-grab active:cursor-grabbing" />
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full object-contain pointer-events-auto cursor-grab active:cursor-grabbing bg-transparent"
+        />
 
-        {/* Top Floating Controls */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 z-20">
+        {/* Floating Controls */}
+        <div className="absolute top-2 right-2 flex items-center gap-1 pointer-events-auto">
           <button
             onClick={() => (window as any).playWaveAnimation?.()}
-            className="p-1 rounded-lg bg-purple-950/70 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/20 text-[10px]"
-            title="Trigger Wave Greeting"
+            className="p-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 text-xs shadow-md transition-all active:scale-95"
+            title="Wave Greeting"
           >
             👋
           </button>
           <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1 rounded-lg bg-purple-950/70 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/20"
-            title={isMinimized ? 'Expand Avatar' : 'Minimize Avatar'}
+            onClick={() => setIsMinimized(true)}
+            className="p-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 shadow-md transition-all active:scale-95"
+            title="Minimize"
           >
-            {isMinimized ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
+            <Minimize2 size={13} />
           </button>
-        </div>
-
-        {/* Live Status Pill */}
-        <div className="absolute bottom-2 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#150a26]/90 border border-purple-500/25 text-[10px] text-purple-300 font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>3D Resonator</span>
         </div>
       </div>
     </div>

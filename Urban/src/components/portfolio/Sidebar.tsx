@@ -5,6 +5,7 @@ import {
   Code2, 
   FolderGit2, 
   Briefcase, 
+  Award,
   Mail, 
   Github, 
   Linkedin, 
@@ -30,18 +31,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleRaya,
   onOpenAvatarStudio 
 }) => {
+  // Ordered strictly according to the right-side section hierarchy
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
+    { id: 'projects', label: 'Projects', icon: FolderGit2 },
     { id: 'about', label: 'About', icon: User },
     { id: 'skills', label: 'Skills', icon: Code2 },
-    { id: 'projects', label: 'Projects', icon: FolderGit2 },
     { id: 'experience', label: 'Experience', icon: Briefcase },
+    { id: 'certifications', label: 'Certifications', icon: Award },
     { id: 'contact', label: 'Contact', icon: Mail },
   ];
 
   return (
     <aside className="w-full lg:w-72 lg:h-screen lg:fixed lg:left-0 lg:top-0 shrink-0 flex flex-col justify-between p-4 lg:p-6 bg-[#0c0816]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-purple-500/15 select-none z-30 overflow-y-auto scrollbar-none">
-      {/* Top Brand / 3D Logo ("R" matching reference image) */}
+      {/* Top Brand / 3D Logo */}
       <div className="flex items-center justify-between lg:justify-start lg:flex-col lg:items-start gap-4">
         <div 
           onClick={() => onNavigate('home')}
@@ -75,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Navigation Items (Middle) */}
+      {/* Navigation Items (Middle, strictly serial order) */}
       <nav className="my-4 lg:my-6 flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
         {navItems.map((item) => {
           const Icon = item.icon;

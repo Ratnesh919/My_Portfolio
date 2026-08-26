@@ -54,18 +54,18 @@ export const ThreeCharacterScene: React.FC<ThreeCharacterSceneProps> = ({ onInte
       >
         {/* Ambient Circular Depth Portal (Backdrop) */}
         <div 
-          className="absolute w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] md:w-[400px] md:h-[400px] rounded-full bg-gradient-to-tr from-[#160b29] via-[#24133f] to-[#120822] border-2 border-purple-500/30 shadow-[0_0_90px_rgba(168,85,247,0.3),inset_0_0_50px_rgba(147,51,234,0.35)] flex items-center justify-center overflow-hidden"
+          className="absolute w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] md:w-[400px] md:h-[400px] rounded-full bg-gradient-to-tr from-[#160b29] via-[#24133f] to-[#120822] border-2 border-purple-500/30 shadow-[0_0_90px_rgba(168,85,247,0.35),inset_0_0_50px_rgba(147,51,234,0.4)] flex items-center justify-center overflow-hidden"
           style={{ transform: 'translateZ(-40px)' }}
         >
           {/* Radial Lighting */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(168,85,247,0.35),transparent_70%)]" />
-          <div className="absolute inset-6 rounded-full border border-purple-500/20" />
-          <div className="absolute inset-14 rounded-full border border-purple-500/10" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(168,85,247,0.4),transparent_70%)]" />
+          <div className="absolute inset-6 rounded-full border border-purple-500/25" />
+          <div className="absolute inset-14 rounded-full border border-purple-500/15" />
         </div>
 
-        {/* ═══ High-Res 3D Avatar Image ═══ */}
+        {/* ═══ High-Res 3D Avatar Image Framed Inside Portal ═══ */}
         <div 
-          className="relative z-10 w-[260px] sm:w-[320px] md:w-[370px] flex items-center justify-center pointer-events-none drop-shadow-[0_25px_40px_rgba(0,0,0,0.9)]"
+          className="relative z-10 w-[270px] sm:w-[330px] md:w-[380px] h-[270px] sm:h-[330px] md:h-[380px] rounded-full overflow-hidden flex items-center justify-center pointer-events-none drop-shadow-[0_25px_40px_rgba(0,0,0,0.9)] border border-purple-500/30 shadow-[inset_0_0_30px_rgba(168,85,247,0.3)]"
           style={{ transform: 'translateZ(25px)' }}
         >
           <img
@@ -74,11 +74,11 @@ export const ThreeCharacterScene: React.FC<ThreeCharacterSceneProps> = ({ onInte
               (e.target as HTMLImageElement).src = './assets/hero-avatar.png';
             }}
             alt="Ratnesh Kumar Singh - 3D Avatar"
-            className="w-full h-auto object-contain rounded-3xl"
+            className="w-full h-full object-cover object-[center_18%] scale-110"
           />
         </div>
 
-        {/* ═══ Floating 3D Extruded Tech Badges (Matching Reference Image) ═══ */}
+        {/* ═══ Floating 3D Extruded Tech Badges ═══ */}
         
         {/* Top-Right: </> Code Widget */}
         <div 
