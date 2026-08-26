@@ -3,6 +3,7 @@ import { Download, Sparkles, FolderGit2, GraduationCap, Radio, Award, ArrowRight
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button';
 import { ThreeCharacterScene } from '@/components/portfolio/ThreeCharacterScene';
+import PulsatingBorder from '@/components/originkit/ui/pulsating-border-custom-style';
 
 interface HeroSectionProps {
   onNavigate: (sectionId: string) => void;
@@ -48,22 +49,25 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate, onOpenProj
 
           {/* Action Buttons Row */}
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            {/* Primary Liquid Metal Button */}
-            <div className="cursor-pointer" onClick={onOpenProjects}>
+            {/* Primary Liquid Metal Button with Pulsating Neon Glow */}
+            <div className="relative group cursor-pointer" onClick={onOpenProjects}>
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-600 opacity-60 group-hover:opacity-100 blur-sm transition-opacity" />
               <LiquidMetalButton label="View My Work" />
             </div>
 
-            {/* Download CV Secondary Button */}
-            <a
-              href="./CV.pdf"
-              download="Ratnesh_Kumar_Singh_CV.pdf"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#181224]/80 hover:bg-[#231a33] text-slate-200 hover:text-white border border-purple-500/25 hover:border-purple-400/50 shadow-[0_4px_14px_rgba(0,0,0,0.4)] transition-all duration-300 text-sm font-semibold active:scale-95 group"
-            >
-              <span>Download CV</span>
-              <Download size={16} className="text-purple-400 group-hover:translate-y-0.5 transition-transform" />
-            </a>
+            {/* Download CV Secondary Button with Pulsating Border Container */}
+            <div className="relative rounded-full overflow-hidden p-0.5 bg-gradient-to-r from-purple-500/40 via-indigo-500/40 to-fuchsia-500/40 hover:from-purple-400 hover:to-indigo-400 transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]">
+              <a
+                href="./CV.pdf"
+                download="Ratnesh_Kumar_Singh_CV.pdf"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#120a20] hover:bg-[#1a0f2e] text-slate-200 hover:text-white transition-all text-sm font-semibold active:scale-95 group"
+              >
+                <span>Download CV</span>
+                <Download size={16} className="text-purple-400 group-hover:translate-y-0.5 transition-transform" />
+              </a>
+            </div>
 
             {/* Quick Explore About Button */}
             <button
