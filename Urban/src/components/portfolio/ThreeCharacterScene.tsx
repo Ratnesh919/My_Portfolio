@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { Sparkles, Code2, Cpu, Sliders, RefreshCw, Eye } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Sparkles, Code2, Cpu } from 'lucide-react';
 
 interface ThreeCharacterSceneProps {
   onInteraction?: () => void;
@@ -8,336 +7,140 @@ interface ThreeCharacterSceneProps {
 
 export const ThreeCharacterScene: React.FC<ThreeCharacterSceneProps> = ({ onInteraction }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [activeBadge, setActiveBadge] = useState<string | null>(null);
+  const [rotate, setRotate] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
   useEffect(() => {
-    if (!canvasRef.current || !containerRef.current) return;
-
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
-
-    // Scene, Camera, Renderer
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0.4, 3.2);
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      alpha: true,
-      antialias: true,
-      powerPreference: 'high-performance'
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // Ambient & Directional Lighting matching reference image (purple rim light + warm key light)
-    const ambientLight = new THREE.AmbientLight(0x2a1b4e, 1.8);
-    scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xfff5ea, 2.2);
-    keyLight.position.set(2, 3, 3);
-    scene.add(keyLight);
-
-    const purpleRimLight = new THREE.DirectionalLight(0xa855f7, 3.8);
-    purpleRimLight.position.set(-3, 2, -2);
-    scene.add(purpleRimLight);
-
-    const bottomGlowLight = new THREE.PointLight(0x7c3aed, 2.5, 6);
-    bottomGlowLight.position.set(0, -1.2, 1);
-    scene.add(bottomGlowLight);
-
-    // Root character group
-    const characterGroup = new THREE.Group();
-    scene.add(characterGroup);
-
-    // --- Procedural 3D Stylized Developer Avatar (Head, Glasses, Hoodie, Shoulders) ---
-    // Materials
-    const skinMaterial = new THREE.MeshStandardMaterial({
-      color: 0xe8b896,
-      roughness: 0.5,
-      metalness: 0.05
-    });
-
-    const hoodieMaterial = new THREE.MeshStandardMaterial({
-      color: 0x16131d,
-      roughness: 0.85,
-      metalness: 0.1
-    });
-
-    const hairMaterial = new THREE.MeshStandardMaterial({
-      color: 0x1c1722,
-      roughness: 0.6,
-      metalness: 0.2
-    });
-
-    const glassesFrameMaterial = new THREE.MeshStandardMaterial({
-      color: 0x111111,
-      roughness: 0.2,
-      metalness: 0.8
-    });
-
-    const glassesLensMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x9333ea,
-      transparent: true,
-      opacity: 0.25,
-      roughness: 0.1,
-      metalness: 0.1,
-      transmission: 0.9,
-      reflectivity: 0.8
-    });
-
-    // Torso & Hoodie
-    const torsoGeo = new THREE.CylinderGeometry(0.7, 0.85, 1.1, 32);
-    const torsoMesh = new THREE.Mesh(torsoGeo, hoodieMaterial);
-    torsoMesh.position.set(0, -0.65, 0);
-    characterGroup.add(torsoMesh);
-
-    // Hoodie collar / cowl
-    const cowlGeo = new THREE.TorusGeometry(0.38, 0.14, 16, 32);
-    const cowlMesh = new THREE.Mesh(cowlGeo, hoodieMaterial);
-    cowlMesh.rotation.x = Math.PI / 2;
-    cowlMesh.position.set(0, -0.1, 0);
-    characterGroup.add(cowlMesh);
-
-    // Neck
-    const neckGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.35, 24);
-    const neckMesh = new THREE.Mesh(neckGeo, skinMaterial);
-    neckMesh.position.set(0, 0.05, 0);
-    characterGroup.add(neckMesh);
-
-    // Head Group (rotates with cursor tracking)
-    const headGroup = new THREE.Group();
-    headGroup.position.set(0, 0.35, 0);
-    characterGroup.add(headGroup);
-
-    // Head base
-    const headGeo = new THREE.SphereGeometry(0.42, 32, 32);
-    headGeo.scale(0.95, 1.15, 0.95);
-    const headMesh = new THREE.Mesh(headGeo, skinMaterial);
-    headGroup.add(headMesh);
-
-    // Stylized Hair tufts
-    const hairGroup = new THREE.Group();
-    headGroup.add(hairGroup);
-
-    const hairMainGeo = new THREE.SphereGeometry(0.44, 24, 24);
-    hairMainGeo.scale(1.02, 1.12, 1.05);
-    const hairMainMesh = new THREE.Mesh(hairMainGeo, hairMaterial);
-    hairMainMesh.position.set(0, 0.08, -0.04);
-    hairGroup.add(hairMainMesh);
-
-    // Volumetric hair curls/spikes
-    const curlGeo = new THREE.ConeGeometry(0.14, 0.32, 8);
-    for (let i = 0; i < 7; i++) {
-      const curl = new THREE.Mesh(curlGeo, hairMaterial);
-      const angle = (i / 7) * Math.PI * 0.9 - Math.PI * 0.45;
-      curl.position.set(Math.sin(angle) * 0.38, 0.45 + Math.cos(angle) * 0.1, Math.cos(angle) * 0.22);
-      curl.rotation.z = -angle * 0.7;
-      curl.rotation.x = -0.3;
-      hairGroup.add(curl);
-    }
-
-    // Glasses
-    const glassesGroup = new THREE.Group();
-    glassesGroup.position.set(0, 0.02, 0.4);
-    headGroup.add(glassesGroup);
-
-    const eyeLeftFrame = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.016, 16, 32), glassesFrameMaterial);
-    eyeLeftFrame.position.set(-0.16, 0, 0);
-    glassesGroup.add(eyeLeftFrame);
-
-    const eyeRightFrame = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.016, 16, 32), glassesFrameMaterial);
-    eyeRightFrame.position.set(0.16, 0, 0);
-    glassesGroup.add(eyeRightFrame);
-
-    const bridgeFrame = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 8), glassesFrameMaterial);
-    bridgeFrame.rotation.z = Math.PI / 2;
-    bridgeFrame.position.set(0, 0.04, 0);
-    glassesGroup.add(bridgeFrame);
-
-    const leftLens = new THREE.Mesh(new THREE.CircleGeometry(0.11, 24), glassesLensMaterial);
-    leftLens.position.set(-0.16, 0, 0.005);
-    glassesGroup.add(leftLens);
-
-    const rightLens = new THREE.Mesh(new THREE.CircleGeometry(0.11, 24), glassesLensMaterial);
-    rightLens.position.set(0.16, 0, 0.005);
-    glassesGroup.add(rightLens);
-
-    // Floating Stardust/Cyber Particles
-    const particleCount = 60;
-    const particleGeo = new THREE.BufferGeometry();
-    const particlePos = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      particlePos[i] = (Math.random() - 0.5) * 4;
-      particlePos[i + 1] = (Math.random() - 0.5) * 4;
-      particlePos[i + 2] = (Math.random() - 0.5) * 2;
-    }
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
-    const particleMat = new THREE.PointsMaterial({
-      color: 0xc084fc,
-      size: 0.03,
-      transparent: true,
-      opacity: 0.6
-    });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
-
-    // Mouse movement listener for smooth 3D tracking
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      mouseRef.current.targetX = x;
-      mouseRef.current.targetY = y;
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      // Normalize mouse coordinates (-1 to 1)
+      const mouseX = (e.clientX - centerX) / (window.innerWidth / 2);
+      const mouseY = (e.clientY - centerY) / (window.innerHeight / 2);
+
+      // Smooth tilt limits
+      setRotate({
+        x: -mouseY * 14,
+        y: mouseX * 16
+      });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-
-    // Resize Handler
-    const handleResize = () => {
-      if (!containerRef.current || !renderer || !camera) return;
-      const newWidth = containerRef.current.clientWidth;
-      const newHeight = containerRef.current.clientHeight;
-      camera.aspect = newWidth / newHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(newWidth, newHeight);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // Animation Loop
-    let animationFrameId: number;
-    let clock = new THREE.Clock();
-
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
-
-      // Smooth mouse interpolation
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.06;
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.06;
-
-      // Head tracking
-      headGroup.rotation.y = mouseRef.current.x * 0.45;
-      headGroup.rotation.x = -mouseRef.current.y * 0.3;
-
-      // Subtle breathing motion
-      characterGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.03;
-      torsoMesh.scale.x = 1 + Math.sin(elapsedTime * 1.5) * 0.015;
-      torsoMesh.scale.z = 1 + Math.sin(elapsedTime * 1.5) * 0.015;
-
-      // Particles rotation
-      particles.rotation.y = elapsedTime * 0.03;
-      particles.rotation.x = elapsedTime * 0.01;
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('resize', handleResize);
-      renderer.dispose();
-    };
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setRotate({ x: 0, y: 0 });
+  };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[380px] md:min-h-[460px] flex items-center justify-center select-none"
+      className="relative w-full max-w-[460px] h-[400px] sm:h-[460px] md:h-[500px] flex items-center justify-center select-none perspective-[1200px]"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={handleMouseLeave}
       onClick={onInteraction}
     >
-      {/* Ambient Circular Depth Portal & Glow Backdrop */}
-      <div className="absolute inset-4 md:inset-8 rounded-full bg-gradient-to-tr from-purple-950/60 via-slate-900/80 to-purple-900/40 border border-purple-500/20 shadow-[0_0_80px_rgba(168,85,247,0.15)] flex items-center justify-center overflow-hidden">
-        <div className="absolute w-[85%] h-[85%] rounded-full bg-radial from-purple-600/15 via-transparent to-transparent blur-xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(168,85,247,0.12),transparent_70%)]" />
-      </div>
-
-      {/* 3D WebGL Canvas */}
-      <canvas
-        ref={canvasRef}
-        className="relative z-10 w-full h-full block cursor-grab active:cursor-grabbing"
-      />
-
-      {/* ═══ Floating 3D Neomorphic Tech Badges (Matching Reference Image) ═══ */}
-      {/* Top-Right: </> Code Widget */}
-      <div 
-        className={`absolute top-8 right-6 md:top-12 md:right-10 z-20 transition-all duration-500 transform ${
-          isHovered ? 'scale-105 -translate-y-1' : ''
-        }`}
+      {/* ═══ 3D Tilt Wrapper Container ═══ */}
+      <div
+        className="relative w-full h-full flex items-center justify-center transition-transform duration-300 ease-out preserve-3d"
+        style={{
+          transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale(${isHovered ? 1.02 : 1})`,
+          transformStyle: 'preserve-3d'
+        }}
       >
+        {/* Ambient Circular Depth Portal (Backdrop) */}
         <div 
-          onClick={() => setActiveBadge('code')}
-          className="group relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-b from-[#21192e] to-[#120d1c] border border-purple-500/30 shadow-[0_12px_24px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-pointer hover:border-purple-400/60 transition-all active:scale-95"
+          className="absolute w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] rounded-full bg-gradient-to-tr from-[#160b29] via-[#24133f] to-[#120822] border-2 border-purple-500/25 shadow-[0_0_90px_rgba(168,85,247,0.25),inset_0_0_40px_rgba(147,51,234,0.3)] flex items-center justify-center overflow-hidden"
+          style={{ transform: 'translateZ(-30px)' }}
         >
-          <span className="font-mono text-lg md:text-xl font-bold text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)] group-hover:text-purple-300">
-            &lt;/&gt;
-          </span>
-          <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono text-purple-300 bg-slate-900/90 px-2 py-0.5 rounded border border-purple-500/20 whitespace-nowrap pointer-events-none">
-            Full-Stack DSP
+          {/* Internal Radial Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(168,85,247,0.3),transparent_70%)]" />
+          <div className="absolute inset-4 rounded-full border border-purple-500/15" />
+          <div className="absolute inset-12 rounded-full border border-purple-500/10" />
+        </div>
+
+        {/* ═══ High-Res 3D Avatar Image ═══ */}
+        <div 
+          className="relative z-10 w-[290px] sm:w-[350px] md:w-[390px] flex items-center justify-center pointer-events-none drop-shadow-[0_25px_35px_rgba(0,0,0,0.85)]"
+          style={{ transform: 'translateZ(30px)' }}
+        >
+          <img
+            src="/assets/hero-avatar.png"
+            onError={(e) => {
+              // Fallback to relative path if hosted in subfolder
+              (e.target as HTMLImageElement).src = './assets/hero-avatar.png';
+            }}
+            alt="Ratnesh Kumar Singh 3D Avatar"
+            className="w-full h-auto object-contain rounded-3xl"
+          />
+        </div>
+
+        {/* ═══ Floating 3D Extruded Tech Badges (Matching Reference Layout) ═══ */}
+        
+        {/* Top-Right: </> Code Widget */}
+        <div 
+          className="absolute top-6 right-2 sm:top-10 sm:right-4 z-20 transition-transform duration-300"
+          style={{ transform: `translateZ(70px) translateX(${rotate.y * 0.8}px) translateY(${rotate.x * 0.8}px)` }}
+        >
+          <div className="group relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-[#241935] via-[#1c122c] to-[#100a1c] border border-purple-500/40 shadow-[0_15px_30px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.15)] cursor-pointer hover:border-purple-400 transition-all hover:scale-110 active:scale-95">
+            <span className="font-mono text-lg sm:text-xl font-bold text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
+              &lt;/&gt;
+            </span>
+            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono text-purple-300 bg-slate-900/90 px-2 py-0.5 rounded border border-purple-500/20 whitespace-nowrap pointer-events-none shadow-lg">
+              Full-Stack DSP
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Middle-Right: JS JavaScript Badge */}
-      <div 
-        className={`absolute top-1/2 -translate-y-1/2 right-2 md:right-6 z-20 transition-all duration-500 delay-75 transform ${
-          isHovered ? 'scale-105 translate-x-1' : ''
-        }`}
-      >
+        {/* Middle-Right: JS JavaScript Badge */}
         <div 
-          onClick={() => setActiveBadge('js')}
-          className="group relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-b from-[#21192e] to-[#120d1c] border border-purple-500/30 shadow-[0_12px_24px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-pointer hover:border-purple-400/60 transition-all active:scale-95"
+          className="absolute top-1/2 -translate-y-1/2 -right-1 sm:right-2 z-20 transition-transform duration-300"
+          style={{ transform: `translateZ(60px) translateX(${rotate.y * 0.6}px) translateY(${rotate.x * 0.6}px)` }}
         >
-          <span className="font-sans text-base md:text-lg font-extrabold text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)] group-hover:text-purple-300">
-            JS
-          </span>
-          <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono text-purple-300 bg-slate-900/90 px-2 py-0.5 rounded border border-purple-500/20 whitespace-nowrap pointer-events-none">
-            TypeScript / React
+          <div className="group relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-[#241935] via-[#1c122c] to-[#100a1c] border border-purple-500/40 shadow-[0_15px_30px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.15)] cursor-pointer hover:border-purple-400 transition-all hover:scale-110 active:scale-95">
+            <span className="font-sans text-base sm:text-lg font-black text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
+              JS
+            </span>
+            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono text-purple-300 bg-slate-900/90 px-2 py-0.5 rounded border border-purple-500/20 whitespace-nowrap pointer-events-none shadow-lg">
+              React & TypeScript
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom-Right: Sliders / Settings Control Widget */}
-      <div 
-        className={`absolute bottom-8 right-6 md:bottom-12 md:right-10 z-20 transition-all duration-500 delay-150 transform ${
-          isHovered ? 'scale-105 translate-y-1' : ''
-        }`}
-      >
+        {/* Bottom-Right: Sliders / Hardware Control Widget */}
         <div 
-          onClick={() => setActiveBadge('dsp')}
-          className="group relative flex flex-col items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-b from-[#21192e] to-[#120d1c] border border-purple-500/30 shadow-[0_12px_24px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-pointer hover:border-purple-400/60 transition-all active:scale-95 gap-1.5"
+          className="absolute bottom-6 right-2 sm:bottom-10 sm:right-4 z-20 transition-transform duration-300"
+          style={{ transform: `translateZ(75px) translateX(${rotate.y * 0.9}px) translateY(${rotate.x * 0.9}px)` }}
         >
-          <div className="w-7 h-1.5 rounded-full bg-purple-500/30 overflow-hidden relative">
-            <div className="w-4 h-full bg-purple-400 rounded-full drop-shadow-[0_0_4px_rgba(168,85,247,0.8)]" />
-          </div>
-          <div className="w-7 h-1.5 rounded-full bg-purple-500/30 overflow-hidden relative">
-            <div className="w-5 h-full bg-purple-400 rounded-full ml-auto drop-shadow-[0_0_4px_rgba(168,85,247,0.8)]" />
-          </div>
-          <div className="w-7 h-1.5 rounded-full bg-purple-500/30 overflow-hidden relative">
-            <div className="w-3 h-full bg-purple-400 rounded-full drop-shadow-[0_0_4px_rgba(168,85,247,0.8)]" />
-          </div>
-          <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono text-purple-300 bg-slate-900/90 px-2 py-0.5 rounded border border-purple-500/20 whitespace-nowrap pointer-events-none">
-            RF & DSP Controls
+          <div className="group relative flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-[#241935] via-[#1c122c] to-[#100a1c] border border-purple-500/40 shadow-[0_15px_30px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.15)] cursor-pointer hover:border-purple-400 transition-all hover:scale-110 active:scale-95 gap-1.5 p-2">
+            <div className="w-8 h-1.5 rounded-full bg-purple-950/80 border border-purple-500/30 overflow-hidden relative">
+              <div className="w-4 h-full bg-purple-400 rounded-full shadow-[0_0_6px_#a855f7]" />
+            </div>
+            <div className="w-8 h-1.5 rounded-full bg-purple-950/80 border border-purple-500/30 overflow-hidden relative">
+              <div className="w-6 h-full bg-purple-400 rounded-full ml-auto shadow-[0_0_6px_#a855f7]" />
+            </div>
+            <div className="w-8 h-1.5 rounded-full bg-purple-950/80 border border-purple-500/30 overflow-hidden relative">
+              <div className="w-3 h-full bg-purple-400 rounded-full shadow-[0_0_6px_#a855f7]" />
+            </div>
+            <div className="absolute -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-mono text-purple-300 bg-slate-900/90 px-2 py-0.5 rounded border border-purple-500/20 whitespace-nowrap pointer-events-none shadow-lg">
+              RF & Audio Controls
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Floating Status Pill */}
-      <div className="absolute bottom-4 left-6 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-purple-500/20 backdrop-blur-md text-[11px] text-purple-300 font-mono">
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-4" />
-        <span>3D Engine Active</span>
+        {/* Live Status Pill */}
+        <div 
+          className="absolute -bottom-2 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#160c26]/90 border border-purple-500/30 backdrop-blur-md text-[11px] text-purple-300 font-mono shadow-lg"
+          style={{ transform: 'translateZ(40px)' }}
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Interactive 3D Focus</span>
+        </div>
       </div>
     </div>
   );
