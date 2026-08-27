@@ -8,10 +8,10 @@
  *   4. Click character → immediately play next random animation
  */
 
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { FBXLoader }  from 'three/addons/loaders/FBXLoader.js';
-import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+import * as THREE from 'https://unpkg.com/three@0.163.0/build/three.module.js';
+import { GLTFLoader } from 'https://unpkg.com/three@0.163.0/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader }  from 'https://unpkg.com/three@0.163.0/examples/jsm/loaders/FBXLoader.js';
+import { VRMLoaderPlugin, VRMUtils } from 'https://unpkg.com/@pixiv/three-vrm@3.4.0/lib/three-vrm.module.js';
 
 // ─── DEVICE DETECTION ────────────────────────────────────────────────────────
 const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
