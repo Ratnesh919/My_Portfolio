@@ -66,9 +66,8 @@ const ANIM = {
 // Walk is loaded separately so it doesn't block main animation loading
 const ALL_ANIM_FILES = Object.values(ANIM).filter(f => f !== ANIM.walk);
 
-// Split animations into Essential (for instant rendering/welcome) and Background pools
-const ESSENTIAL_ANIMS = [ANIM.idle, ANIM.wave1, ANIM.wave2, ANIM.no];
-const BACKGROUND_ANIMS = isMobile ? [] : ALL_ANIM_FILES.filter(f => !ESSENTIAL_ANIMS.includes(f));
+// Split animations: ONLY load idle and wave1 initially to keep startup instant and eliminate lag!
+const ESSENTIAL_ANIMS = [ANIM.idle, ANIM.wave1];
 
 // ─── AUTO-CYCLE POOLS ────────────────────────────────────────────────────────
 // maxDuration: null = play full clip, number = max seconds before returning to idle
@@ -157,8 +156,8 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
     powerPreference: 'high-performance' 
 });
-// Set pixel ratio: on mobile use 60% of devicePixelRatio (min 1.0, max 2.0); on desktop cap at 2.0
-renderer.setPixelRatio(isMobile ? Math.min(Math.max(1.0, window.devicePixelRatio * 0.6), 2.0) : Math.min(window.devicePixelRatio, 2));
+// Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -679,108 +678,78 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 });
 
 const fbxLoader = new FBXLoader();
+const activeAnimPromises = new Map();
+
+async function loadSingleAnimation(file, vrmInstance) {
+    if (!file || !vrmInstance) return null;
+    if (actions[file]) return actions[file];
+    if (activeAnimPromises.has(file)) return activeAnimPromises.get(file);
+
+    const loadPromise = (async () => {
+        try {
+            const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
+            if (vrm !== vrmInstance || !mixer) return null;
+            const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
+            if (clip && clip.duration >= 0.1) {
+                clips[file] = clip;
+                actions[file] = mixer.clipAction(clip);
+                console.log('[VRM] ✓ Lazy loaded animation:', file);
+                return actions[file];
+            }
+        } catch (e) {
+            console.warn('[VRM] Lazy FBX load failed:', file, e.message || e);
+        } finally {
+            activeAnimPromises.delete(file);
+        }
+        return null;
+    })();
+
+    activeAnimPromises.set(file, loadPromise);
+    return loadPromise;
+}
 
 async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
-    console.log('[VRM] Loading essential animations in parallel...');
+    console.log('[VRM] Loading initial essential animations (idle & wave)...');
     const animsToLoad = [...ESSENTIAL_ANIMS, ...extraAnims];
     const uniqueAnims = Array.from(new Set(animsToLoad));
     await Promise.all(uniqueAnims.map(async (file) => {
         try {
             const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
-            if (vrm !== vrmInstance) {
-                console.warn('[VRM] Model changed during essential animation load:', file);
-                return;
-            }
+            if (vrm !== vrmInstance) return;
             const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
-            if (clip) {
-                // Guard: discard clips with near-zero duration (retarget failure)
-                if (clip.duration < 0.1) {
-                    console.warn('[VRM] Discarding clip with near-zero duration:', file, clip.duration);
-                    return;
-                }
+            if (clip && clip.duration >= 0.1 && mixer) {
                 clips[file] = clip;
                 actions[file] = mixer.clipAction(clip);
-                console.log('[VRM] ✓ Loaded Essential:', file, '| Duration:', clip.duration.toFixed(2) + 's');
-            } else {
-                console.error('[VRM] ✗ retarget returned null for:', file);
+                console.log('[VRM] ✓ Loaded Essential:', file);
             }
         } catch (e) {
-            console.error('[VRM] ✗ Essential FBX load failed:', file, e.message || e);
+            console.error('[VRM] ✗ Essential FBX load error:', file, e.message || e);
         }
     }));
-    console.log('[VRM] Essential animations loaded.');
+    console.log('[VRM] Essential animations ready. Remaining animations will stream on-demand.');
 }
 
-async function loadBackgroundAnimations(vrmInstance) {
-    if (isMobile) {
-        console.log('[VRM] Skipping background animation loading on mobile to save bandwidth and memory.');
-        return;
-    }
-    // 1 second delay to prioritize main thread rendering
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log('[VRM] Loading background animations asynchronously...');
-    for (const file of BACKGROUND_ANIMS) {
-        try {
-            // Check if model changed before each load
-            if (vrm !== vrmInstance) {
-                console.warn('[VRM] Model changed, stopping background animation load:', file);
-                return;
-            }
-            
-            // Skip if already loaded (e.g. if loaded via extraAnims)
-            if (clips[file]) {
-                console.log('[VRM] Skipping background load for already loaded animation:', file);
-                continue;
-            }
-            
-            const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
-            
-            // Check again after load completes
-            if (vrm !== vrmInstance) {
-                console.warn('[VRM] Model changed after loading file, discarding:', file);
-                return;
-            }
-            
-            const clip = retargetMixamoToVRM(fbx, vrmInstance, file);
-            if (clip) {
-                // Guard: discard clips with near-zero duration (retarget failure)
-                if (clip.duration < 0.1) {
-                    console.warn('[VRM] Discarding background clip with near-zero duration:', file, clip.duration);
-                } else {
-                    clips[file] = clip;
-                    actions[file] = mixer.clipAction(clip);
-                    console.log('[VRM] ✓ Loaded Background:', file, '| Duration:', clip.duration.toFixed(2) + 's');
-                }
-            } else {
-                console.error('[VRM] ✗ retarget returned null for:', file);
-            }
-            
-            // 150ms delay between loading animations to yield the main thread and keep mobile memory stable
-            await new Promise(resolve => setTimeout(resolve, 150));
-        } catch (e) {
-            console.error('[VRM] ✗ Background FBX load failed:', file, e.message || e);
-        }
-    }
-    console.log('[VRM] Background animations loaded. Total keys:', Object.keys(actions));
+// Background bulk loading is disabled to prevent laptop hanging/lagging
+function loadBackgroundAnimations() {
+    // No-op: animations stream on-demand when requested
 }
 
-// ─── PLAY ANIMATION ───────────────────────────────────────────────────────────
-function playAnim(key, loop=true, crossFade=0.35) {
-    const action = actions[key];
-    if (!action || currentKey===key) return;
+// ─── PLAY ANIMATION (WITH INSTANT LAZY ON-DEMAND STREAMING) ────────────────────
+async function playAnim(key, loop=true, crossFade=0.35) {
+    if (!key || currentKey === key) return;
+    let action = actions[key];
+    if (!action && vrm) {
+        action = await loadSingleAnimation(key, vrm);
+    }
+    if (!action) return;
     action.loop              = loop ? THREE.LoopRepeat : THREE.LoopOnce;
     action.clampWhenFinished = !loop;
-    
-    // Globally slow down the wave animation to make it look more natural
-    if (key === ANIM.wave1) {
-        action.setEffectiveTimeScale(1.0); 
-    } else {
-        action.setEffectiveTimeScale(1.0);
-    }
+    action.setEffectiveTimeScale(1.0);
     
     action.reset().play();
-    if (currentAction && currentAction!==action) currentAction.crossFadeTo(action, crossFade, false);
+    if (currentAction && currentAction !== action) {
+        currentAction.crossFadeTo(action, crossFade, false);
+    }
     currentAction = action;
     currentKey    = key;
 }
@@ -1200,7 +1169,6 @@ function animate() {
     requestAnimationFrame(animate);
     const dt = Math.min(clock.getDelta(), 0.05);
     const t  = clock.elapsedTime;
-    renderer.render(scene, camera);
     
     if (renderFramesAfterSwitch >= 0) {
         renderFramesAfterSwitch++;
@@ -1471,6 +1439,7 @@ function animate() {
 
     // Update VRM SpringBones — dt * 0.18 for stiffer, less floppy cloth
     vrm.update(dt * 0.18);
+    renderer.render(scene, camera);
 }
 animate();
 

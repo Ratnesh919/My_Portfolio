@@ -242,74 +242,102 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           <div id="soap-bubble-container" className="absolute inset-0 overflow-hidden pointer-events-none" />
 
           <style>{`
-            /* Realistic Transparent Soap Bubble Styling */
+            /* Ultra-Realistic Thin-Film Iridescent Soap Bubble */
             .soap-bubble {
               position: absolute;
-              bottom: -120px;
+              bottom: -140px;
               border-radius: 50%;
-              /* Iridescent transparent soap sheen */
-              background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.08) 35%, rgba(180, 220, 255, 0.12) 65%, rgba(255, 120, 180, 0.2) 100%);
-              border: 1.5px solid rgba(255, 255, 255, 0.55);
+              /* Physical thin-film interference: rainbow shimmer with central translucency */
+              background: 
+                radial-gradient(circle at 70% 80%, rgba(255, 120, 180, 0.28) 0%, transparent 45%),
+                radial-gradient(circle at 25% 25%, rgba(130, 240, 255, 0.35) 0%, transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(255, 230, 120, 0.22) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(160, 210, 255, 0.12) 65%, rgba(255, 130, 200, 0.28) 95%, rgba(255, 255, 255, 0.4) 100%);
+              border: 1px solid rgba(255, 255, 255, 0.65);
               box-shadow: 
-                inset 3px 3px 8px rgba(255, 255, 255, 0.6),
-                inset -3px -3px 8px rgba(180, 230, 255, 0.35),
-                inset 0 0 12px rgba(255, 105, 180, 0.25),
-                0 0 18px rgba(255, 65, 108, 0.35);
-              animation: floatSoapBubble linear infinite;
+                inset 4px 4px 10px rgba(255, 255, 255, 0.75),
+                inset -4px -4px 12px rgba(120, 220, 255, 0.5),
+                inset 0 0 16px rgba(255, 100, 180, 0.35),
+                inset -2px 5px 8px rgba(255, 225, 120, 0.3),
+                0 0 20px rgba(168, 85, 247, 0.35),
+                0 0 35px rgba(255, 65, 108, 0.25);
+              animation: floatSoapBubble linear infinite, bubbleWobble 4s ease-in-out infinite alternate;
               cursor: pointer;
               pointer-events: auto !important;
               transition: transform 0.2s ease, opacity 0.25s ease;
-              backdrop-filter: blur(1.5px);
+              backdrop-filter: blur(2px);
+              -webkit-backdrop-filter: blur(2px);
             }
+
+            /* Primary Curved Specular Reflection Arc (Top-Left) */
             .soap-bubble::before {
               content: '';
               position: absolute;
-              top: 15%;
-              left: 20%;
-              width: 25%;
-              height: 18%;
-              border-radius: 50%;
-              background: rgba(255, 255, 255, 0.75);
-              transform: rotate(-30deg);
-              filter: blur(0.5px);
+              top: 10%;
+              left: 14%;
+              width: 38%;
+              height: 24%;
+              border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%;
+              background: radial-gradient(ellipse at 40% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 45%, transparent 80%);
+              transform: rotate(-35deg);
+              filter: blur(0.6px);
             }
+
+            /* Secondary Specular Rim Light & Internal Glint (Bottom-Right) */
             .soap-bubble::after {
               content: '';
               position: absolute;
-              bottom: 18%;
-              right: 22%;
-              width: 12%;
-              height: 10%;
+              bottom: 12%;
+              right: 15%;
+              width: 22%;
+              height: 16%;
               border-radius: 50%;
-              background: rgba(255, 255, 255, 0.4);
+              background: radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.8) 0%, rgba(160, 230, 255, 0.4) 50%, transparent 80%);
+              transform: rotate(20deg);
+              filter: blur(0.8px);
             }
+
             .soap-bubble:hover {
-              transform: scale(1.18);
+              transform: scale(1.15);
               box-shadow: 
-                inset 4px 4px 12px rgba(255, 255, 255, 0.8),
-                0 0 28px rgba(255, 65, 108, 0.7);
+                inset 5px 5px 15px rgba(255, 255, 255, 0.9),
+                inset -5px -5px 15px rgba(120, 240, 255, 0.7),
+                0 0 30px rgba(236, 72, 153, 0.7),
+                0 0 50px rgba(168, 85, 247, 0.5);
             }
+
+            @keyframes bubbleWobble {
+              0% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: scale(1, 1); }
+              33% { border-radius: 48% 52% 51% 49% / 52% 48% 52% 48%; transform: scale(1.025, 0.975); }
+              66% { border-radius: 52% 48% 49% 51% / 48% 52% 48% 52%; transform: scale(0.975, 1.025); }
+              100% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: scale(1.015, 0.985); }
+            }
+
             @keyframes floatSoapBubble {
               0% {
-                transform: translateY(0) rotate(0deg);
+                transform: translateY(0) translateX(0);
                 opacity: 0;
               }
-              12% {
+              10% {
                 opacity: 0.95;
               }
-              88% {
+              50% {
+                transform: translateY(-60vh) translateX(15px);
+              }
+              90% {
                 opacity: 0.95;
               }
               100% {
-                transform: translateY(-120vh) rotate(180deg);
+                transform: translateY(-125vh) translateX(-15px);
                 opacity: 0;
               }
             }
+
             .soap-crack-line {
               position: fixed;
               pointer-events: none;
               z-index: 1000000;
-              animation: soapCrackAnim 0.4s ease-out forwards;
+              animation: soapCrackAnim 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
             }
             @keyframes soapCrackAnim {
               0% { transform: scaleX(0); opacity: 1; }
@@ -318,11 +346,11 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
             .soap-mist-dot {
               position: fixed;
               border-radius: 50%;
-              background: rgba(255, 255, 255, 0.95);
-              box-shadow: 0 0 10px #ff416c, 0 0 4px #fff;
+              background: radial-gradient(circle, #ffffff 30%, rgba(180, 230, 255, 0.8) 70%, transparent 100%);
+              box-shadow: 0 0 10px #ff416c, 0 0 6px #38bdf8;
               pointer-events: none;
               z-index: 1000000;
-              transition: transform 0.45s cubic-bezier(0.1, 0.85, 0.2, 1), opacity 0.45s ease;
+              transition: transform 0.5s cubic-bezier(0.1, 0.85, 0.2, 1), opacity 0.5s ease;
             }
           `}</style>
         </div>

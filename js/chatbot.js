@@ -60,10 +60,10 @@ function getTimeOfDayGreeting() {
 
 function getIntroText() {
     const greeting = getTimeOfDayGreeting();
-    return `${greeting}! I am Raya, Ratnesh's AI companion. Welcome to his engineering portfolio! You can explore his 5 core specializations in Web Audio DSP, Android MediaCodec, AI Agents, RF Hardware, and 3D Graphics. What is your name?`;
+    return `${greeting}! I am Raya, Ratnesh's virtual companion. Welcome to his engineering portfolio! You can explore his 5 core specializations in Web Audio DSP, Android MediaCodec, Automated Pipelines, RF Hardware, and 3D Graphics. What is your name?`;
 }
 
-const THEME_PROMPT = "Explore Ratnesh's 5 core skill tracks: 1 Full-Stack Web & Audio DSP, 2 Native Android, 3 AI Agents & Automation, 4 Embedded & RF Hardware, or 5 Interactive 3D Graphics. Which one would you like to explore?";
+const THEME_PROMPT = "Explore Ratnesh's 5 core skill tracks: 1 Full-Stack Web & Audio DSP, 2 Native Android, 3 Workflow Automation & Pipelines, 4 Embedded & RF Hardware, or 5 Interactive 3D Graphics. Which one would you like to explore?";
 const MUSIC_PROMPT = "Would you like me to play a song while you explore? Just say yes and tell me what you want to hear!";
 
 // -- Wake word variants (declared here so passive+active handlers share the same list) --

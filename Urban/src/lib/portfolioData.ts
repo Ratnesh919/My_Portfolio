@@ -4,7 +4,7 @@ export interface ProjectItem {
   subtitle: string;
   tagline: string;
   desc: string;
-  category: 'Full-Stack' | 'Android' | 'AI & Automation' | '3D Graphics' | 'Hardware & IoT';
+  category: 'Full-Stack' | 'Android' | 'Workflow & Automation' | '3D Graphics' | 'Hardware & IoT';
   tags: string[];
   techStack: string;
   accent: string;
@@ -130,7 +130,7 @@ export const PORTFOLIO_DATA = {
       subtitle: "Automated Job Pipeline & Application Dispatcher",
       tagline: "Automated workflow scanning job feeds and dispatching tailored applications.",
       desc: "Engineered an automated processing workflow on n8n Cloud to continuously aggregate job openings across platforms, evaluate candidate fit, dynamically tailor resumes, and trigger webhook dispatches.",
-      category: "AI & Automation",
+      category: "Workflow & Automation",
       tags: ["n8n Cloud", "Google Gemini API", "Webhooks", "Automation", "TypeScript"],
       techStack: "n8n · Cloud Webhooks · TypeScript",
       accent: "#22c55e",

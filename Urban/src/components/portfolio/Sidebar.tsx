@@ -113,8 +113,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </nav>
 
-      {/* Social Links directly connected below nav */}
-      <div className="pt-3 border-t border-purple-500/15 flex flex-col gap-2">
+      {/* Social Links pinned to the bottom of the left sidebar near the feet of the avatar */}
+      <div className="mt-auto pt-3 border-t border-purple-500/15 flex flex-col gap-2">
         <div className="flex items-center justify-between px-1 text-slate-400">
           <a 
             href={PORTFOLIO_DATA.github} 

@@ -19,7 +19,7 @@ interface ProjectsSectionProps {
 export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onSelectProject }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const categories = ['All', 'Full-Stack', 'Android', 'AI & Automation', '3D Graphics', 'Hardware & IoT'];
+  const categories = ['All', 'Full-Stack', 'Android', 'Workflow & Automation', '3D Graphics', 'Hardware & IoT'];
 
   const filteredProjects = selectedCategory === 'All'
     ? PORTFOLIO_DATA.projects

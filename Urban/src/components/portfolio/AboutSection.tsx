@@ -118,7 +118,7 @@ export const AboutSection: React.FC = () => {
               <span className="text-slate-400 flex items-center gap-2">
                 <Lightbulb size={14} className="text-purple-400" /> Interests
               </span>
-              <span className="text-purple-300 font-medium">AI, 3D WebGL, Audio DSP, Art</span>
+              <span className="text-purple-300 font-medium">Autonomous Systems, 3D WebGL, Audio DSP, Art</span>
             </div>
           </div>
 
