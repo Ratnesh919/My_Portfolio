@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { VRMLoaderPlugin, VRM, VRMUtils } from '@pixiv/three-vrm';
-import { RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface VRMCharacterEngineProps {
   currentAvatarFile?: string;
@@ -10,7 +11,114 @@ interface VRMCharacterEngineProps {
   isTalking?: boolean;
 }
 
-// Maps local VRM paths to candidate fetch URLs (Avatar Proxy -> Direct GitHub Release CDN -> Local path)
+// Mixamo rig to VRM humanoid bone mapping
+const mixamoVRMRigMap: Record<string, string> = {
+  mixamorigHips: 'hips',
+  mixamorigSpine: 'spine',
+  mixamorigSpine1: 'chest',
+  mixamorigSpine2: 'upperChest',
+  mixamorigNeck: 'neck',
+  mixamorigHead: 'head',
+  mixamorigLeftShoulder: 'leftShoulder',
+  mixamorigLeftArm: 'leftUpperArm',
+  mixamorigLeftForeArm: 'leftLowerArm',
+  mixamorigLeftHand: 'leftHand',
+  mixamorigRightShoulder: 'rightShoulder',
+  mixamorigRightArm: 'rightUpperArm',
+  mixamorigRightForeArm: 'rightLowerArm',
+  mixamorigRightHand: 'rightHand',
+  mixamorigLeftUpLeg: 'leftUpperLeg',
+  mixamorigLeftLeg: 'leftLowerLeg',
+  mixamorigLeftFoot: 'leftFoot',
+  mixamorigLeftToeBase: 'leftToes',
+  mixamorigRightUpLeg: 'rightUpperLeg',
+  mixamorigRightLeg: 'rightLowerLeg',
+  mixamorigRightFoot: 'rightFoot',
+  mixamorigRightToeBase: 'rightToes',
+};
+
+// Retarget Mixamo FBX animation clip to VRM
+function retargetMixamoToVRM(asset: THREE.Group, vrm: VRM, fileUrl: string = ''): THREE.AnimationClip | null {
+  const clip = THREE.AnimationClip.findByName(asset.animations, 'mixamo.com') || asset.animations[0];
+  if (!clip) return null;
+
+  const tracks: THREE.KeyframeTrack[] = [];
+  const rRI = new THREE.Quaternion();
+  const pRWR = new THREE.Quaternion();
+  const _qA = new THREE.Quaternion();
+
+  const hipsNode = asset.getObjectByName('mixamorigHips') || asset.getObjectByName('Hips') || asset.getObjectByName('hips');
+  const hMotion = hipsNode ? hipsNode.position.y : 100;
+  const hVRM = (vrm.humanoid as any)?.normalizedRestPose?.hips?.position?.[1] || 1.0;
+  const hScale = hVRM / (hMotion || 100);
+
+  clip.tracks.forEach((track) => {
+    const parts = track.name.split('.');
+    let boneName = parts[0];
+    if (boneName.includes(':')) boneName = boneName.split(':').pop()!;
+    if (boneName.includes('|')) boneName = boneName.split('|')[0]!;
+    let rigName = boneName;
+    if (!mixamoVRMRigMap[rigName] && !rigName.startsWith('mixamorig')) {
+      rigName = 'mixamorig' + rigName.charAt(0).toUpperCase() + rigName.slice(1);
+    }
+
+    const vrmBone = mixamoVRMRigMap[rigName];
+    const vrmNode = vrm.humanoid?.getNormalizedBoneNode(vrmBone as any)?.name;
+    const rigNode = asset.getObjectByName(boneName) || asset.getObjectByName(parts[0]);
+
+    if (vrmNode != null && rigNode != null && rigNode.parent != null) {
+      const prop = parts[1];
+      rigNode.getWorldQuaternion(rRI).invert();
+      rigNode.parent.getWorldQuaternion(pRWR);
+
+      if (track instanceof THREE.QuaternionKeyframeTrack) {
+        const values = track.values.slice();
+        for (let i = 0; i < values.length; i += 4) {
+          const fq = values.slice(i, i + 4);
+          _qA.fromArray(fq).premultiply(pRWR).multiply(rRI);
+          _qA.toArray(fq);
+          for (let j = 0; j < 4; j++) {
+            values[i + j] = fq[j];
+          }
+        }
+        tracks.push(
+          new THREE.QuaternionKeyframeTrack(
+            `${vrmNode}.${prop}`,
+            track.times,
+            values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 2 === 0 ? -v : v))
+          )
+        );
+      } else if (track instanceof THREE.VectorKeyframeTrack) {
+        tracks.push(
+          new THREE.VectorKeyframeTrack(
+            `${vrmNode}.${prop}`,
+            track.times,
+            track.values.map((v, i) => (vrm.meta?.metaVersion === '0' && i % 3 !== 1 ? -v : v) * hScale)
+          )
+        );
+      }
+    }
+  });
+
+  if (tracks.length === 0) return null;
+  return new THREE.AnimationClip(clip.name, clip.duration, tracks);
+}
+
+// Fallback natural arm pose when animation is loading
+function poseRestingArms(vrm: VRM) {
+  const humanoid = vrm.humanoid;
+  if (!humanoid) return;
+  const leftUpperArm = humanoid.getNormalizedBoneNode('leftUpperArm');
+  const rightUpperArm = humanoid.getNormalizedBoneNode('rightUpperArm');
+  const leftLowerArm = humanoid.getNormalizedBoneNode('leftLowerArm');
+  const rightLowerArm = humanoid.getNormalizedBoneNode('rightLowerArm');
+  if (leftUpperArm) leftUpperArm.rotation.set(0.05, 0, 1.25);
+  if (rightUpperArm) rightUpperArm.rotation.set(0.05, 0, -1.25);
+  if (leftLowerArm) leftLowerArm.rotation.set(0, 0, 0.2);
+  if (rightLowerArm) rightLowerArm.rotation.set(0, 0, -0.2);
+}
+
+// Maps local VRM paths to candidate fetch URLs
 function getAvatarCandidateUrls(localPath: string): string[] {
   if (localPath.startsWith('http')) return [localPath];
   const RELEASE_BASE = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/';
@@ -54,13 +162,15 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const vrmRef = useRef<VRM | null>(null);
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
+  const idleActionRef = useRef<THREE.AnimationAction | null>(null);
+  const waveActionRef = useRef<THREE.AnimationAction | null>(null);
   const clockRef = useRef(new THREE.Clock());
   const [loading, setLoading] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const waveActionRef = useRef<boolean>(true);
+  const mouseNorm = useRef({ x: 0, y: 0 });
 
   // Drag state
-  const [position, setPosition] = useState({ x: 20, y: window.innerHeight - 460 });
+  const [position, setPosition] = useState({ x: 20, y: window.innerHeight - 440 });
   const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, startPosX: 0, startPosY: 0 });
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -89,7 +199,17 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     dragRef.current.isDragging = false;
   }, []);
 
-  // Load VRM Model
+  // Track cursor position for head tracking
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseNorm.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseNorm.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Load VRM Model & FBX Animations
   useEffect(() => {
     if (!canvasRef.current) return;
     setLoading(true);
@@ -102,6 +222,8 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 20.0);
@@ -123,8 +245,76 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
 
+    const fbxLoader = new FBXLoader();
     const candidateUrls = getAvatarCandidateUrls(currentAvatarFile);
     let isDisposed = false;
+
+    const triggerWave = () => {
+      if (waveActionRef.current && idleActionRef.current) {
+        waveActionRef.current.reset();
+        idleActionRef.current.crossFadeTo(waveActionRef.current, 0.35, false);
+        waveActionRef.current.play();
+
+        const duration = (waveActionRef.current.getClip().duration || 3.5) * 1000;
+        setTimeout(() => {
+          if (idleActionRef.current && waveActionRef.current) {
+            waveActionRef.current.crossFadeTo(idleActionRef.current, 0.35, false);
+            idleActionRef.current.play();
+          }
+        }, Math.max(2500, duration - 400));
+      }
+    };
+
+    (window as any).playWaveAnimation = triggerWave;
+
+    const loadAnimations = (vrm: VRM) => {
+      const mixer = new THREE.AnimationMixer(vrm.scene);
+      mixerRef.current = mixer;
+
+      // Apply initial resting pose so she never stays in T-pose
+      poseRestingArms(vrm);
+
+      const animBase = '/Model Animation/';
+
+      // Load Idle animation
+      fbxLoader.load(
+        `${animBase}Idle.fbx`,
+        (fbx) => {
+          if (isDisposed) return;
+          const idleClip = retargetMixamoToVRM(fbx, vrm, 'Idle.fbx');
+          if (idleClip) {
+            const idleAction = mixer.clipAction(idleClip);
+            idleAction.play();
+            idleActionRef.current = idleAction;
+            console.log('[VRM Animation] Loaded Idle.fbx successfully');
+          }
+        },
+        undefined,
+        (err) => {
+          console.warn('[VRM Animation] Idle.fbx load failed, using procedural resting pose:', err);
+          poseRestingArms(vrm);
+        }
+      );
+
+      // Load Waving animation
+      fbxLoader.load(
+        `${animBase}Waving1.fbx`,
+        (fbx) => {
+          if (isDisposed) return;
+          const waveClip = retargetMixamoToVRM(fbx, vrm, 'Waving1.fbx');
+          if (waveClip) {
+            const waveAction = mixer.clipAction(waveClip);
+            waveAction.loop = THREE.LoopOnce;
+            waveAction.clampWhenFinished = true;
+            waveActionRef.current = waveAction;
+            console.log('[VRM Animation] Loaded Waving1.fbx successfully');
+            triggerWave();
+          }
+        },
+        undefined,
+        (err) => console.warn('[VRM Animation] Waving1.fbx load failed:', err)
+      );
+    };
 
     const tryLoadCandidate = (index: number) => {
       if (index >= candidateUrls.length) {
@@ -165,7 +355,10 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
           vrmRef.current = vrm;
           setLoading(false);
           onAvatarLoaded?.();
-          triggerWave();
+
+          // Load and bind FBX animations
+          loadAnimations(vrm);
+
           console.log(`[VRM] Model loaded successfully from candidate ${index + 1}!`);
         },
         (progress) => {
@@ -182,42 +375,40 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
 
     tryLoadCandidate(0);
 
-    (window as any).playWaveAnimation = () => triggerWave();
-
-    const triggerWave = () => {
-      waveActionRef.current = true;
-      setTimeout(() => { waveActionRef.current = false; }, 4000);
-    };
-
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const delta = clockRef.current.getDelta();
       const time = clockRef.current.getElapsedTime();
 
+      // Update animation mixer for real FBX motions
+      if (mixerRef.current) {
+        mixerRef.current.update(delta);
+      }
+
       if (vrmRef.current) {
         vrmRef.current.update(delta);
         const humanoid = vrmRef.current.humanoid;
         if (humanoid) {
-          const spine = humanoid.getNormalizedBoneNode('spine');
-          const chest = humanoid.getNormalizedBoneNode('chest');
+          // Smooth cursor head-tracking
           const head = humanoid.getNormalizedBoneNode('head');
-          const rightArm = humanoid.getNormalizedBoneNode('rightUpperArm');
-          const rightForeArm = humanoid.getNormalizedBoneNode('rightLowerArm');
-
-          if (spine) spine.rotation.x = Math.sin(time * 1.5) * 0.02;
-          if (chest) chest.rotation.y = Math.sin(time * 0.8) * 0.03;
+          const neck = humanoid.getNormalizedBoneNode('neck');
           if (head) {
-            head.rotation.y = Math.sin(time * 0.5) * 0.06;
-            head.rotation.x = Math.sin(time * 1.2) * 0.02;
+            head.rotation.y = THREE.MathUtils.lerp(head.rotation.y, mouseNorm.current.x * 0.3, 0.05);
+            head.rotation.x = THREE.MathUtils.lerp(head.rotation.x, -mouseNorm.current.y * 0.2, 0.05);
           }
-          if (waveActionRef.current && rightArm && rightForeArm) {
-            rightArm.rotation.z = -1.25 + Math.sin(time * 8.0) * 0.22;
-            rightArm.rotation.x = -0.45;
-            rightForeArm.rotation.y = -0.85 + Math.sin(time * 8.0) * 0.32;
+          if (neck) {
+            neck.rotation.y = THREE.MathUtils.lerp(neck.rotation.y, mouseNorm.current.x * 0.15, 0.05);
+          }
+
+          // Gentle breathing spine oscillation if no idle clip
+          if (!idleActionRef.current) {
+            const spine = humanoid.getNormalizedBoneNode('spine');
+            if (spine) spine.rotation.x = Math.sin(time * 1.5) * 0.02;
           }
         }
 
+        // Facial Expressions: Blinking & Lip Sync
         const expressionManager = vrmRef.current.expressionManager;
         if (expressionManager) {
           expressionManager.setValue('blink', Math.sin(time * 0.8) > 0.96 ? 1 : 0);
@@ -235,7 +426,11 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     };
     animate();
 
-    return () => { isDisposed = true; cancelAnimationFrame(animationFrameId); renderer.dispose(); };
+    return () => {
+      isDisposed = true;
+      cancelAnimationFrame(animationFrameId);
+      renderer.dispose();
+    };
   }, [currentAvatarFile, onAvatarLoaded]);
 
   return (

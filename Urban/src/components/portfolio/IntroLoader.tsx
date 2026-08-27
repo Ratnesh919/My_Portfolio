@@ -153,14 +153,15 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
   if (phase === 'done') return null;
 
   return (
-    <>
+    <div
+      id="master-intro-overlay"
+      className={`fixed inset-0 z-[9999999] bg-[#07050d] flex items-center justify-center transition-opacity duration-700 select-none ${
+        isBubbleHidden ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}
+    >
       {/* ═══ Phase 1: Progressive Loading Screen ═══ */}
       {phase === 'loader' && (
-        <div
-          className={`fixed inset-0 z-[9999999] bg-[#07050d] flex items-center justify-center transition-all duration-700 select-none ${
-            isLoaderHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
-          }`}
-        >
+        <div className="absolute inset-0 flex items-center justify-center animate-in fade-in duration-300">
           {/* Subtle Ambient Glow */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,65,108,0.22)_0%,transparent_65%)] pointer-events-none" />
 
@@ -196,13 +197,11 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
         </div>
       )}
 
-      {/* ═══ Phase 2: Tap a Bubble to Enter (100% Opaque Backdrop Concealing Portfolio) ═══ */}
+      {/* ═══ Phase 2: Tap a Bubble to Enter (Soap Bubbles Floating) ═══ */}
       {phase === 'bubbles' && (
         <div
           id="bubble-screen"
-          className={`fixed inset-0 z-[999999] bg-[#07050d] flex flex-col items-center justify-center transition-all duration-700 select-none ${
-            isBubbleHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
-          }`}
+          className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in duration-500"
         >
           {/* Glowing Ambient Background */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(168,85,247,0.15)_0%,rgba(255,65,108,0.12)_40%,transparent_75%)] pointer-events-none" />
@@ -302,6 +301,6 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           `}</style>
         </div>
       )}
-    </>
+    </div>
   );
 };

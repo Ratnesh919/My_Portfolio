@@ -383,27 +383,46 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     if (q.includes('github')) {
       return `Opening Ratnesh's GitHub repository hub! {"action":"open_link","target":"github"}`;
     }
+    if (q.includes('pak') || q.includes('video converter') || q.includes('converter')) {
+      onScrollToSection?.('projects');
+      return `PAK Video Converter is Ratnesh's high-performance native Android media transcoder built with MediaCodec & NDK, achieving 3.8x faster GPU-accelerated video encoding! {"action":"scroll","target":"projects"}`;
+    }
+    if (q.includes('syncpulse') || q.includes('audio') || q.includes('dsp')) {
+      onScrollToSection?.('projects');
+      return `SyncPulse is a sub-5ms low-latency multi-track Web Audio DSP workstation featuring custom biquad filters, dynamic compressors, and real-time canvas visualizers. {"action":"scroll","target":"projects"}`;
+    }
     if (q.includes('project') || q.includes('work') || q.includes('portfolio')) {
       onScrollToSection?.('projects');
       return `Here are Ratnesh's featured engineering projects including SyncPulse, PAK Video Converter, and MediFlow. {"action":"scroll","target":"projects"}`;
     }
-    if (q.includes('about') || q.includes('background') || q.includes('who is ratnesh')) {
+    if (q.includes('about') || q.includes('background') || q.includes('who is ratnesh') || q.includes('who are you')) {
       onScrollToSection?.('about');
       return `Ratnesh is a final-year ECE undergraduate at MAKAUT (2026) specializing in hardware-software convergence, real-time web audio DSP, and native Android media processing. {"action":"scroll","target":"about"}`;
     }
-    if (q.includes('skills') || q.includes('stack')) {
+    if (q.includes('skills') || q.includes('stack') || q.includes('tech')) {
       onScrollToSection?.('skills');
       return `Ratnesh specializes across 5 pillars: Full-Stack Real-Time Web, Android MediaCodec, AI Agent Workflows, Embedded RF Simulation, and Interactive 3D WebGL. {"action":"scroll","target":"skills"}`;
     }
-    if (q.includes('contact') || q.includes('hire') || q.includes('email')) {
+    if (q.includes('joke') || q.includes('funny') || q.includes('laugh')) {
+      const jokes = [
+        "Why do programmers prefer dark mode? Because light attracts bugs!",
+        "Why did the JavaScript developer wear glasses? Because they didn't C#!",
+        "There are 10 types of people in the world: those who understand binary, and those who don't!",
+        "Why was the cell phone wearing glasses? It lost its contacts!"
+      ];
+      return jokes[Math.floor(Math.random() * jokes.length)];
+    }
+    if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('message')) {
       onScrollToSection?.('contact');
       return `You can reach Ratnesh directly at ${PORTFOLIO_DATA.email} or connect via LinkedIn and Instagram. {"action":"scroll","target":"contact"}`;
     }
     if (q.includes('song') || q.includes('music') || q.includes('play')) {
-      return `What song or genre would you like to listen to? For example say: play lofi beats or play interstellar theme!`;
+      const cleanSongName = query.replace(/play|song|music|a|the|for|me/gi, '').trim() || 'lofi hip hop';
+      searchAndPlayYouTube(cleanSongName);
+      return `Playing ${cleanSongName} for you now! Enjoy the music. {"action":"play_song","query":"${cleanSongName}"}`;
     }
-    if (q.includes('namaste') || q.includes('kaise')) {
-      return `Namaste! Main Raya hoon, Ratnesh ki AI assistant. Main aapko unke engineering projects aur skills explore karne mein madad kar sakti hoon!`;
+    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal')) {
+      return `Namaste! Main badhiya hoon. Ratnesh ke projects ya skills ke baare mein aapko kya jaanna hai?`;
     }
     if (q.includes('konnichiwa')) {
       return `Konnichiwa! Watashi wa Raya desu. Ratnesh no purojekuto o goannai shimasu!`;
@@ -476,11 +495,14 @@ REMEMBER: NEVER exceed 200 words in any reply.`;
       let botText = '';
       if (response.ok) {
         const data = await response.json();
-        // Server returns Groq/OpenAI format: { choices: [{ message: { content: "..." } }] }
-        botText = data?.choices?.[0]?.message?.content
-          || data?.reply
-          || data?.message
-          || generateLocalResponse(query);
+        const rawContent = data?.choices?.[0]?.message?.content || data?.reply || data?.message || '';
+        
+        // Intercept rate limit notices or API missing key messages so user gets real answers
+        if (rawContent && !rawContent.includes('rate limits') && !rawContent.includes('API Key Notice') && !rawContent.includes('temporarily resting')) {
+          botText = rawContent;
+        } else {
+          botText = generateLocalResponse(query);
+        }
       } else {
         botText = generateLocalResponse(query);
       }
