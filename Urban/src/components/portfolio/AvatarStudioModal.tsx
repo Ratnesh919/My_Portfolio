@@ -62,6 +62,7 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
 
   const handleSelectCharacter = (charId: string) => {
     setSelectedChar(charId);
+    onSelectAvatar(charId);
     const charObj = AVATAR_CHARACTERS.find(c => c.id === charId);
     if (charObj) {
       if ((window as any).switchVRM) {
@@ -260,8 +261,8 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
           </div>
         </div>
 
-        {/* Action Footer */}
-        <div className="pt-4 border-t border-purple-500/15 flex items-center justify-between">
+        {/* Action Footer (Real-time info & Reset) */}
+        <div className="pt-4 border-t border-purple-500/15 flex items-center justify-between text-xs text-slate-400">
           <button
             onClick={() => {
               handleSelectCharacter('changli');
@@ -270,16 +271,16 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
               handleBrightnessChange(1.0);
               if (!isAvatarVisible) handleToggleVisibility();
             }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#160c26] text-slate-400 hover:text-white border border-purple-500/20 text-xs transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#160c26] text-slate-400 hover:text-white border border-purple-500/20 text-xs transition-all active:scale-95"
           >
             <RotateCcw size={13} /> Reset Defaults
           </button>
 
           <button
-            onClick={handleApply}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all active:scale-95"
+            onClick={onClose}
+            className="flex items-center gap-1.5 px-6 py-2 rounded-full bg-purple-900/60 hover:bg-purple-800/80 text-white font-medium border border-purple-500/30 transition-all active:scale-95 shadow-md"
           >
-            <UserCheck size={15} /> Apply Avatar
+            Done
           </button>
         </div>
       </div>

@@ -1174,7 +1174,6 @@ class AvatarChatBot {
         }
         return "I'm right here with you! You can ask me about Ratnesh's 5 skill pillars, his projects like SyncPulse and PAK Video, or ask me to scroll to any section!";
     }
-    }
 
     // LOCAL COMMAND MATCHER
     // Returns { speech, actions: [fn, ...] } for multi-action support, or null.
@@ -1439,7 +1438,6 @@ class AvatarChatBot {
 
     // -- Website Control Actions ------------------------------------------------
     executeNavigation(target) {
-    executeNavigation(target) {
         if (!target) return;
         const t = target.toLowerCase().trim();
         if (t === 'home' || t === 'top' || t === 'hero') this.executeScroll('home');
@@ -1482,13 +1480,6 @@ class AvatarChatBot {
         }
     }
 
-        // Inside active Theme Iframe: ONLY allow explicit valid scroll targets!
-        const VALID_SCROLL_TARGETS = ['up', 'down', 'home', 'top', 'about', 'education', 'college', 'university', 'skill', 'skills', 'project', 'projects', 'contact', 'email', 'social', 'socials'];
-        const safeTarget = target.split(' ')[0];
-        if (!VALID_SCROLL_TARGETS.includes(target) && !VALID_SCROLL_TARGETS.includes(safeTarget)) {
-            // Reject non-scroll command targets (e.g. songs, avatars, messages) to prevent unwanted scrolling
-            return;
-        }
     executeChangeAvatar(target) {
         // Full avatar map: keyword aliases → VRM file path
         const avatarMap = {

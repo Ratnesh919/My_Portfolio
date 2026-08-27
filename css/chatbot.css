@@ -1,16 +1,18 @@
-﻿/* ══════════════════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════════════════
    RAYA CHATBOT & VRM COMPANION UI STYLES
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/* ── VRM Fullscreen Canvas ── */
+/* ── VRM Fullscreen Canvas (On top of every card) ── */
 #vrm-canvas {
     position: fixed;
     inset: 0;
     width: 100vw;
     height: 100vh;
     pointer-events: none;
-    z-index: 35;
+    z-index: 45 !important;
     touch-action: none;
+    opacity: 1 !important;
+    display: block !important;
 }
 
 /* ── Chatbot Panel (Floating AI Companion) ── */
@@ -18,14 +20,15 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    z-index: 50;
-    display: flex;
+    z-index: 50 !important;
+    display: flex !important;
     flex-direction: column;
     align-items: flex-end;
     gap: 12px;
     width: 390px;
     max-width: calc(100vw - 32px);
-    pointer-events: auto;
+    pointer-events: auto !important;
+    opacity: 1 !important;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 

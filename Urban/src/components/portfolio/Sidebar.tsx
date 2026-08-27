@@ -42,17 +42,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-full lg:w-72 lg:h-screen lg:fixed lg:left-0 lg:top-0 shrink-0 flex flex-col justify-between p-4 lg:p-6 bg-[#0c0816]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-purple-500/15 select-none z-30 overflow-y-auto scrollbar-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+    <aside className="w-full lg:w-72 lg:h-screen lg:fixed lg:left-0 lg:top-0 shrink-0 flex flex-col justify-start gap-5 p-4 lg:p-6 bg-[#0c0816]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-purple-500/15 select-none z-30 overflow-y-auto scrollbar-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
       {/* Top Brand / 3D Logo */}
-      <div className="flex items-center justify-between lg:justify-start lg:flex-col lg:items-start gap-4">
+      <div className="flex items-center justify-between lg:justify-start lg:flex-col lg:items-start gap-3">
         <div 
           onClick={() => onNavigate('home')}
           className="group cursor-pointer flex items-center gap-3 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-102"
         >
           {/* 3D Extruded Purple Logo Tile */}
-          <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-b from-[#7e22ce] via-[#6b21a8] to-[#3b0764] p-0.5 shadow-[0_10px_25px_rgba(147,51,234,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] transition-transform duration-300 group-hover:scale-105 group-active:scale-95 flex items-center justify-center">
+          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-b from-[#7e22ce] via-[#6b21a8] to-[#3b0764] p-0.5 shadow-[0_10px_25px_rgba(147,51,234,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] transition-transform duration-300 group-hover:scale-105 group-active:scale-95 flex items-center justify-center">
             <div className="w-full h-full rounded-[14px] bg-[#1a0f2e] flex items-center justify-center border border-purple-400/30">
-              <span className="font-black text-2xl bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(168,85,247,0.8)]">
+              <span className="font-black text-xl bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(168,85,247,0.8)]">
                 R
               </span>
             </div>
@@ -60,12 +60,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           
           <div>
             <h1 className="text-sm font-bold text-white tracking-wide">Ratnesh Singh</h1>
-            <p className="text-[11px] font-mono text-purple-400">ECE &bull; Full-Stack &bull; Hardware</p>
+            <p className="text-[10px] font-mono text-purple-400">ECE &bull; Full-Stack &bull; Hardware</p>
           </div>
         </div>
 
         {/* Change Avatar Button */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-1">
           <button
             onClick={onOpenAvatarStudio}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-900/60 to-purple-950/40 border border-purple-500/35 hover:border-purple-400 text-purple-200 text-xs font-mono transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 shadow-md"
@@ -77,8 +77,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Navigation Items (Ultra-Smooth Fluid Transitions & Serial Order) */}
-      <nav className="my-4 lg:my-6 flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
+      {/* Navigation Items (Moved up and neatly spaced) */}
+      <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`group relative flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-300 ease-out whitespace-nowrap ${
+              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ease-out whitespace-nowrap ${
                 isActive
                   ? 'bg-gradient-to-r from-purple-900/60 via-[#1e1338] to-purple-950/30 text-white border border-purple-500/40 shadow-[0_4px_18px_rgba(147,51,234,0.25)] font-semibold'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.05]'
@@ -102,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               />
               <Icon 
-                size={18} 
+                size={17} 
                 className={`transition-all duration-300 ${
                   isActive ? 'text-purple-300 drop-shadow-[0_0_8px_#a855f7] scale-105' : 'text-slate-400 group-hover:text-purple-300'
                 }`} 
@@ -113,11 +113,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </nav>
 
-      {/* Bottom Footer: Social Links */}
-      <div className="pt-4 border-t border-purple-500/10 flex flex-col gap-3">
-
-        {/* Social Icons */}
-        <div className="flex items-center justify-between px-1 text-slate-400 pt-1">
+      {/* Social Links directly connected below nav */}
+      <div className="pt-3 border-t border-purple-500/15 flex flex-col gap-2">
+        <div className="flex items-center justify-between px-1 text-slate-400">
           <a 
             href={PORTFOLIO_DATA.github} 
             target="_blank" 
@@ -125,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="hover:text-purple-300 hover:scale-115 transition-all duration-300 p-1"
             title="GitHub Profile"
           >
-            <Github size={17} />
+            <Github size={16} />
           </a>
           <a 
             href={PORTFOLIO_DATA.linkedin} 
@@ -134,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="hover:text-purple-300 hover:scale-115 transition-all duration-300 p-1"
             title="LinkedIn Profile"
           >
-            <Linkedin size={17} />
+            <Linkedin size={16} />
           </a>
           <a 
             href={(PORTFOLIO_DATA as any).instagram} 
@@ -143,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="hover:text-purple-300 hover:scale-115 transition-all duration-300 p-1"
             title="Instagram Profile"
           >
-            <Instagram size={17} />
+            <Instagram size={16} />
           </a>
           <a 
             href={(PORTFOLIO_DATA as any).facebook} 
@@ -152,14 +150,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="hover:text-purple-300 hover:scale-115 transition-all duration-300 p-1"
             title="Facebook Profile"
           >
-            <Facebook size={17} />
+            <Facebook size={16} />
           </a>
           <a 
-            href={`mailto:${PORTFOLIO_DATA.email}`}
+            href={`mailto:${PORTFOLIO_DATA.email}`} 
             className="hover:text-purple-300 hover:scale-115 transition-all duration-300 p-1"
-            title="Direct Email"
+            title="Send Email"
           >
-            <Mail size={17} />
+            <Mail size={16} />
           </a>
         </div>
       </div>

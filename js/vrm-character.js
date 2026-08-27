@@ -189,12 +189,12 @@ function getVisibleWidth() {
 function updateCharPos() {
     if (hasDragged || !vrm) return;
     const width = getVisibleWidth();
-    // Position on bottom-left, clear of 288px sidebar on desktop
+    // Position cleanly on the left side of the portfolio
     if (window.innerWidth >= 1024) {
-        let xTarget = -(width / 2) + 2.1;
+        let xTarget = -(width / 2) + 0.95;
         vrm.scene.position.x = xTarget;
     } else {
-        let xTarget = -(width / 2) + 0.8;
+        let xTarget = 0;
         vrm.scene.position.x = xTarget;
     }
 }
@@ -478,8 +478,12 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
     window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
     window.setVRMScale = (scale) => {
-        window.currentVRMScale = scale;
-        if (vrm) vrm.scene.scale.setScalar(scale);
+        if (!isFinite(scale) || scale <= 0) return;
+        const clamped = Math.max(0.3, Math.min(2.5, scale));
+        window.currentVRMScale = clamped;
+        if (vrm && vrm.scene) {
+            vrm.scene.scale.set(clamped, clamped, clamped);
+        }
     };
     window.setVRMVisibility = (visible) => {
         window.vrmEnabled = !!visible;
@@ -496,8 +500,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
     // Live brightness controls exposed to UI sliders
     window.setVRMBrightness = (val) => {
-        ambientLight.intensity = ambientLight.userData.baseIntensity * val;
-        dirLights.forEach(l => { l.intensity = l.userData.baseIntensity * val; });
+        if (!isFinite(val) || val <= 0) return;
+        ambientLight.intensity = (ambientLight.userData.baseIntensity || 1.7) * val;
+        dirLights.forEach(l => { l.intensity = (l.userData.baseIntensity || 1.0) * val; });
     };
 
     window.setVRMHairBrightness = (val) => {
@@ -609,33 +614,17 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     };
 
     // Global helper so chatbot can trigger the intro wave.
-    // ONE-SHOT: wave1 plays exactly once (during Raya's intro on page load).
-    // All subsequent calls are silently ignored — wave will never play again.
-    let waveHasPlayed = false;
     window.playWaveAnimation = () => {
-        // One-shot guard: only play wave once, ever
-        if (waveHasPlayed) return;
-
+        if (!vrm) return;
         const wave1Key = ANIM.wave1;
-
-        // Prevent restarting the wave if it's already playing
-        if (currentKey === wave1Key || currentKey === ANIM.wave2) return;
-
-        // Clear any stale auto-timer to prevent ghost playRandomAnim calls
         clearAutoTimer();
-
-        let wave1Action = actions[wave1Key];
-        currentKey = null;
         applyState('wave', 'happy', 0.85);
 
-        if (wave1Action) {
+        if (actions[wave1Key]) {
             playAnim(wave1Key, false, 0.35);
         } else if (actions[ANIM.wave2]) {
             playAnim(ANIM.wave2, false, 0.35);
         }
-
-        // Lock: never play wave again after this point
-        waveHasPlayed = true;
     };
 
     // Trigger intro: wait for bubble pop if master intro overlay or bubble screen is active
@@ -1495,7 +1484,10 @@ function addNorm(vrm, name, dx, dy, dz) {
 function lerp(a, b, t) { return a + (b-a) * Math.min(1,t); }
 
 // ─── AVATAR SWITCHER ──────────────────────────────────────────────────────────
+let activeSwitchReqId = 0;
 window.switchVRM = function(modelPath) {
+    if (!modelPath) return;
+    const thisReqId = ++activeSwitchReqId;
     const loadingEl = document.getElementById('vrm-loading');
     if (loadingEl) {
         loadingEl.style.display = 'flex';
@@ -1513,41 +1505,55 @@ window.switchVRM = function(modelPath) {
     let savedSitting = false;
     let savedHasDragged = false;
 
-    setTimeout(() => {
-        // 1. Tear down current model
-        if (vrm) {
-            savedPosition = vrm.scene.position.clone();
-            savedSitting = isSittingOnChatbox;
-            savedHasDragged = hasDragged;
-            
-            clearAutoTimer();
-            if (mixer) { mixer.stopAllAction(); mixer.uncacheRoot(vrm.scene); }
-            scene.remove(vrm.scene);
-            VRMUtils.deepDispose(vrm.scene);
-            vrm = null; mixer = null;
+    // 1. Instantly tear down current model and remove from scene
+    if (vrm && vrm.scene) {
+        savedPosition = vrm.scene.position.clone();
+        savedSitting = isSittingOnChatbox;
+        savedHasDragged = hasDragged;
+        
+        clearAutoTimer();
+        if (mixer) { mixer.stopAllAction(); mixer.uncacheRoot(vrm.scene); }
+        scene.remove(vrm.scene);
+        VRMUtils.deepDispose(vrm.scene);
+        vrm = null; 
+        mixer = null;
+    }
+
+    // Double-check: ensure NO other VRM models linger in the scene
+    const existingModels = scene.children.filter(c => c.userData?.vrm || c.isVRM || (c.type === 'Group' && c !== window.lookAtTargetObj));
+    existingModels.forEach(m => {
+        scene.remove(m);
+        try { VRMUtils.deepDispose(m); } catch(e){}
+    });
+
+    // Reset animation and state
+    Object.keys(clips).forEach(k => delete clips[k]);
+    Object.keys(actions).forEach(k => delete actions[k]);
+    currentAction = null; currentKey = '';
+    introComplete = false;
+    exprSmooth = 0; dragBlend = 0; hoverBlend = 0;
+    fingerPoseCurrent = { ...FINGER_POSES.idle };
+    fingerPoseTarget  = { ...FINGER_POSES.idle };
+
+    // 2. Load new model
+    const newLoader = new GLTFLoader();
+    newLoader.register(p => new VRMLoaderPlugin(p));
+    newLoader.load(window.getAvatarUrl ? window.getAvatarUrl(modelPath) : modelPath, async gltf => {
+        if (thisReqId !== activeSwitchReqId) {
+            // A newer switch request was triggered; discard this model
+            try { VRMUtils.deepDispose(gltf.scene); } catch(e){}
+            return;
         }
 
-        // Reset state
-        Object.keys(clips).forEach(k => delete clips[k]);
-        Object.keys(actions).forEach(k => delete actions[k]);
-        currentAction = null; currentKey = '';
-        introComplete = false; hasDragged = false;
-        exprSmooth = 0; dragBlend = 0; hoverBlend = 0;
-        sHX = 0; sHY = 0; sNX = 0; sNY = 0;
-        fingerPoseCurrent = { ...FINGER_POSES.idle };
-        fingerPoseTarget  = { ...FINGER_POSES.idle };
-
-        // 2. Load new model
-        const newLoader = new GLTFLoader();
-        newLoader.register(p => new VRMLoaderPlugin(p));
-        newLoader.load(window.getAvatarUrl ? window.getAvatarUrl(modelPath) : modelPath, async gltf => {
         vrm = gltf.userData.vrm;
         if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
         
         configureVRMPhysics(vrm, modelPath);
         applyModelVisuals(vrm, modelPath);
-        fixVRMHitbox(vrm);  // always expand hitboxes so drag works in any pose
-        vrm.scene.scale.setScalar(window.currentVRMScale || (isMobile ? 0.65 : 0.95));
+        fixVRMHitbox(vrm);
+
+        const currentScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
+        vrm.scene.scale.set(currentScale, currentScale, currentScale);
         
         if (savedPosition) {
             vrm.scene.position.copy(savedPosition);
@@ -1559,26 +1565,18 @@ window.switchVRM = function(modelPath) {
             hasDragged = false;
         }
         
-        // Base rotation initialized to facing camera (Math.PI) to match initial load
         vrm.scene.rotation.y = Math.PI;
 
         mixer = new THREE.AnimationMixer(vrm.scene);
         mixer.addEventListener('finished', () => { clearAutoTimer(); returnToIdle(); });
-        if (loadingEl) {
-            loadingEl.style.display = 'flex';
-            loadingEl.style.opacity = '1';
-            const pctEl = document.getElementById('vrm-loading-pct');
-            if (pctEl) pctEl.textContent = 'ANIMATIONS...';
-        }
+
         const extraToLoad = [];
         if (savedSitting && !isMobile) {
             extraToLoad.push(ANIM.sit2);
         }
         await loadEssentialAnimations(vrm, extraToLoad);
 
-        // Restore animation state after switch
         if (savedSitting && !isMobile) {
-            // Restore sitting state — re-enter sit2 at the saved Y position
             applyState('happyIdle', 'relaxed', 0.55);
             playAnim(ANIM.sit2, true, 0);
             isSittingOnChatbox = true;
@@ -1587,22 +1585,24 @@ window.switchVRM = function(modelPath) {
             playAnim(ANIM.idle, true, 0);
         }
 
-        // Force update and matrix world calculation before adding to scene
         mixer.update(0);
         vrm.scene.updateMatrixWorld(true);
         vrm.update(0);
 
-        // NOW add the model to the scene so it renders already in the correct pose
+        // Add the new model to the scene
         scene.add(vrm.scene);
 
-        // Trigger frame-counting delay to hide the loading overlay
         renderFramesAfterSwitch = 0;
-        introComplete = true;  // unlock drag immediately — no wave on switch
+        introComplete = true;
 
-        // Load background animations
+        if (loadingEl) {
+            loadingEl.style.opacity = '0';
+            setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+        }
+
         loadBackgroundAnimations(vrm);
     }, xhr => {
-        if (loadingEl) {
+        if (loadingEl && thisReqId === activeSwitchReqId) {
             loadingEl.style.display = 'flex';
             loadingEl.style.opacity = '1';
             const totalSize = AVATAR_SIZES[modelPath] || 31422968;
@@ -1614,11 +1614,11 @@ window.switchVRM = function(modelPath) {
         }
     }, err => {
         console.error('switchVRM failed:', err);
-        if (loadingEl) {
+        if (loadingEl && thisReqId === activeSwitchReqId) {
             const textEl = loadingEl.querySelector('.loading-text');
             if (textEl) textEl.textContent = 'Failed to load model.';
+            setTimeout(() => { loadingEl.style.display = 'none'; }, 2000);
         }
     });
-    }, 400); // Wait 400ms for UI blur effect to render
 };
 

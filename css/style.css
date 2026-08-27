@@ -287,13 +287,13 @@ body {
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 75 !important;
+    z-index: 45 !important;
     pointer-events: none;
-    display: block;
-    opacity: 0;
+    display: block !important;
+    opacity: 1 !important;
     transition: opacity 0.6s ease;
 }
-#vrm-canvas.active { opacity: 1; }
+#vrm-canvas.active { opacity: 1 !important; }
 
 #vrm-loading {
     position: fixed;
