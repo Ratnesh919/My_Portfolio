@@ -160,92 +160,80 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
   isTalking = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const vrmRef = useRef<VRM | null>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const idleActionRef = useRef<THREE.AnimationAction | null>(null);
   const waveActionRef = useRef<THREE.AnimationAction | null>(null);
   const clockRef = useRef(new THREE.Clock());
-  const [loading, setLoading] = useState(true);
   const mouseNorm = useRef({ x: 0, y: 0 });
 
-  // Drag state
-  const [position, setPosition] = useState({ x: 20, y: window.innerHeight - 440 });
-  const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, startPosX: 0, startPosY: 0 });
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    e.preventDefault();
-    const drag = dragRef.current;
-    drag.isDragging = true;
-    drag.startX = e.clientX;
-    drag.startY = e.clientY;
-    drag.startPosX = position.x;
-    drag.startPosY = position.y;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, [position]);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    const drag = dragRef.current;
-    if (!drag.isDragging) return;
-    const dx = e.clientX - drag.startX;
-    const dy = e.clientY - drag.startY;
-    setPosition({
-      x: Math.max(0, Math.min(window.innerWidth - 300, drag.startPosX + dx)),
-      y: Math.max(0, Math.min(window.innerHeight - 100, drag.startPosY + dy)),
-    });
-  }, []);
-
-  const handlePointerUp = useCallback(() => {
-    dragRef.current.isDragging = false;
-  }, []);
-
-  // Track cursor position for head tracking
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseNorm.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseNorm.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  // Load VRM Model & FBX Animations
+  // Full-body setup matching old multi-theme portfolio (js/vrm-character.js)
   useEffect(() => {
     if (!canvasRef.current) return;
-    setLoading(true);
     const canvas = canvasRef.current;
-    const width = 320;
-    const height = 400;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-    renderer.setClearColor(0x000000, 0);
-    renderer.setSize(width, height);
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 20.0);
-    camera.position.set(0.0, 1.25, 2.2);
-    camera.lookAt(0.0, 1.05, 0.0);
+    const camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 60.0);
+    camera.position.set(0, 0.9, 7.5);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
+    // Multi-Point Studio Lighting (from js/vrm-character.js)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xfff0f8, 2.2);
-    dirLight.position.set(1.0, 2.0, 1.5);
-    scene.add(dirLight);
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.8);
-    rimLight.position.set(-1.5, 1.5, -1.0);
-    scene.add(rimLight);
-    const fillLight = new THREE.DirectionalLight(0xa855f7, 1.2);
-    fillLight.position.set(0, -1.0, 2.0);
-    scene.add(fillLight);
+
+    const dirLights = [
+      [2, 4, 3, 0xfff0f8, 1.2],
+      [-3, 2, -2, 0x8899ff, 0.6],
+      [0, -1, 4, 0xffddcc, 0.3],
+      [5, 2, 0, 0xffffff, 0.5],
+      [-5, 2, 0, 0xffffff, 0.5],
+    ];
+    dirLights.forEach(([x, y, z, color, intensity]) => {
+      const light = new THREE.DirectionalLight(color as number, intensity as number);
+      light.position.set(x as number, y as number, z as number);
+      scene.add(light);
+    });
+
+    const getVisibleWidth = () => {
+      const vFOV = THREE.MathUtils.degToRad(camera.fov);
+      const height = 2 * Math.tan(vFOV / 2) * camera.position.z;
+      return height * camera.aspect;
+    };
+
+    const updateCharPos = () => {
+      if (!vrmRef.current) return;
+      const width = getVisibleWidth();
+      let xTarget = -(width / 2) + 0.85;
+      if (window.innerWidth <= 768) {
+        xTarget = 0; // Center on mobile screens
+      }
+      vrmRef.current.scene.position.x = xTarget;
+      vrmRef.current.scene.position.y = -0.97;
+    };
+
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      updateCharPos();
+    };
+    window.addEventListener('resize', handleResize);
 
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
-
     const fbxLoader = new FBXLoader();
+
     const candidateUrls = getAvatarCandidateUrls(currentAvatarFile);
     let isDisposed = false;
 
@@ -271,7 +259,6 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
       const mixer = new THREE.AnimationMixer(vrm.scene);
       mixerRef.current = mixer;
 
-      // Apply initial resting pose so she never stays in T-pose
       poseRestingArms(vrm);
 
       const animBase = '/Model Animation/';
@@ -319,11 +306,10 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     const tryLoadCandidate = (index: number) => {
       if (index >= candidateUrls.length) {
         console.error('[VRM] All candidate URLs failed to load avatar.');
-        setLoading(false);
         return;
       }
       const url = candidateUrls[index];
-      console.log(`[VRM] Trying candidate [${index + 1}/${candidateUrls.length}]: ${url}`);
+      console.log(`[VRM] Preloading avatar in background [${index + 1}/${candidateUrls.length}]: ${url}`);
 
       loader.load(
         url,
@@ -341,29 +327,39 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
             VRMUtils.rotateVRM0(vrm);
           }
 
-          vrm.scene.position.set(0, -0.35, 0);
-          vrm.scene.scale.setScalar(1.0);
+          // Enhance textures to ultra crisp 16x anisotropy and linear filtering
           vrm.scene.traverse((obj: any) => {
             obj.frustumCulled = false;
             if (obj.geometry) {
               if (!obj.geometry.boundingSphere) obj.geometry.computeBoundingSphere();
               if (obj.geometry.boundingSphere) obj.geometry.boundingSphere.radius = 5;
             }
+            if (obj.isMesh && obj.material) {
+              const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+              mats.forEach((mat: any) => {
+                mat.depthWrite = true;
+                if (mat.map) {
+                  mat.map.anisotropy = 16;
+                  mat.map.generateMipmaps = true;
+                  mat.map.minFilter = THREE.LinearMipmapLinearFilter;
+                  mat.map.magFilter = THREE.LinearFilter;
+                  mat.map.needsUpdate = true;
+                }
+              });
+            }
           });
 
-          scene.add(vrm.scene);
           vrmRef.current = vrm;
-          setLoading(false);
+          updateCharPos();
+          scene.add(vrm.scene);
           onAvatarLoaded?.();
 
-          // Load and bind FBX animations
           loadAnimations(vrm);
-
-          console.log(`[VRM] Model loaded successfully from candidate ${index + 1}!`);
+          console.log(`[VRM] Full-body high-fidelity avatar preloaded successfully!`);
         },
         (progress) => {
           if (progress.total > 0) {
-            console.log(`[VRM] Loading: ${Math.round((progress.loaded / progress.total) * 100)}%`);
+            console.log(`[VRM] Preloading background: ${Math.round((progress.loaded / progress.total) * 100)}%`);
           }
         },
         (error) => {
@@ -375,40 +371,83 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
 
     tryLoadCandidate(0);
 
+    // Track Cursor & Interactive Pointer Dragging in 3D
+    const raycaster = new THREE.Raycaster();
+    const mouse2d = new THREE.Vector2();
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const intersectionPoint = new THREE.Vector3();
+    const dragOffset = new THREE.Vector3();
+    let isDragging = false;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (!vrmRef.current) return;
+      mouse2d.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse2d.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse2d, camera);
+
+      const intersects = raycaster.intersectObject(vrmRef.current.scene, true);
+      if (intersects.length > 0) {
+        isDragging = true;
+        dragPlane.set(new THREE.Vector3(0, 0, 1), -vrmRef.current.scene.position.z);
+        if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
+          dragOffset.copy(intersectionPoint).sub(vrmRef.current.scene.position);
+        }
+      }
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      mouseNorm.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseNorm.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+
+      if (isDragging && vrmRef.current) {
+        mouse2d.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse2d.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse2d, camera);
+        if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
+          vrmRef.current.scene.position.copy(intersectionPoint.sub(dragOffset));
+        }
+      }
+    };
+
+    const onPointerUp = () => {
+      isDragging = false;
+    };
+
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const delta = clockRef.current.getDelta();
       const time = clockRef.current.getElapsedTime();
 
-      // Update animation mixer for real FBX motions
       if (mixerRef.current) {
         mixerRef.current.update(delta);
       }
 
       if (vrmRef.current) {
         vrmRef.current.update(delta);
+
+        // Update spring bone physics for hair, ribbons, and dress
+        if (vrmRef.current.springBoneManager) {
+          vrmRef.current.springBoneManager.update(delta);
+        }
+
         const humanoid = vrmRef.current.humanoid;
         if (humanoid) {
-          // Smooth cursor head-tracking
           const head = humanoid.getNormalizedBoneNode('head');
           const neck = humanoid.getNormalizedBoneNode('neck');
           if (head) {
-            head.rotation.y = THREE.MathUtils.lerp(head.rotation.y, mouseNorm.current.x * 0.3, 0.05);
-            head.rotation.x = THREE.MathUtils.lerp(head.rotation.x, -mouseNorm.current.y * 0.2, 0.05);
+            head.rotation.y = THREE.MathUtils.lerp(head.rotation.y, mouseNorm.current.x * 0.35, 0.05);
+            head.rotation.x = THREE.MathUtils.lerp(head.rotation.x, -mouseNorm.current.y * 0.25, 0.05);
           }
           if (neck) {
             neck.rotation.y = THREE.MathUtils.lerp(neck.rotation.y, mouseNorm.current.x * 0.15, 0.05);
           }
-
-          // Gentle breathing spine oscillation if no idle clip
-          if (!idleActionRef.current) {
-            const spine = humanoid.getNormalizedBoneNode('spine');
-            if (spine) spine.rotation.x = Math.sin(time * 1.5) * 0.02;
-          }
         }
 
-        // Facial Expressions: Blinking & Lip Sync
         const expressionManager = vrmRef.current.expressionManager;
         if (expressionManager) {
           expressionManager.setValue('blink', Math.sin(time * 0.8) > 0.96 ? 1 : 0);
@@ -429,33 +468,20 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     return () => {
       isDisposed = true;
       cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
       renderer.dispose();
     };
   }, [currentAvatarFile, onAvatarLoaded]);
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed pointer-events-auto select-none w-[280px] sm:w-[320px] h-[340px] sm:h-[400px] flex items-end justify-center drop-shadow-[0_20px_35px_rgba(0,0,0,0.9)] cursor-grab active:cursor-grabbing transition-none"
-      style={{ left: position.x, top: position.y, zIndex: 2147483647 }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-    >
-      <div className="relative w-full h-full bg-transparent flex items-end justify-center">
-        {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-purple-300 pointer-events-none">
-            <RefreshCw size={20} className="animate-spin text-[#ff416c]" />
-            <span className="text-[10px] font-mono bg-black/75 px-2.5 py-1 rounded-full backdrop-blur-sm">
-              Loading 3D Model...
-            </span>
-          </div>
-        )}
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full object-contain bg-transparent"
-        />
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      id="vrm-canvas"
+      className="fixed inset-0 pointer-events-auto w-screen h-screen z-[2147483645]"
+      style={{ touchAction: 'none' }}
+    />
   );
 };

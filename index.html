@@ -21,10 +21,58 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <script type="module" crossorigin src="/assets/index-C8MzVYUm.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Bby0bC07.css">
+    <!-- Three.js & VRM Importmap -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/",
+          "@pixiv/three-vrm": "https://unpkg.com/@pixiv/three-vrm@3.4.0/lib/three-vrm.module.js"
+        }
+      }
+    </script>
+
+    <style>
+      #vrm-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: auto;
+        z-index: 2147483645;
+        touch-action: none;
+      }
+    </style>
+    
+    <script type="module" crossorigin src="/assets/index-D30x0EFK.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-gXORGlDN.css">
   </head>
   <body class="bg-[#07050d] text-slate-100 selection:bg-purple-600 selection:text-white m-0 p-0 overflow-x-hidden">
     <div id="root"></div>
+
+    <!-- ═══ 3D VRM Full-Body Canvas & Vanilla Scripts ═══ -->
+    <canvas id="vrm-canvas"></canvas>
+
+    <script>
+      window.getAvatarUrl = function(localPath) {
+        if (!localPath) return '';
+        if (localPath.startsWith('http://') || localPath.startsWith('https://')) return localPath;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:') {
+          return localPath;
+        }
+        return `/api/avatar-proxy?file=${encodeURIComponent(localPath)}`;
+      };
+
+      function activateAvatarAndChatbot() {
+        const canvas = document.getElementById('vrm-canvas');
+        if (canvas) canvas.classList.add('active');
+        const panel = document.getElementById('chatbot-panel');
+        if (panel) panel.classList.add('active');
+        if (window.chatBot) window.chatBot._userHasGestured = true;
+      }
+    </script>
+    <script src="./js/vrm-config.js"></script>
+    <script type="module" src="./js/vrm-character.js"></script>
+    <script src="./js/chatbot.js"></script>
   </body>
 </html>

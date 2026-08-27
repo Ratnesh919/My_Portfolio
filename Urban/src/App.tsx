@@ -235,22 +235,6 @@ export const App: React.FC = () => {
         </footer>
       </div>
 
-      {/* ═══ 3D VRM Resonator Character (Always on Top z-[2147483647]) ═══ */}
-      {introDone && (
-        <VRMCharacterEngine
-          currentAvatarFile={currentAvatarFile}
-        />
-      )}
-
-      {/* ═══ Floating Interactive Chatbot Bar (Appears after Bubble Pop) ═══ */}
-      {introDone && (
-        <ChatbotBar
-          onSendMessage={handleSendMessageFromBar}
-          onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
-          rayaSpeechText={rayaBubbleText}
-        />
-      )}
-
       {/* Back To Top Floating Action */}
       {showBackToTop && (
         <button

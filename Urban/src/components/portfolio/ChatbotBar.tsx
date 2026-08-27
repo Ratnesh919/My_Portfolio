@@ -91,23 +91,23 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
 
   const handleCommandClick = (cmd: any) => {
     if (cmd.actionType === "avatar_studio") {
-      onOpenAvatarStudio();
+      onSendMessage("Change Raya's 3D Avatar");
     } else if (cmd.actionType === "leave_msg") {
       setInput("Hi Ratnesh, ");
     } else if (cmd.actionType === "scroll_down") {
-      window.scrollBy({ top: 600, behavior: 'smooth' });
+      onSendMessage("Scroll down the page");
     } else if (cmd.actionType === "scroll_projects") {
       onSendMessage("Take me to the project section");
     } else if (cmd.actionType === "ask_skills") {
       onSendMessage("Tell me about Ratnesh's skills");
     } else if (cmd.actionType === "ask_projects") {
-      onSendMessage("Tell me about your projects");
+      onSendMessage("Tell me about Ratnesh's featured engineering projects");
     } else if (cmd.actionType === "ask_pak") {
-      onSendMessage("Tell me about PAK Video Converter");
+      onSendMessage("Tell me about PAK Video Converter for Android");
     } else if (cmd.actionType === "play_music") {
-      onSendMessage("Play a relaxing lofi song for me");
+      onSendMessage("Play a relaxing lofi song for me on YouTube");
     } else {
-      onSendMessage(cmd.label.replace(/"/g, ''));
+      onSendMessage(cmd.label.replace(/^[^\w\s]+/, '').trim());
     }
     setShowCommandsMenu(false);
   };

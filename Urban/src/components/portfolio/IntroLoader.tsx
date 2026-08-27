@@ -137,6 +137,12 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           setTimeout(() => {
             setPhase('done');
             onComplete();
+            if ((window as any).activateAvatarAndChatbot) {
+              (window as any).activateAvatarAndChatbot();
+            }
+            if ((window as any).chatBot) {
+              (window as any).chatBot._userHasGestured = true;
+            }
           }, 400);
         }, 220);
       });
