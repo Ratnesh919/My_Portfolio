@@ -26,7 +26,6 @@ export const App: React.FC = () => {
   const [selectedCert, setSelectedCert] = useState<CertificateItem | null>(null);
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
   const [pendingChatMessage, setPendingChatMessage] = useState<string | null>(null);
-  const [showWelcomeBanner, setShowWelcomeBanner] = useState<boolean>(true);
   
   // Track whether bubble intro has been completed
   const [introDone, setIntroDone] = useState<boolean>(() => {
@@ -153,45 +152,6 @@ export const App: React.FC = () => {
       {/* ═══ Right Scrolling Content Container (Offset by lg:ml-72) ═══ */}
       <div className="lg:ml-72 flex-1 w-full min-h-screen relative z-10 flex flex-col justify-between overflow-y-visible">
         <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 space-y-12">
-          {/* Welcome Intro Toast Banner */}
-          {showWelcomeBanner && (
-            <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-purple-950/70 via-[#180e2b] to-slate-900/80 border border-purple-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-900/60 flex items-center justify-center border border-purple-400/30 shrink-0">
-                  <Bot size={18} className="text-purple-300 animate-pulse" />
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                    <span>Welcome to Ratnesh's Engineering Portfolio!</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                      Raya Active
-                    </span>
-                  </div>
-                  <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
-                    Explore real-time Web Audio DSP (±5ms), native Android MediaCodec video transcoders, and 14 custom 3D avatars.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => setIsAvatarStudioOpen(true)}
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-900/50 hover:bg-purple-800/60 text-purple-200 text-xs font-mono border border-purple-500/30 transition-all"
-                >
-                  <Layers size={13} />
-                  <span>Avatar Studio</span>
-                </button>
-                <button
-                  onClick={() => setShowWelcomeBanner(false)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05]"
-                  title="Dismiss"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* 1. Hero Section */}
           <HeroSection
             onNavigate={handleNavigate}

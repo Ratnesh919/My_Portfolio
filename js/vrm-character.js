@@ -8,10 +8,10 @@
  *   4. Click character → immediately play next random animation
  */
 
-import * as THREE from 'https://unpkg.com/three@0.163.0/build/three.module.js';
-import { GLTFLoader } from 'https://unpkg.com/three@0.163.0/examples/jsm/loaders/GLTFLoader.js';
-import { FBXLoader }  from 'https://unpkg.com/three@0.163.0/examples/jsm/loaders/FBXLoader.js';
-import { VRMLoaderPlugin, VRMUtils } from 'https://unpkg.com/@pixiv/three-vrm@3.4.0/lib/three-vrm.module.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader }  from 'three/addons/loaders/FBXLoader.js';
+import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 
 // ─── DEVICE DETECTION ────────────────────────────────────────────────────────
 const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
@@ -189,10 +189,14 @@ function getVisibleWidth() {
 function updateCharPos() {
     if (hasDragged || !vrm) return;
     const width = getVisibleWidth();
-    // Position on far left side (where the avatar button used to be)
-    let xTarget = -(width / 2) + 0.7;
-    if (xTarget > 0) xTarget = 0; // safe fallback
-    vrm.scene.position.x = xTarget;
+    // Position on bottom-left, clear of 288px sidebar on desktop
+    if (window.innerWidth >= 1024) {
+        let xTarget = -(width / 2) + 2.1;
+        vrm.scene.position.x = xTarget;
+    } else {
+        let xTarget = -(width / 2) + 0.8;
+        vrm.scene.position.x = xTarget;
+    }
 }
 
 window.addEventListener('resize', () => {
@@ -486,10 +490,8 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
             canvas.style.display = visible ? 'block' : 'none';
         }
     };
-    // Respect saved avatar visibility preference on load
-    if (localStorage.getItem('avatarEnabled') === 'false') {
-        window.setVRMVisibility(false);
-    }
+    // Always make avatar visible by default on load
+    window.setVRMVisibility(true);
 
 
     // Live brightness controls exposed to UI sliders
