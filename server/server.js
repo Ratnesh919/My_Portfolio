@@ -206,13 +206,13 @@ async function callGroqWithRetry(payload) {
     }
 
     // List of active Groq models optimized for ultra-low latency (sub-second response speed)
-    const primaryModel = payload.model || 'groq/compound-mini';
+    const primaryModel = payload.model || 'llama-3.3-70b-versatile';
     const modelsToTry = [
         primaryModel,
-        'groq/compound-mini',
-        'openai/gpt-oss-20b',
-        'groq/compound',
-        'openai/gpt-oss-120b'
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'mixtral-8x7b-32768',
+        'gemma2-9b-it'
     ];
 
     let lastError = null;
@@ -654,12 +654,12 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
 
-        // Call the LLM through the Circuit Breaker (low-latency mini model)
+        // Call the LLM through the Circuit Breaker (low-latency versatile model)
         const response = await groqBreaker.fire({
-            model: 'groq/compound-mini',
+            model: 'llama-3.3-70b-versatile',
             messages: enrichedMessages,
             temperature: 0.7,
-            max_tokens: 120
+            max_tokens: 140
         });
 
         let assistantReply = response.data.choices[0]?.message?.content || '';
@@ -719,7 +719,7 @@ app.post('/api/end-session', async (req, res) => {
 
         // Ask Raya to summarize what she learned this session
         const summaryRes = await groqBreaker.fire({
-            model: 'groq/compound-mini',
+            model: 'llama-3.1-8b-instant',
             messages: [
                 {
                     role: 'system',

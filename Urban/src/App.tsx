@@ -130,7 +130,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white transition-opacity duration-700 ${introDone ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+    <div className="min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white">
       {/* ═══ Phase 1 & 2 Intro Loader & Soap Bubble Screen ═══ */}
       <IntroLoader onComplete={handleIntroComplete} />
 
