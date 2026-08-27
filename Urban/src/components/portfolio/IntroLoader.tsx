@@ -140,6 +140,9 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
             if ((window as any).activateAvatarAndChatbot) {
               (window as any).activateAvatarAndChatbot();
             }
+            if ((window as any).onBubblePopped) {
+              (window as any).onBubblePopped();
+            }
             if ((window as any).chatBot) {
               (window as any).chatBot._userHasGestured = true;
             }
@@ -161,7 +164,8 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
   return (
     <div
       id="master-intro-overlay"
-      className={`fixed inset-0 z-[9999999] bg-[#07050d] flex items-center justify-center transition-opacity duration-700 select-none ${
+      style={{ zIndex: 2147483647 }}
+      className={`fixed inset-0 bg-[#07050d] flex items-center justify-center transition-opacity duration-700 select-none ${
         isBubbleHidden ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >

@@ -38,7 +38,7 @@ export const AboutSection: React.FC = () => {
               I am a final-year <span className="text-purple-300 font-semibold">Electronics and Communication Engineering</span> student at MAKAUT (Swami Vivekananda Institute of Science & Technology), graduating in 2026. 
             </p>
             <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-4">
-              My engineering focus lies at the intersection of <span className="text-purple-300 font-semibold">Real-Time Web Systems</span>, <span className="text-purple-300 font-semibold">Native Android Media Pipelines</span>, <span className="text-purple-300 font-semibold">Autonomous AI Workflows</span>, and <span className="text-purple-300 font-semibold">RF Antenna Simulation</span>.
+              My engineering focus lies at the intersection of <span className="text-purple-300 font-semibold">Real-Time Web Systems</span>, <span className="text-purple-300 font-semibold">Native Android Media Pipelines</span>, <span className="text-purple-300 font-semibold">Automated Workflow Pipelines</span>, and <span className="text-purple-300 font-semibold">RF Antenna Simulation</span>.
             </p>
 
             {/* Quick Highlights Pills */}

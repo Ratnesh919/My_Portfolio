@@ -44,8 +44,8 @@
       }
     </style>
     
-    <script type="module" crossorigin src="/assets/index-D30x0EFK.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-gXORGlDN.css">
+    <script type="module" crossorigin src="/assets/index-BUALI93P.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BJdBwdDK.css">
   </head>
   <body class="bg-[#07050d] text-slate-100 selection:bg-purple-600 selection:text-white m-0 p-0 overflow-x-hidden">
     <div id="root"></div>
@@ -65,10 +65,29 @@
 
       function activateAvatarAndChatbot() {
         const canvas = document.getElementById('vrm-canvas');
-        if (canvas) canvas.classList.add('active');
+        if (canvas) {
+          canvas.classList.add('active');
+          canvas.style.display = 'block';
+          canvas.style.opacity = '1';
+        }
         const panel = document.getElementById('chatbot-panel');
-        if (panel) panel.classList.add('active');
+        if (panel) {
+          panel.classList.add('active');
+          panel.style.opacity = '1';
+          panel.style.pointerEvents = 'auto';
+        }
+        if (window.setVRMVisibility) window.setVRMVisibility(true);
         if (window.chatBot) window.chatBot._userHasGestured = true;
+        if (typeof window.onBubblePopped === 'function') {
+          window.onBubblePopped();
+        } else {
+          if (typeof window.playWaveAnimation === 'function') {
+            window.playWaveAnimation();
+          }
+          if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+            window.chatBot.introduceHerself();
+          }
+        }
       }
     </script>
     <script src="./js/vrm-config.js"></script>

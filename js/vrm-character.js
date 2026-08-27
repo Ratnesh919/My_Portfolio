@@ -529,6 +529,14 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         });
     };
 
+    function poseRestingArms(vrmInstance) {
+        if (!vrmInstance?.humanoid) return;
+        const lArm = vrmInstance.humanoid.getNormalizedBoneNode('leftUpperArm');
+        const rArm = vrmInstance.humanoid.getNormalizedBoneNode('rightUpperArm');
+        if (lArm) { lArm.rotation.z = 1.25; lArm.rotation.x = 0.1; }
+        if (rArm) { rArm.rotation.z = -1.25; rArm.rotation.x = 0.1; }
+    }
+
     vrm.scene.scale.setScalar(window.currentVRMScale);
     
     // Plant feet exactly at the bottom edge of the visible screen
@@ -550,20 +558,18 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         if (textEl) textEl.textContent = 'Decrypting Animations...';
     }
 
-    await loadEssentialAnimations(vrm);
-
-    // Step 1: Start idle immediately
-    applyState('idle', 'happy', 0.6);
-    playAnim(ANIM.idle, true, 0);
-
-    // Force an update with 0 delta to pose bones immediately
-    mixer.update(0);
+    poseRestingArms(vrm);
     vrm.scene.updateMatrixWorld(true);
     vrm.update(0);
-
-    // Add to scene only after mixer has posed the character
     scene.add(vrm.scene);
-    
+
+    loadEssentialAnimations(vrm).then(() => {
+        // Step 1: Start idle immediately
+        applyState('idle', 'happy', 0.6);
+        playAnim(ANIM.idle, true, 0.3);
+        if (mixer) mixer.update(0);
+    });
+
     if (siteLoaderEl) { 
         siteLoaderEl.classList.add('hidden');
         setTimeout(() => siteLoaderEl?.remove(), 800); 
@@ -602,24 +608,24 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         waveHasPlayed = true;
     };
 
-    // Trigger intro: wait for bubble pop if screen is active, otherwise trigger after delay
-    const bubbleScreen = document.getElementById('bubble-screen');
-    if (bubbleScreen && !sessionStorage.getItem('raya_bubble_done')) {
-        window.onBubblePopped = () => {
-            if (hasDragged || isDragging) return;
-            window.playWaveAnimation();
-            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-                window.chatBot.introduceHerself();
-            }
-        };
-    } else {
+    // Trigger intro: wait for bubble pop if master intro overlay or bubble screen is active
+    window.onBubblePopped = () => {
+        if (hasDragged || isDragging) return;
+        window.playWaveAnimation();
+        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+            window.chatBot.introduceHerself();
+        }
+    };
+
+    const hasIntroOverlay = document.getElementById('master-intro-overlay') || document.getElementById('bubble-screen');
+    if (!hasIntroOverlay && sessionStorage.getItem('raya_bubble_done')) {
         setTimeout(async () => {
             if (hasDragged || isDragging) return;
             window.playWaveAnimation();
             if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
                 window.chatBot.introduceHerself();
             }
-        }, 1500);
+        }, 1200);
     }
 
 

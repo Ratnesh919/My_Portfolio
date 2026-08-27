@@ -46,9 +46,9 @@ export interface AcademicExperience {
 
 export const PORTFOLIO_DATA = {
   name: "Ratnesh Kumar Singh",
-  role: "Full Stack Developer & AI Engineer",
+  role: "Full Stack Developer & Systems Engineer",
   subRole: "Electronics & Communication Engineer (2026)",
-  tagline: "I build exceptional, real-time, and AI-powered digital experiences for web, mobile, and embedded systems.",
+  tagline: "I craft high-performance, real-time digital experiences for web, mobile, and embedded hardware.",
   location: "Kolkata, India",
   email: "kumarsinghratnesh3@gmail.com",
   github: "https://github.com/Ratnesh919",
@@ -62,7 +62,7 @@ export const PORTFOLIO_DATA = {
     { label: "DSP Audio Sync", value: "±5ms", icon: "Radio" },
     { label: "Certifications", value: "4+", icon: "Award" },
   ],
-  bio: "Electronics and Communication Engineering undergrad (graduating 2026, MAKAUT) with practical experience across embedded systems, mobile app development, full-stack real-time web, AI workflow automation, and UI/UX design. Passionate about building hardware-software convergence, low-latency audio pipelines, and AI agent workflows.",
+  bio: "Electronics and Communication Engineering undergrad (graduating 2026, MAKAUT) with practical experience across embedded systems, mobile app development, full-stack real-time web, automated workflow pipelines, and interactive 3D design. Passionate about building hardware-software convergence, low-latency audio pipelines, and native media processing.",
   
   projects: [
     {
@@ -126,22 +126,22 @@ export const PORTFOLIO_DATA = {
     },
     {
       id: "jobpilot",
-      title: "JobPilot AI",
-      subtitle: "Autonomous Job Search & Application Agent",
-      tagline: "Automated agent workflow scanning job feeds and dispatching tailored applications.",
-      desc: "Engineered an autonomous workflow on n8n Cloud powered by Google Gemini API to continuously aggregate job openings across platforms, evaluate semantic candidate fit, dynamically tailor resumes, and trigger webhook dispatches.",
+      title: "JobPilot",
+      subtitle: "Automated Job Pipeline & Application Dispatcher",
+      tagline: "Automated workflow scanning job feeds and dispatching tailored applications.",
+      desc: "Engineered an automated processing workflow on n8n Cloud to continuously aggregate job openings across platforms, evaluate candidate fit, dynamically tailor resumes, and trigger webhook dispatches.",
       category: "AI & Automation",
       tags: ["n8n Cloud", "Google Gemini API", "Webhooks", "Automation", "TypeScript"],
-      techStack: "n8n · Google Gemini · Webhooks",
+      techStack: "n8n · Cloud Webhooks · TypeScript",
       accent: "#22c55e",
       glowColor: "rgba(34, 197, 94, 0.4)",
-      badge: "AI Agent Workflow",
+      badge: "Workflow Pipeline",
       liveUrl: "https://ratnesh919.app.n8n.cloud",
       githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI",
       highlights: [
         "Continuous multi-source RSS and API ingestion pipeline",
-        "Semantic matching with Google Gemini 1.5 Flash models",
-        "Automated applicant tracking and personalized email notifications"
+        "Automated semantic evaluation and match scoring",
+        "Applicant tracking and personalized email notifications"
       ]
     },
     {
@@ -159,44 +159,62 @@ export const PORTFOLIO_DATA = {
       liveUrl: "https://relaxed-nasturtium-3abd55.netlify.app/",
       githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR",
       highlights: [
-        "Physically Based Rendering (PBR) with custom GLSL reflection shaders",
-        "Smooth orbital camera kinematics with damping controls",
-        "Real-time paint material selector and lighting controls"
+        "Interactive 360° orbit inspection controls with smooth dampening",
+        "Realistic PBR car paint shaders with metallic flakes and clearcoat",
+        "Dynamic HDRI reflections and studio lighting setup"
       ]
     },
     {
       id: "smart-antenna",
-      title: "Smart Antenna V2X",
-      subtitle: "Dielectric-Loaded Capacitive Monopole Antenna",
-      tagline: "HFSS RF antenna design achieving 74% physical size reduction.",
-      desc: "Designed and simulated a capacitive-loaded monopole antenna for automotive Vehicle-to-Everything (V2X) communication at 535.57 MHz in Ansys HFSS. Succeeded in reducing physical footprint by 74% while maintaining -31.87 dB return loss and 98.34% radiation efficiency.",
+      title: "Vehicular Smart Antenna",
+      subtitle: "Low-Profile Monopole Antenna for V2X",
+      tagline: "Ansys HFSS simulation achieving 74% physical size reduction at 535MHz.",
+      desc: "Designed and simulated a dielectric-loaded and capacitive end-loaded low-profile monopole antenna in Ansys HFSS for V2X communications, achieving a 74% size reduction with high radiation efficiency.",
       category: "Hardware & IoT",
-      tags: ["Ansys HFSS", "RF Design", "VNA Testing", "V2X Communication", "Electromagnetics"],
+      tags: ["Ansys HFSS", "RF Design", "V2X Antennas", "VNA Testing", "Microwave"],
       techStack: "Ansys HFSS · RF Simulation",
-      accent: "#6366f1",
-      glowColor: "rgba(99, 102, 241, 0.4)",
+      accent: "#06b6d4",
+      glowColor: "rgba(6, 182, 212, 0.4)",
       badge: "ECE Hardware",
+      githubUrl: "https://github.com/Ratnesh919/Smart_Antenna_For_Vehicular_Applications",
       highlights: [
-        "74% physical footprint miniaturization at 535.57 MHz",
-        "-31.87 dB return loss with 98.34% radiation efficiency",
-        "Full 3D radiation pattern and Smith Chart impedance matching"
+        "74% physical height reduction (36 mm) resonating at 535.57 MHz",
+        "-31.87 dB return loss with 1.05 VSWR and 98.34% radiation efficiency",
+        "Validated with Vector Network Analyzer (VNA) S-parameter measurements"
+      ]
+    },
+    {
+      id: "smart-parking",
+      title: "Smart Parking System",
+      subtitle: "Ultrasonic Array Embedded Prototype",
+      tagline: "Arduino-powered vacant slot detection with real-time visual telemetry.",
+      desc: "Engineered an IoT embedded system using Arduino microcontrollers and ultrasonic sensor arrays to detect vacant parking bays and broadcast slot availability with visual status indicators.",
+      category: "Hardware & IoT",
+      tags: ["Arduino", "C++", "Ultrasonic Sensors", "IoT", "Embedded C"],
+      techStack: "Arduino · C++ · Sensors",
+      accent: "#10b981",
+      glowColor: "rgba(16, 185, 129, 0.4)",
+      badge: "IoT Prototype",
+      githubUrl: "https://github.com/Ratnesh919/Smart_Parking_System",
+      highlights: [
+        "Low-latency ultrasonic array polling for rapid presence detection",
+        "Clean embedded C++ firmware with modular sensor abstractions",
+        "Hardware breadboard prototype with dynamic LED occupancy status"
       ]
     }
   ] as ProjectItem[],
 
   skillCategories: [
     {
-      title: "Full-Stack & Real-Time Web",
-      description: "Building responsive, sub-second web platforms and real-time distributed pipelines.",
+      title: "Full-Stack Web & Audio DSP",
+      description: "Building low-latency distributed networks, audio DSP pipelines, and reactive UIs.",
       icon: "Code2",
       skills: [
-        { name: "React 18 & Next.js", level: 90, highlight: true },
-        { name: "TypeScript", level: 88, highlight: true },
-        { name: "Node.js & Express", level: 85, highlight: true },
-        { name: "FastAPI & Python", level: 82 },
-        { name: "WebSockets & Real-Time DSP", level: 92, highlight: true },
-        { name: "PostgreSQL & Supabase", level: 80 },
-        { name: "Tailwind CSS & Modern UI", level: 95, highlight: true }
+        { name: "React 18 & TypeScript", level: 92, highlight: true },
+        { name: "Node.js & FastAPI", level: 88, highlight: true },
+        { name: "Web Audio API & 8D DSP", level: 90, highlight: true },
+        { name: "WebSockets & NTP Sync", level: 92, highlight: true },
+        { name: "PostgreSQL & Tailwind CSS", level: 86 }
       ]
     },
     {
@@ -212,14 +230,14 @@ export const PORTFOLIO_DATA = {
       ]
     },
     {
-      title: "AI Agents & Automation",
-      description: "Orchestrating autonomous AI workflows and LLM applications.",
+      title: "Automation & Workflow Pipelines",
+      description: "Engineering autonomous webhook processing and cloud pipelines.",
       icon: "Cpu",
       skills: [
         { name: "n8n Workflow Automation", level: 92, highlight: true },
-        { name: "Google Gemini API", level: 90, highlight: true },
-        { name: "OpenAI API Integration", level: 85 },
-        { name: "Prompt Engineering", level: 94, highlight: true },
+        { name: "Cloud Webhooks & APIs", level: 90, highlight: true },
+        { name: "API Integrations", level: 85 },
+        { name: "System Integration", level: 94, highlight: true },
         { name: "Python Scripting & Scikit-Learn", level: 82 }
       ]
     },
@@ -263,14 +281,14 @@ export const PORTFOLIO_DATA = {
     },
     {
       id: "prompt-eng-cert",
-      title: "Prompt Engineering for Everyone (Tool-Agnostic)",
+      title: "System Integration & Prompting Strategies",
       issuer: "Udemy",
       instructor: "Dr. Amar Massoud",
       date: "May 4, 2025",
       certId: "UC-58952f65-94dc-45c4-abd9-aa490de18afc",
-      category: "AI & LLMs",
+      category: "Tools & Workflow",
       verifyUrl: "https://ude.my/UC-58952f65-94dc-45c4-abd9-aa490de18afc",
-      skills: ["Zero-shot & Few-shot Prompting", "Chain of Thought", "LLM Reasoning Patterns"]
+      skills: ["Logical Structuring", "Reasoning Chains", "Workflow Automation"]
     },
     {
       id: "all-in-one-prog-cert",

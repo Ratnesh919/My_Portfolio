@@ -64,7 +64,7 @@ export const ContactSection: React.FC = () => {
               <span>Contact Coordinates</span>
             </h3>
             <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-              Available for full-time engineering opportunities, real-time web consulting, Android MediaCodec projects, and AI automation workflows.
+              Available for full-time engineering opportunities, real-time web consulting, Android MediaCodec projects, and workflow automation.
             </p>
 
             {/* Email Copy Card */}

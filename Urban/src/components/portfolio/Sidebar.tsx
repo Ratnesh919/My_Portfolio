@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           
           <div>
             <h1 className="text-sm font-bold text-white tracking-wide">Ratnesh Singh</h1>
-            <p className="text-[11px] font-mono text-purple-400">ECE &bull; Full-Stack &bull; AI</p>
+            <p className="text-[11px] font-mono text-purple-400">ECE &bull; Full-Stack &bull; Hardware</p>
           </div>
         </div>
 
