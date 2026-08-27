@@ -10,29 +10,40 @@ interface VRMCharacterEngineProps {
   isTalking?: boolean;
 }
 
-// Maps local VRM paths to the GitHub Releases CDN filenames
-function getAvatarUrl(localPath: string): string {
-  if (localPath.startsWith('http')) return localPath;
+// Maps local VRM paths to candidate fetch URLs (Avatar Proxy -> Direct GitHub Release CDN -> Local path)
+function getAvatarCandidateUrls(localPath: string): string[] {
+  if (localPath.startsWith('http')) return [localPath];
   const RELEASE_BASE = 'https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/';
   const FILE_MAP: Record<string, string> = {
     'changli(fixed).vrm': 'changli.fixed.vrm',
     'Kid changli.vrm': 'Kid.changli.vrm',
-    'camellya.vrm': 'camellya.vrm',
-    'carlotta.vrm': 'carlotta.vrm',
+    'CamellyaV1.vrm': 'CamellyaV1.vrm',
+    'camellya.vrm': 'CamellyaV1.vrm',
+    'CarlottaV1.vrm': 'CarlottaV1.vrm',
+    'carlotta.vrm': 'CarlottaV1.vrm',
     'chixia.vrm': 'chixia.vrm',
     'jinshi.vrm': 'jinshi.vrm',
-    'pinkshi.vrm': 'pinkshi.vrm',
-    'roccia.vrm': 'roccia.vrm',
+    'PinkshiV1.vrm': 'PinkshiV1.vrm',
+    'pinkshi.vrm': 'PinkshiV1.vrm',
+    'RocciaV3.vrm': 'RocciaV3.vrm',
+    'roccia.vrm': 'RocciaV3.vrm',
     'rover.vrm': 'rover.vrm',
-    'sanhua.vrm': 'sanhua.vrm',
-    'shorekeeper.vrm': 'shorekeeper.vrm',
+    'SanhuaV2.vrm': 'SanhuaV2.vrm',
+    'sanhua.vrm': 'SanhuaV2.vrm',
+    'ShorekeeperV3.vrm': 'ShorekeeperV3.vrm',
+    'shorekeeper.vrm': 'ShorekeeperV3.vrm',
     'verina.vrm': 'verina.vrm',
     'yangyang.vrm': 'yangyang.vrm',
     'yinlin.vrm': 'yinlin.vrm',
   };
-  let filename = localPath.substring(localPath.lastIndexOf('/') + 1);
+  const filename = localPath.substring(localPath.lastIndexOf('/') + 1);
   const mapped = FILE_MAP[filename] || filename;
-  return RELEASE_BASE + mapped;
+
+  return [
+    `/api/avatar-proxy?file=${encodeURIComponent(filename)}`,
+    `${RELEASE_BASE}${mapped}`,
+    localPath.startsWith('.') || localPath.startsWith('/') ? localPath : `./Wuwa/${filename}`
+  ];
 }
 
 export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
@@ -109,17 +120,27 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
 
-    const primaryUrl = getAvatarUrl(currentAvatarFile);
+    const candidateUrls = getAvatarCandidateUrls(currentAvatarFile);
     let isDisposed = false;
 
-    const loadModel = (url: string, isFallback = false) => {
-      console.log(`[VRM] Loading from: ${url}`);
+    const tryLoadCandidate = (index: number) => {
+      if (index >= candidateUrls.length) {
+        console.error('[VRM] All candidate URLs failed to load avatar.');
+        setLoading(false);
+        return;
+      }
+      const url = candidateUrls[index];
+      console.log(`[VRM] Trying candidate [${index + 1}/${candidateUrls.length}]: ${url}`);
+
       loader.load(
         url,
         (gltf) => {
           if (isDisposed) return;
           const vrm = gltf.userData.vrm as VRM;
-          if (!vrm) { setLoading(false); return; }
+          if (!vrm) {
+            tryLoadCandidate(index + 1);
+            return;
+          }
 
           VRMUtils.removeUnnecessaryVertices(gltf.scene);
           VRMUtils.removeUnnecessaryJoints(gltf.scene);
@@ -140,7 +161,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
           setLoading(false);
           onAvatarLoaded?.();
           triggerWave();
-          console.log('[VRM] Model loaded successfully!');
+          console.log(`[VRM] Model loaded successfully from candidate ${index + 1}!`);
         },
         (progress) => {
           if (progress.total > 0) {
@@ -148,19 +169,13 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
           }
         },
         (error) => {
-          console.warn(`[VRM] Failed to load from ${url}:`, error);
-          if (!isFallback) {
-            console.log('[VRM] Trying local fallback path...');
-            loadModel(currentAvatarFile, true);
-          } else {
-            console.error('[VRM] All load attempts failed.');
-            setLoading(false);
-          }
+          console.warn(`[VRM] Candidate ${index + 1} (${url}) failed:`, error);
+          tryLoadCandidate(index + 1);
         }
       );
     };
 
-    loadModel(primaryUrl);
+    tryLoadCandidate(0);
 
     (window as any).playWaveAnimation = () => triggerWave();
 
