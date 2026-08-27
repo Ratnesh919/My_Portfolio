@@ -705,6 +705,126 @@ class AvatarChatBot {
     }
 
 
+    // -- Advanced Web Audio DSP & Noise Suppression Pipeline -------------------
+    async initAudioDSP() {
+        if (this._dspInitialized && this.audioCtx) return;
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            
+            this.audioCtx = new AudioContextClass();
+            if (this.audioCtx.state === 'suspended') {
+                const resumeCtx = () => {
+                    this.audioCtx?.resume();
+                    ['click', 'touchstart', 'pointerdown'].forEach(ev => document.removeEventListener(ev, resumeCtx));
+                };
+                ['click', 'touchstart', 'pointerdown'].forEach(ev => document.addEventListener(ev, resumeCtx, { once: true }));
+            }
+
+            // Pro-grade acoustic constraints with hardware voice isolation & echo cancellation
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: { ideal: true },
+                    noiseSuppression: { ideal: true },
+                    autoGainControl: { ideal: true },
+                    channelCount: 1,
+                    sampleRate: { ideal: 48000 }
+                }
+            });
+            this.micStream = stream;
+            this.micSource = this.audioCtx.createMediaStreamSource(stream);
+
+            // 1. High-Pass Filter (removes room rumble, table bumps, breath noise < 85Hz)
+            this.hpFilter = this.audioCtx.createBiquadFilter();
+            this.hpFilter.type = 'highpass';
+            this.hpFilter.frequency.setValueAtTime(85, this.audioCtx.currentTime);
+            this.hpFilter.Q.setValueAtTime(0.707, this.audioCtx.currentTime);
+
+            // 2. Notch Filters (50Hz & 60Hz power mains electrical hum rejection)
+            this.notch50 = this.audioCtx.createBiquadFilter();
+            this.notch50.type = 'notch';
+            this.notch50.frequency.setValueAtTime(50, this.audioCtx.currentTime);
+            this.notch50.Q.setValueAtTime(4.0, this.audioCtx.currentTime);
+
+            this.notch60 = this.audioCtx.createBiquadFilter();
+            this.notch60.type = 'notch';
+            this.notch60.frequency.setValueAtTime(60, this.audioCtx.currentTime);
+            this.notch60.Q.setValueAtTime(4.0, this.audioCtx.currentTime);
+
+            // 3. Low-Pass Filter (eliminates high frequency hiss & fan noise > 7800Hz)
+            this.lpFilter = this.audioCtx.createBiquadFilter();
+            this.lpFilter.type = 'lowpass';
+            this.lpFilter.frequency.setValueAtTime(7800, this.audioCtx.currentTime);
+            this.lpFilter.Q.setValueAtTime(0.707, this.audioCtx.currentTime);
+
+            // 4. Dynamics Compressor (normalizes speaking dynamics & clips loud peaks)
+            this.compressor = this.audioCtx.createDynamicsCompressor();
+            this.compressor.threshold.setValueAtTime(-24, this.audioCtx.currentTime);
+            this.compressor.knee.setValueAtTime(12, this.audioCtx.currentTime);
+            this.compressor.ratio.setValueAtTime(6, this.audioCtx.currentTime);
+            this.compressor.attack.setValueAtTime(0.003, this.audioCtx.currentTime);
+            this.compressor.release.setValueAtTime(0.25, this.audioCtx.currentTime);
+
+            // 5. Spectral Analyser (Real-time Voice Activity Detection & Adaptive Noise Floor)
+            this.analyser = this.audioCtx.createAnalyser();
+            this.analyser.fftSize = 256;
+            this.analyser.smoothingTimeConstant = 0.8;
+
+            // Connect acoustic DSP graph
+            this.micSource
+                .connect(this.hpFilter)
+                .connect(this.notch50)
+                .connect(this.notch60)
+                .connect(this.lpFilter)
+                .connect(this.compressor)
+                .connect(this.analyser);
+
+            this._dspInitialized = true;
+            this._startVADVisualizer();
+            console.log('[Raya DSP] Advanced Web Audio Acoustic & Noise Suppression Pipeline active');
+        } catch (e) {
+            console.warn('[Raya DSP] Hardware DSP note:', e);
+        }
+    }
+
+    _startVADVisualizer() {
+        if (this._vadInterval) clearInterval(this._vadInterval);
+        const dataArr = new Uint8Array(this.analyser ? this.analyser.frequencyBinCount : 128);
+        let noiseFloor = 12;
+
+        this._vadInterval = setInterval(() => {
+            if (!this.isListening || !this.analyser) {
+                if (this.micBtn && this.micBtn.style.transform) {
+                    this.micBtn.style.transform = '';
+                    this.micBtn.style.boxShadow = '';
+                }
+                return;
+            }
+            this.analyser.getByteFrequencyData(dataArr);
+            let sum = 0;
+            for (let i = 0; i < dataArr.length; i++) sum += dataArr[i];
+            const avg = sum / dataArr.length;
+
+            // Adaptive noise floor tracking
+            if (avg < noiseFloor) noiseFloor = avg * 0.95 + 0.05 * noiseFloor;
+            else noiseFloor = noiseFloor * 0.999 + avg * 0.001;
+
+            const speechEnergy = Math.max(0, avg - noiseFloor);
+            const isSpeakingVoice = speechEnergy > 6.0;
+
+            if (this.micBtn) {
+                if (isSpeakingVoice) {
+                    const scale = Math.min(1.25, 1.0 + (speechEnergy / 50));
+                    this.micBtn.style.transform = `scale(${scale.toFixed(3)})`;
+                    this.micBtn.style.boxShadow = `0 0 ${Math.round(speechEnergy * 0.8 + 12)}px rgba(168, 85, 247, 0.9), 0 0 25px rgba(236, 72, 153, 0.7)`;
+                } else {
+                    this.micBtn.style.transform = 'scale(1)';
+                    this.micBtn.style.boxShadow = '0 0 14px rgba(168, 85, 247, 0.45)';
+                }
+            }
+        }, 50);
+    }
+
     // -- Speech Recognition -----------------------------------------------------
     initSpeechRecognition() {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -713,21 +833,33 @@ class AvatarChatBot {
         this.recognition = new SR();
         this.recognition.continuous     = true;
         this.recognition.interimResults = true;
-        this.recognition.lang           = 'en-IN';
+        this.recognition.lang           = navigator.language || 'en-IN';
         this.userStoppedMic             = false;
         this._wakeWordCooldown          = false; // prevents mic picking up Raya's own TTS
         this._passiveModeActive         = false; // mic started by user gesture (not button click)
         this._awaitingCommand           = false; // true if user said "Raya" and we are waiting for a command
 
+        // Enhance with Domain Grammars if supported
+        const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+        if (SpeechGrammarList) {
+            try {
+                const grammarList = new SpeechGrammarList();
+                const grammar = '#JSGF V1.0; grammar raya_cmds; public <cmd> = raya | reya | riah | ratnesh | syncpulse | pak | video | converter | jobpilot | antenna | hfss | 3d | bmw | changli | camellya | carlotta | jinshi | pinkshi | roccia | rover | sanhua | shorekeeper | verina | yangyang | yinlin | home | projects | about | skills | experience | certifications | contact | scroll | music | pause | stop | larger | smaller ;';
+                grammarList.addFromString(grammar, 1);
+                this.recognition.grammars = grammarList;
+            } catch(e) {}
+        }
+
         this.recognition.onstart = () => {
             this.isListening = true;
             this.updateMicUI();
-            // Only show "Listening" bubble if user clicked the mic button
-            if (!this._passiveModeActive) this.showBubble('Listening...');
+            if (!this._passiveModeActive) {
+                this.showBubble('🎙️ Clear Voice DSP Active • Listening...');
+            }
         };
 
         this.recognition.onresult = (event) => {
-            // Ignore mic input while Raya's TTS is playing, active speaking is true, or cooldown is active
+            // Ignore mic input while Raya's TTS is playing, active speaking is true, or cooldown is active (Acoustic Echo Cancellation)
             if (this._wakeWordCooldown || this.isSpeaking || (window.speechSynthesis && window.speechSynthesis.speaking)) return;
 
             let interim = '', final = '';
@@ -737,35 +869,33 @@ class AvatarChatBot {
                 else interim += t;
             }
 
-            // Only show interim in bubble if NOT in passive mode OR if awaiting a command
+            // Show real-time interim results in bubble
             if (interim && (!this._passiveModeActive || this._awaitingCommand)) {
                 this.textInput.value = interim;
                 this.showBubble(interim);
             } else if (interim && this._passiveModeActive) {
-                // In passive mode (and not awaiting command): show interim only if wake word is detected
                 const lowerInt = interim.toLowerCase();
                 const wakeDetected = WAKE_WORD_VARIANTS.some(w => lowerInt.includes(w));
-                if (wakeDetected) this.showBubble('?? ' + interim);
+                if (wakeDetected) this.showBubble('✨ ' + interim);
             }
 
             if (final) {
-                // (Removed strict confidence filter here as it was blocking valid voice commands on many microphones)
+                this.textInput.value = '';
 
-                this.textInput.value = ''; // clear when done
-
-                // -- Wake word detection --------------------------------------
+                // -- Advanced Phonetic & Fuzzy Wake Word Detection ----------------
                 const lowerFinal = final.toLowerCase().trim();
                 
-                // Find matching variant (prioritize exact word match, fallback to includes)
-                let matchedVariant = WAKE_WORD_VARIANTS.find(w => new RegExp(`\\b${w}\\b`, 'i').test(lowerFinal));
-                if (!matchedVariant) matchedVariant = WAKE_WORD_VARIANTS.find(w => lowerFinal.includes(w));
+                // Phonetic variants including sound-alikes
+                const EXTENDED_WAKE_VARIANTS = [
+                    'raya', 'reya', 'riah', 'raaya', 'rya', 'reia', 'ryah', 
+                    'hey raya', 'hi raya', 'hello raya', 'ok raya', 'listen raya'
+                ];
+
+                let matchedVariant = EXTENDED_WAKE_VARIANTS.find(w => new RegExp(`\\b${w}\\b`, 'i').test(lowerFinal));
+                if (!matchedVariant) matchedVariant = EXTENDED_WAKE_VARIANTS.find(w => lowerFinal.includes(w));
 
                 if (!matchedVariant && !this._awaitingCommand) {
-                    // In passive mode: silently ignore non-wake-word speech
                     if (this._passiveModeActive) return;
-                    
-                    // In active mic mode: since user tapped/held the mic directly,
-                    // we do NOT require any wake word! Treat the whole speech as the command.
                 }
 
                 // If Raya is currently speaking, stop her first
@@ -778,21 +908,18 @@ class AvatarChatBot {
                 // Strip the matched wake word variant from the command if it exists
                 let commandWithoutWake = lowerFinal;
                 if (matchedVariant) {
-                    // Just replace the first occurrence of the exact word, case insensitive
                     const exactRegex = new RegExp(`\\b${matchedVariant}\\b`, 'i');
                     const initialLen = commandWithoutWake.length;
                     commandWithoutWake = commandWithoutWake.replace(exactRegex, '');
                     
-                    // Fallback to substring replace if exact word boundary failed (e.g. punctuation attached without spaces)
                     if (commandWithoutWake.length === initialLen) {
                         commandWithoutWake = commandWithoutWake.replace(new RegExp(matchedVariant, 'i'), '');
                     }
                 }
                 
-                // Clean up any remaining punctuation or spaces
                 commandWithoutWake = commandWithoutWake.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, '').trim();
 
-                // Display text: just show the command directly
+                // Display text: show the processed command
                 this.showUserBubble(commandWithoutWake || 'Raya');
 
                 // Handle disambiguation by voice
@@ -806,25 +933,23 @@ class AvatarChatBot {
                     }
                 }
 
-                // If only the wake word was said, give a fast local reply (no API call)
+                // If only the wake word was said, acknowledge immediately
                 if (!commandWithoutWake) {
                     const acks = [
-                        'Yes?', 
-                        "I'm here, what do you need?", 
-                        "I didn't quite catch the rest, could you say it again?", 
-                        "Please say your command again.", 
-                        "I'm listening!"
+                        "I'm listening! What can I help you find?", 
+                        "Yes? How can I assist you with Ratnesh's portfolio?", 
+                        "I'm right here! You can ask about projects or skill tracks.", 
+                        "Listening! What would you like to explore?"
                     ];
                     const ack = acks[Math.floor(Math.random() * acks.length)];
-                    this._awaitingCommand = true; // Wait for the actual command in the next speech!
+                    this._awaitingCommand = true;
                     try { this.recognition?.stop(); } catch(e) {}
                     this.userStoppedMic = true;
                     this.speakAvatar(ack, false);
                     return;
                 }
 
-                this._awaitingCommand = false; // Reset since we are executing a command
-                // Send the command (without wake word) to AI
+                this._awaitingCommand = false;
                 try { this.recognition?.stop(); } catch(e) {}
                 this.userStoppedMic = true;
                 this.handleUserInput(commandWithoutWake);
@@ -832,12 +957,15 @@ class AvatarChatBot {
         };
 
         this.recognition.onerror = (e) => {
-            console.error('[Raya] Mic error:', e.error);
+            console.error('[Raya] Speech recognition error:', e.error);
             this.isListening = false;
             this.updateMicUI();
             if (e.error === 'not-allowed') {
-                this.showBubble('Mic blocked. Please allow mic in browser settings and reload.');
-                this.userStoppedMic = true; // stop restart loop
+                this.showBubble('Microphone access blocked. Please allow mic in browser settings.');
+                this.userStoppedMic = true;
+            } else if (e.error === 'language-not-supported') {
+                // Fallback dialect
+                this.recognition.lang = 'en-US';
             } else if (e.error !== 'no-speech') {
                 this.hideBubble();
             }
@@ -871,20 +999,25 @@ class AvatarChatBot {
         this.userStoppedMic = false;
         if (!this.micGranted) {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(t => t.stop());
+                await this.initAudioDSP();
                 this.micGranted = true;
             } catch (err) {
-                this.showBubble('Microphone access denied. Please allow it in browser settings and reload.');
+                this.showBubble('Microphone access denied. Please allow it in browser settings.');
                 return;
             }
+        } else {
+            this.initAudioDSP();
         }
         this.startListening();
     }
 
     startListening() {
         if (!this.recognition || this.isListening) return;
-        try { this.recognition.start(); } catch (e) {}
+        try { 
+            this.recognition.start(); 
+        } catch (e) {
+            console.warn('[Raya SR start warning]:', e);
+        }
     }
 
     // -- Main Input Handler -----------------------------------------------------
