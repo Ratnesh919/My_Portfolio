@@ -1120,18 +1120,60 @@ class AvatarChatBot {
             clearTimeout(thinkingTimeout);
             if (!res.ok) throw new Error('Server error ' + res.status);
             const data  = await res.json();
-            const reply = data.choices[0].message.content;
+            let reply = data.choices && data.choices[0] ? data.choices[0].message.content : '';
+            
+            // If backend returned generic rate limit message, provide smart fallback
+            if (reply.includes('temporarily resting') || reply.includes('rate limits')) {
+                reply = this.generateSmartFallback(text);
+            }
             this.hideTyping();
             this.processAIResponse(reply, text, false);
         } catch (err) {
             clearTimeout(thinkingTimeout);
-            console.error('[Raya]', err);
+            console.warn('[Raya API Error Fallback]:', err);
             this.hideTyping();
-            this.isThinking = false;
-            this._awaitingCommand = false;
-            this.updateMicUI();
-            this.speakAvatar("Sorry, I couldn't connect right now. Please try again!", false);
+            const fallbackReply = this.generateSmartFallback(text);
+            this.processAIResponse(fallbackReply, text, false);
         }
+    }
+
+    generateSmartFallback(userText) {
+        const t = (userText || '').toLowerCase();
+        if (t.includes('project') || t.includes('work') || t.includes('built')) {
+            return "Ratnesh has built exciting engineering projects like SyncPulse (Real-Time Audio DSP), PAK Video Converter (Android MediaCodec), JobPilot (AI Workflows), and Smart Antenna V2X! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('syncpulse') || t.includes('dsp') || t.includes('audio')) {
+            return "SyncPulse is Ratnesh's real-time collaborative audio workstation with ultra-low latency Web Audio DSP, 8D binaural spatial panning, and Cristian's NTP clock sync! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('pak') || t.includes('video') || t.includes('android') || t.includes('mediacodec')) {
+            return "PAK Video Converter is an Android app with hardware-accelerated video transcoding using MediaCodec and Kotlin coroutines! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('jobpilot') || t.includes('agent') || t.includes('automation')) {
+            return "JobPilot is an automated workflow engine connecting n8n, Gemini API, and webhooks for intelligent lead processing! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('antenna') || t.includes('rf') || t.includes('hardware') || t.includes('hfss')) {
+            return "Ratnesh engineered a high-frequency microstrip patch antenna with 74% size reduction and dual-band resonance using Ansys HFSS! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('bmw') || t.includes('3d') || t.includes('webgl') || t.includes('m3')) {
+            return "The BMW M3 GTR 3D Visualizer is built with Three.js, WebGL shaders, and real-time physical lighting! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('skill') || t.includes('stack') || t.includes('tech')) {
+            return "Ratnesh specializes in 5 core pillars: Real-Time Web & Audio DSP, Native Android MediaCodec, AI & Automation, RF Hardware & Embedded Systems, and Interactive 3D WebGL! {" + '"action":"scroll","target":"skills"' + "}";
+        }
+        if (t.includes('education') || t.includes('college') || t.includes('degree') || t.includes('university') || t.includes('timeline')) {
+            return "Ratnesh is graduating in 2026 with a B.Tech in Electronics & Communication Engineering from MAKAUT (SVIST)! {" + '"action":"scroll","target":"experience"' + "}";
+        }
+        if (t.includes('cert') || t.includes('certificate')) {
+            return "Ratnesh holds verified credentials in IoT, Prompt Engineering, and Master Programming! {" + '"action":"scroll","target":"certifications"' + "}";
+        }
+        if (t.includes('contact') || t.includes('email') || t.includes('hire') || t.includes('reach')) {
+            return "You can reach Ratnesh directly via email or connect with him on LinkedIn and GitHub! {" + '"action":"scroll","target":"contact"' + "}";
+        }
+        if (t.includes('hello') || t.includes('hi') || t.includes('hey')) {
+            return "Hello there! I'm Raya, Ratnesh's companion. What would you like to explore in his portfolio?";
+        }
+        return "I'm right here with you! You can ask me about Ratnesh's 5 skill pillars, his projects like SyncPulse and PAK Video, or ask me to scroll to any section!";
+    }
     }
 
     // LOCAL COMMAND MATCHER
@@ -1397,106 +1439,48 @@ class AvatarChatBot {
 
     // -- Website Control Actions ------------------------------------------------
     executeNavigation(target) {
+    executeNavigation(target) {
         if (!target) return;
-        const targetClean = target.toLowerCase().replace(/card\s*/, '').trim();
-        
-        if (targetClean === 'recruiter' || targetClean === 'recruiter mode' || targetClean.includes('recruiter') ||
-            targetClean === 'visitor' || targetClean === 'visitor mode' || targetClean === 'main' || targetClean === 'main portfolio' || targetClean === 'home') {
-            
-            const changeThemeBtn = document.getElementById('change-theme-btn');
-            if (changeThemeBtn && changeThemeBtn.style.opacity === '1') {
-                changeThemeBtn.click();
-                this.onThemeClosed();
-            }
-            return;
-        }
-        
-        let id = null;
-        let themeName = '';
-        if (targetClean.includes('last theme') || targetClean.includes('previous theme')) {
-            const saved = localStorage.getItem('selectedTheme');
-            if (saved) {
-                const card = Array.from(document.querySelectorAll('.card')).find(c => c.getAttribute('href') === saved);
-                if (card) {
-                    id = `#${card.id}`;
-                    themeName = card.querySelector('.card-title')?.textContent || 'Last Theme';
-                }
-            }
-            if (!id) { id = '#card-5'; themeName = 'Lumen'; }
-        }
-        else if (targetClean.includes('immersive') || targetClean.includes('3d model') || targetClean === '1' || targetClean.includes('1st')) { id = '#card-1'; themeName = 'Immersive'; }
-        else if (targetClean.includes('cosmic') || targetClean.includes('cute alien') || targetClean === '2' || targetClean.includes('2nd')) { id = '#card-2'; themeName = 'Cosmic'; }
-        else if (targetClean.includes('urban') || targetClean.includes('graffiti') || targetClean === '3' || targetClean.includes('3rd')) { id = '#card-3'; themeName = 'Urban'; }
-        else if (targetClean.includes('essential') || targetClean.includes('minimalist') || targetClean === '4' || targetClean.includes('4th')) { id = '#card-4'; themeName = 'Essential'; }
-        else if (targetClean.includes('lumen') || targetClean === '5' || targetClean.includes('5th') || targetClean.includes('lst')) { id = '#card-5'; themeName = 'Lumen'; }
-
-        if (id) {
-            const card = document.querySelector(id);
-            
-            // If card isn't found, redirect to the main selector page
-            if (!card) {
-                window.location.href = '/';
-                return;
-            }
-
-            const targetUrl = card.getAttribute('href');
-            const iframe = document.querySelector('#iframe-container iframe');
-            
-            // Check if already in the requested theme
-            if (iframe && iframe.src && targetUrl) {
-                const urlObj = new URL(targetUrl, window.location.href);
-                if (iframe.src === urlObj.href || iframe.src.includes(targetUrl.replace('./', ''))) {
-                    return; // We are already here, don't trigger reload
-                }
-            }
-
-            if (card) {
-                card.click();
-                // onThemeOpened is triggered by index.html's card click listener
-            }
-        }
-        
-        // Hook the change-theme-btn to notify Raya when user closes the iframe
-        if (!this._changeThemeBtnHooked) {
-            this._changeThemeBtnHooked = true;
-            const btn = document.getElementById('change-theme-btn');
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    this.onThemeClosed();
-                });
-            }
-        }
+        const t = target.toLowerCase().trim();
+        if (t === 'home' || t === 'top' || t === 'hero') this.executeScroll('home');
+        else if (t.includes('project') || t.includes('work')) this.executeScroll('projects');
+        else if (t.includes('about') || t.includes('bio')) this.executeScroll('about');
+        else if (t.includes('skill') || t.includes('stack')) this.executeScroll('skills');
+        else if (t.includes('experience') || t.includes('academic') || t.includes('education') || t.includes('timeline')) this.executeScroll('experience');
+        else if (t.includes('cert') || t.includes('certificate')) this.executeScroll('certifications');
+        else if (t.includes('contact') || t.includes('email') || t.includes('social')) this.executeScroll('contact');
+        else this.executeScroll(t);
     }
+
     executeScroll(target) {
         if (!target) return;
         target = target.toLowerCase().trim();
 
-        const iframeContainer = document.getElementById('iframe-container');
-        const iframe = document.querySelector('#iframe-container iframe');
-        const isIframeActive = iframe && iframeContainer && (iframeContainer.style.opacity === '1' || iframeContainer.style.display !== 'none');
-
-        // On main landing page (no iframe open), scroll smoothly to corresponding page sections
-        if (!isIframeActive) {
-            if (target === 'up' || safeTarget === 'up') {
-                window.scrollBy({ top: -650, behavior: 'smooth' });
-                return;
-            }
-            if (target === 'down' || safeTarget === 'down') {
-                window.scrollBy({ top: 650, behavior: 'smooth' });
-                return;
-            }
-            let secId = 'hero';
-            if (safeTarget === 'home' || safeTarget === 'top') secId = 'hero';
-            else if (safeTarget === 'skill' || safeTarget === 'skills') secId = 'skills-section';
-            else if (safeTarget === 'project' || safeTarget === 'projects' || safeTarget === 'work') secId = 'projects-section';
-            else if (safeTarget === 'cert' || safeTarget === 'certs' || safeTarget === 'certificate' || safeTarget === 'certificates') secId = 'certifications-section';
-            else if (safeTarget === 'education' || safeTarget === 'timeline' || safeTarget === 'college') secId = 'timeline-section';
-            else if (safeTarget === 'contact' || safeTarget === 'email' || safeTarget === 'social') secId = 'contact-section';
-
-            const elem = document.getElementById(secId);
-            if (elem) elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (target === 'up') {
+            window.scrollBy({ top: -650, behavior: 'smooth' });
             return;
         }
+        if (target === 'down') {
+            window.scrollBy({ top: 650, behavior: 'smooth' });
+            return;
+        }
+
+        let secId = 'home';
+        if (target === 'home' || target === 'top' || target === 'hero') secId = 'home';
+        else if (target.includes('about') || target.includes('bio')) secId = 'about';
+        else if (target.includes('project') || target.includes('work') || target.includes('portfolio')) secId = 'projects';
+        else if (target.includes('skill') || target.includes('tech') || target.includes('stack')) secId = 'skills';
+        else if (target.includes('experience') || target.includes('education') || target.includes('timeline') || target.includes('college') || target.includes('university') || target.includes('degree')) secId = 'experience';
+        else if (target.includes('cert') || target.includes('certificate')) secId = 'certifications';
+        else if (target.includes('contact') || target.includes('email') || target.includes('social') || target.includes('linkedin') || target.includes('github') || target.includes('instagram')) secId = 'contact';
+
+        const elem = document.getElementById(secId);
+        if (elem) {
+            const yOffset = -30;
+            const y = elem.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    }
 
         // Inside active Theme Iframe: ONLY allow explicit valid scroll targets!
         const VALID_SCROLL_TARGETS = ['up', 'down', 'home', 'top', 'about', 'education', 'college', 'university', 'skill', 'skills', 'project', 'projects', 'contact', 'email', 'social', 'socials'];
@@ -1505,65 +1489,6 @@ class AvatarChatBot {
             // Reject non-scroll command targets (e.g. songs, avatars, messages) to prevent unwanted scrolling
             return;
         }
-
-        const postToIframe = (msg) => {
-            if (iframe && iframe.contentWindow) {
-                try { iframe.contentWindow.postMessage(msg, '*'); } catch(e) {}
-            }
-        };
-
-        // Explicit Directional Scroll ('up' or 'down' ONLY)
-        if (target === 'up' || target === 'down' || safeTarget === 'up' || safeTarget === 'down') {
-            const isUp = target === 'up' || safeTarget === 'up';
-            const distance = isUp ? -650 : 650;
-            try {
-                const win = iframe.contentWindow;
-                const doc = iframe.contentDocument || (win ? win.document : null);
-                if (win) win.scrollBy({ top: distance, behavior: 'smooth' });
-                if (doc && doc.documentElement && typeof doc.documentElement.scrollBy === 'function') {
-                    doc.documentElement.scrollBy({ top: distance, behavior: 'smooth' });
-                }
-            } catch(e) {
-                console.warn('[Raya] Direct iframe scroll failed, sending postMessage fallback:', e);
-            }
-            postToIframe({ type: 'raya-scroll', direction: isUp ? 'up' : 'down' });
-            return;
-        }
-
-        // Named Section Scroll inside Iframe
-        let elementId = safeTarget;
-        if (safeTarget === 'home' || safeTarget === 'top') elementId = 'home';
-        else if (safeTarget === 'about') elementId = 'about';
-        else if (safeTarget === 'education' || safeTarget === 'college' || safeTarget === 'university') elementId = 'education';
-        else if (safeTarget === 'skill' || safeTarget === 'skills') elementId = 'skills';
-        else if (safeTarget === 'project' || safeTarget === 'projects') elementId = 'projects';
-        else if (safeTarget === 'contact' || safeTarget === 'email' || safeTarget === 'social' || safeTarget === 'socials') elementId = 'contact';
-
-        try {
-            const win = iframe.contentWindow;
-            const doc = iframe.contentDocument || (win ? win.document : null);
-            if (doc) {
-                if (elementId === 'home') {
-                    if (win) win.scrollTo({ top: 0, behavior: 'smooth' });
-                    if (doc.documentElement) doc.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
-                    return;
-                }
-                const section = doc.getElementById(elementId) ||
-                                doc.querySelector(`.${elementId}-section`) ||
-                                doc.querySelector(`[id*="${elementId}" i]`) ||
-                                doc.querySelector(`[data-section="${elementId}"]`);
-                if (section) {
-                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    return;
-                }
-            }
-        } catch(e) {
-            console.warn('[Raya] Direct section scroll failed, sending postMessage fallback:', e);
-        }
-
-        postToIframe({ type: 'raya-scroll', section: elementId });
-    }
-
     executeChangeAvatar(target) {
         // Full avatar map: keyword aliases → VRM file path
         const avatarMap = {

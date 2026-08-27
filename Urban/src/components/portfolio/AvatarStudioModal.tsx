@@ -3,13 +3,14 @@ import {
   X, 
   Sparkles, 
   Check, 
-  Sliders, 
   RotateCcw, 
   Sun, 
   Layers, 
   UserCheck,
   Play,
-  Volume2
+  Eye,
+  EyeOff,
+  Maximize2
 } from 'lucide-react';
 
 interface AvatarStudioModalProps {
@@ -53,16 +54,58 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
 }) => {
   const [selectedChar, setSelectedChar] = useState<string>(currentAvatar || 'changli');
   const [selectedAnim, setSelectedAnim] = useState<string>('idle');
+  const [avatarScale, setAvatarScale] = useState<number>(() => (window as any).currentVRMScale || 0.95);
+  const [isAvatarVisible, setIsAvatarVisible] = useState<boolean>(() => (window as any).vrmEnabled !== false);
   const [brightness, setBrightness] = useState<number>(1.0);
-  const [glow, setGlow] = useState<number>(1.0);
 
   if (!isOpen) return null;
+
+  const handleSelectCharacter = (charId: string) => {
+    setSelectedChar(charId);
+    const charObj = AVATAR_CHARACTERS.find(c => c.id === charId);
+    if (charObj) {
+      if ((window as any).switchVRM) {
+        (window as any).switchVRM(charObj.file);
+      }
+    }
+  };
+
+  const handleTriggerAnimation = (animId: string) => {
+    setSelectedAnim(animId);
+    if ((window as any).playVRMAnimation) {
+      (window as any).playVRMAnimation(animId);
+    } else if (animId === 'wave' && (window as any).playWaveAnimation) {
+      (window as any).playWaveAnimation();
+    }
+  };
+
+  const handleScaleChange = (newScale: number) => {
+    setAvatarScale(newScale);
+    if ((window as any).setVRMScale) {
+      (window as any).setVRMScale(newScale);
+    }
+  };
+
+  const handleToggleVisibility = () => {
+    const nextVal = !isAvatarVisible;
+    setIsAvatarVisible(nextVal);
+    if ((window as any).setVRMVisibility) {
+      (window as any).setVRMVisibility(nextVal);
+    }
+  };
+
+  const handleBrightnessChange = (val: number) => {
+    setBrightness(val);
+    if ((window as any).setVRMBrightness) {
+      (window as any).setVRMBrightness(val);
+    }
+  };
 
   const handleApply = () => {
     onSelectAvatar(selectedChar);
     const charObj = AVATAR_CHARACTERS.find(c => c.id === selectedChar);
-    if (charObj && (window as any).setVRMCharacter) {
-      (window as any).setVRMCharacter(charObj.file);
+    if (charObj && (window as any).switchVRM) {
+      (window as any).switchVRM(charObj.file);
     }
     if ((window as any).playWaveAnimation) {
       (window as any).playWaveAnimation();
@@ -89,17 +132,32 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
         </button>
 
         {/* Header */}
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-[11px] font-mono text-purple-300 mb-2">
-            <Sparkles size={13} />
-            <span>3D Character Engine</span>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-[11px] font-mono text-purple-300 mb-2">
+              <Sparkles size={13} />
+              <span>3D Character Studio</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white">
+              Avatar Studio
+            </h2>
+            <p className="text-xs md:text-sm text-slate-300 mt-1">
+              Customize Raya's 3D VRM model, sizing, visibility, animations, and lighting.
+            </p>
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-white">
-            Avatar Studio
-          </h2>
-          <p className="text-xs md:text-sm text-slate-300 mt-1">
-            Customize Raya's 3D VRM persona, animations, lighting, and expressions in real time.
-          </p>
+
+          {/* Toggle Avatar On/Off Button */}
+          <button
+            onClick={handleToggleVisibility}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold border transition-all shrink-0 ${
+              isAvatarVisible
+                ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/80 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                : 'bg-rose-950/70 border-rose-500/40 text-rose-300 hover:bg-rose-900/80 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+            }`}
+          >
+            {isAvatarVisible ? <Eye size={15} /> : <EyeOff size={15} />}
+            <span>{isAvatarVisible ? 'Avatar Active' : 'Avatar Disabled'}</span>
+          </button>
         </div>
 
         {/* Grid of 14 Wuwa VRM Characters */}
@@ -115,7 +173,7 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
               return (
                 <button
                   key={char.id}
-                  onClick={() => setSelectedChar(char.id)}
+                  onClick={() => handleSelectCharacter(char.id)}
                   className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all duration-200 relative overflow-hidden ${
                     isSelected
                       ? 'bg-gradient-to-b from-purple-900/80 to-purple-950/60 border-2 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]'
@@ -134,7 +192,7 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
           </div>
         </div>
 
-        {/* Animation & Lighting Controls */}
+        {/* Animation & Scale & Lighting Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {/* Animations Picker */}
           <div className="p-4 rounded-2xl bg-[#130c20] border border-purple-500/20">
@@ -145,7 +203,7 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
               {AVATAR_ANIMATIONS.map((anim) => (
                 <button
                   key={anim.id}
-                  onClick={() => setSelectedAnim(anim.id)}
+                  onClick={() => handleTriggerAnimation(anim.id)}
                   className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     selectedAnim === anim.id
                       ? 'bg-purple-600 text-white shadow-md'
@@ -158,41 +216,43 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
             </div>
           </div>
 
-          {/* Shading & Brightness Sliders */}
-          <div className="p-4 rounded-2xl bg-[#130c20] border border-purple-500/20 flex flex-col justify-between">
-            <h4 className="text-xs font-mono uppercase text-purple-400 font-bold mb-2 flex items-center gap-1.5">
-              <Sun size={13} /> Model Illumination & Glow
+          {/* Size Scaling & Brightness Sliders */}
+          <div className="p-4 rounded-2xl bg-[#130c20] border border-purple-500/20 flex flex-col justify-between gap-3">
+            <h4 className="text-xs font-mono uppercase text-purple-400 font-bold mb-1 flex items-center gap-1.5">
+              <Maximize2 size={13} /> Avatar Size & Illumination
             </h4>
 
             <div className="space-y-3">
+              {/* Avatar Scale Slider */}
               <div>
                 <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-                  <span>Base Brightness</span>
-                  <span className="font-mono text-purple-400">{brightness.toFixed(1)}x</span>
+                  <span>Avatar Size (Scale)</span>
+                  <span className="font-mono text-purple-400">{Math.round(avatarScale * 100)}%</span>
                 </div>
                 <input
                   type="range"
-                  min="0.5"
-                  max="2.0"
-                  step="0.1"
-                  value={brightness}
-                  onChange={(e) => setBrightness(parseFloat(e.target.value))}
+                  min="0.4"
+                  max="1.5"
+                  step="0.05"
+                  value={avatarScale}
+                  onChange={(e) => handleScaleChange(parseFloat(e.target.value))}
                   className="w-full accent-purple-500 bg-slate-900 rounded-lg cursor-pointer"
                 />
               </div>
 
+              {/* Base Brightness Slider */}
               <div>
                 <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-                  <span>Emission Glow</span>
-                  <span className="font-mono text-purple-400">{glow.toFixed(1)}x</span>
+                  <span className="flex items-center gap-1"><Sun size={12} /> Illumination</span>
+                  <span className="font-mono text-purple-400">{brightness.toFixed(1)}x</span>
                 </div>
                 <input
                   type="range"
-                  min="0.5"
+                  min="0.4"
                   max="2.0"
                   step="0.1"
-                  value={glow}
-                  onChange={(e) => setGlow(parseFloat(e.target.value))}
+                  value={brightness}
+                  onChange={(e) => handleBrightnessChange(parseFloat(e.target.value))}
                   className="w-full accent-purple-500 bg-slate-900 rounded-lg cursor-pointer"
                 />
               </div>
@@ -204,10 +264,11 @@ export const AvatarStudioModal: React.FC<AvatarStudioModalProps> = ({
         <div className="pt-4 border-t border-purple-500/15 flex items-center justify-between">
           <button
             onClick={() => {
-              setSelectedChar('changli');
-              setSelectedAnim('idle');
-              setBrightness(1.0);
-              setGlow(1.0);
+              handleSelectCharacter('changli');
+              handleTriggerAnimation('idle');
+              handleScaleChange(0.95);
+              handleBrightnessChange(1.0);
+              if (!isAvatarVisible) handleToggleVisibility();
             }}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#160c26] text-slate-400 hover:text-white border border-purple-500/20 text-xs transition-all"
           >

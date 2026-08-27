@@ -7,11 +7,8 @@ import { SkillsSection } from '@/components/portfolio/SkillsSection';
 import { ExperienceSection } from '@/components/portfolio/ExperienceSection';
 import { CertificationsSection } from '@/components/portfolio/CertificationsSection';
 import { ContactSection } from '@/components/portfolio/ContactSection';
-import { RayaAICompanion } from '@/components/portfolio/RayaAICompanion';
-import { ChatbotBar } from '@/components/portfolio/ChatbotBar';
 import { AvatarStudioModal, AVATAR_CHARACTERS } from '@/components/portfolio/AvatarStudioModal';
 import { IntroLoader } from '@/components/portfolio/IntroLoader';
-import { VRMCharacterEngine } from '@/components/portfolio/VRMCharacterEngine';
 import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
 import { Bot, ChevronUp, Layers, X } from 'lucide-react';
@@ -206,20 +203,6 @@ export const App: React.FC = () => {
         </button>
       )}
 
-      {/* Raya AI Companion Full Engine */}
-      <RayaAICompanion
-        isOpen={isRayaOpen}
-        onClose={() => setIsRayaOpen(false)}
-        onOpenAvatarStudio={() => {
-          setIsRayaOpen(false);
-          setIsAvatarStudioOpen(true);
-        }}
-        onScrollToSection={handleNavigate}
-        onChangeAvatar={handleSelectAvatar}
-        externalMessage={pendingChatMessage}
-        onClearExternalMessage={() => setPendingChatMessage(null)}
-        onUpdateSpeechText={(text) => setRayaBubbleText(text)}
-      />
 
       {/* 14-Character 3D Avatar Studio Modal */}
       <AvatarStudioModal

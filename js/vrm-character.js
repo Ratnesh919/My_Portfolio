@@ -570,6 +570,12 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         applyState('idle', 'happy', 0.6);
         playAnim(ANIM.idle, true, 0.3);
         if (mixer) mixer.update(0);
+
+        // Notify IntroLoader that VRM is ready
+        window._vrmIsReady = true;
+        if (typeof window.onVRMReady === 'function') {
+            window.onVRMReady();
+        }
     });
 
     if (siteLoaderEl) { 
@@ -579,6 +585,28 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
     // Step 2: Load the remaining animations in the background
     loadBackgroundAnimations(vrm);
+
+    // Global helper to play custom animations from Avatar Studio
+    window.playVRMAnimation = (animId) => {
+        if (!vrm) return;
+        const animMap = {
+            'idle': ANIM.idle,
+            'wave': ANIM.wave1,
+            'happy': ANIM.happy,
+            'excited': ANIM.excited,
+            'sitting': ANIM.sit1,
+            'yawn': ANIM.yawn,
+            'angry': ANIM.angry,
+            'sad': ANIM.sad1
+        };
+        const targetAnim = animMap[animId] || ANIM.idle;
+        if (actions[targetAnim]) {
+            applyState(animId === 'wave' ? 'wave' : 'happy', 'happy', 0.8);
+            playAnim(targetAnim, animId === 'idle' || animId === 'sitting', 0.35);
+        } else {
+            console.log('[VRM] Animation loading or not found:', animId);
+        }
+    };
 
     // Global helper so chatbot can trigger the intro wave.
     // ONE-SHOT: wave1 plays exactly once (during Raya's intro on page load).
@@ -632,10 +660,15 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
 
 }, xhr => {
+    const totalSize = xhr.total || AVATAR_SIZES[initialFile] || 31422968;
+    const pct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
+
+    if (typeof window.onVRMLoadProgress === 'function') {
+        window.onVRMLoadProgress(pct);
+    }
+
     const siteLoaderEl = document.getElementById('site-loader');
     if (siteLoaderEl) {
-        const totalSize = xhr.total || AVATAR_SIZES[initialFile] || 31422968;
-        const pct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
         const pctEl = document.getElementById('site-loader-pct');
         const barEl = document.getElementById('site-loader-bar');
         const textEl = document.getElementById('site-loader-text');
@@ -646,6 +679,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     }
 }, err => {
     console.error(err);
+    if (typeof window.onVRMReady === 'function') {
+        window.onVRMReady();
+    }
     const siteLoaderEl = document.getElementById('site-loader');
     if (siteLoaderEl) {
         const textEl = document.getElementById('site-loader-text');

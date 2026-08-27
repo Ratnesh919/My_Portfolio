@@ -113,24 +113,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </nav>
 
-      {/* Bottom Footer: Social Links & Raya Trigger */}
+      {/* Bottom Footer: Social Links */}
       <div className="pt-4 border-t border-purple-500/10 flex flex-col gap-3">
-        {/* Raya Virtual Guide Quick Trigger */}
-        <button
-          onClick={onToggleRaya}
-          className="w-full group flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-950/60 via-[#180e2b] to-slate-900/70 border border-purple-500/25 hover:border-purple-400/50 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-98"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-purple-900/60 flex items-center justify-center border border-purple-400/30">
-              <Bot size={16} className="text-purple-300 group-hover:rotate-12 transition-transform duration-300" />
-            </div>
-            <div className="text-left">
-              <div className="text-xs font-bold text-purple-200">Meet Raya</div>
-              <div className="text-[10px] text-purple-400 font-mono">Virtual Guide & Music</div>
-            </div>
-          </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        </button>
 
         {/* Social Icons */}
         <div className="flex items-center justify-between px-1 text-slate-400 pt-1">

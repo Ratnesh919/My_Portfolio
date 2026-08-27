@@ -20,28 +20,44 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       return;
     }
 
-    // Realistic progressive loading bar simulation
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsLoaderHidden(true);
-            setTimeout(() => setPhase('bubbles'), 400);
-          }, 250);
-          return 100;
-        }
+    const finishLoading = () => {
+      setProgress(100);
+      setStatusText("Ready! Tap to enter...");
+      setTimeout(() => {
+        setIsLoaderHidden(true);
+        setTimeout(() => setPhase('bubbles'), 400);
+      }, 300);
+    };
 
-        const next = prev + Math.floor(Math.random() * 12) + 8;
-        if (next > 20 && next < 50) setStatusText("Setting up 3D environment...");
-        else if (next >= 50 && next < 80) setStatusText("Preparing interactive audio & guide...");
-        else if (next >= 80) setStatusText("Welcome! Getting things ready...");
+    // If VRM already finished loading before IntroLoader mounted
+    if ((window as any)._vrmIsReady) {
+      finishLoading();
+      return;
+    }
 
-        return Math.min(next, 100);
-      });
-    }, 70);
+    // Hook VRM live download progress
+    (window as any).onVRMLoadProgress = (pct: number) => {
+      setProgress((prev) => Math.max(prev, Math.min(pct, 99)));
+      if (pct < 30) setStatusText("Downloading 3D Resonator & Assets...");
+      else if (pct < 70) setStatusText("Compiling WebGL Shaders & Textures...");
+      else if (pct < 95) setStatusText("Decrypting FBX Motion Pipelines...");
+      else setStatusText("Preparing Raya Companion...");
+    };
 
-    return () => clearInterval(interval);
+    (window as any).onVRMReady = () => {
+      finishLoading();
+    };
+
+    // Soft fallback timer so users are never stuck if network throttles
+    const fallbackTimer = setTimeout(() => {
+      finishLoading();
+    }, 12000);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      delete (window as any).onVRMLoadProgress;
+      delete (window as any).onVRMReady;
+    };
   }, [onComplete]);
 
   // Transparent Soap Bubbles System
