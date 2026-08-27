@@ -26,18 +26,16 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
   const [showCommandsMenu, setShowCommandsMenu] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  // Exact built-in commands from js/chatbot.js
-  const builtInCommands = [
-    { label: "📩 Leave a message for Ratnesh", isSpecial: "leave_msg" },
-    { label: "Tell me about SyncPulse (Web Audio DSP)", category: "Project" },
-    { label: "Tell me about PAK Video Converter (Android)", category: "Project" },
-    { label: "Tell me about JobPilot AI (AI Agents)", category: "Project" },
-    { label: "Tell me about Smart Antenna V2X (RF Hardware)", category: "Project" },
-    { label: "Tell me about BMW M3 GTR (3D WebGL)", category: "Project" },
-    { label: "Show verified certifications", category: "Credentials" },
-    { label: "🎵 Play a song on YouTube", isSpecial: "play_music" },
-    { label: "Scroll to timeline & education", category: "Navigation" },
-    { label: "🎭 Change Raya's 3D Avatar", isSpecial: "avatar_studio" },
+  // Built-in commands matching exact user requirements
+  const builtInCommands: Array<{ label: string; actionType: string; category?: string }> = [
+    { label: "📜 Scroll down", actionType: "scroll_down", category: "Action" },
+    { label: "📩 Leave a message for Ratnesh", actionType: "leave_msg", category: "Contact" },
+    { label: "📂 Take me to project section", actionType: "scroll_projects", category: "Navigation" },
+    { label: "⚡ Tell me about Ratnesh's skills", actionType: "ask_skills", category: "Skills" },
+    { label: "🚀 Tell me about his projects", actionType: "ask_projects", category: "Projects" },
+    { label: "🎥 Tell me about PAK Video Converter", actionType: "ask_pak", category: "Project" },
+    { label: "🎵 Play a song on YouTube", actionType: "play_music", category: "Music" },
+    { label: "🎭 Change Raya's 3D Avatar", actionType: "avatar_studio", category: "Avatar" },
   ];
 
   // Initialize Speech Recognition
@@ -92,11 +90,21 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
   };
 
   const handleCommandClick = (cmd: any) => {
-    if (cmd.isSpecial === "avatar_studio") {
+    if (cmd.actionType === "avatar_studio") {
       onOpenAvatarStudio();
-    } else if (cmd.isSpecial === "leave_msg") {
+    } else if (cmd.actionType === "leave_msg") {
       setInput("Hi Ratnesh, ");
-    } else if (cmd.isSpecial === "play_music") {
+    } else if (cmd.actionType === "scroll_down") {
+      window.scrollBy({ top: 600, behavior: 'smooth' });
+    } else if (cmd.actionType === "scroll_projects") {
+      onSendMessage("Take me to the project section");
+    } else if (cmd.actionType === "ask_skills") {
+      onSendMessage("Tell me about Ratnesh's skills");
+    } else if (cmd.actionType === "ask_projects") {
+      onSendMessage("Tell me about your projects");
+    } else if (cmd.actionType === "ask_pak") {
+      onSendMessage("Tell me about PAK Video Converter");
+    } else if (cmd.actionType === "play_music") {
       onSendMessage("Play a relaxing lofi song for me");
     } else {
       onSendMessage(cmd.label.replace(/"/g, ''));

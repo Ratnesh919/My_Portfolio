@@ -1011,14 +1011,31 @@ app.get('/api/avatar-proxy', async (req, res) => {
         return res.status(400).send('Invalid file extension');
     }
 
-    // Map local filenames to your existing GitHub Release asset filenames
-    if (filename === 'changli(fixed).vrm') {
-        filename = 'changli.fixed.vrm';
-    } else if (filename === 'Kid changli.vrm') {
-        filename = 'Kid.changli.vrm';
-    }
+    const FILE_MAP = {
+        'changli(fixed).vrm': 'changli.fixed.vrm',
+        'Kid changli.vrm': 'Kid.changli.vrm',
+        'camellya.vrm': 'CamellyaV1.vrm',
+        'CamellyaV1.vrm': 'CamellyaV1.vrm',
+        'carlotta.vrm': 'CarlottaV1.vrm',
+        'CarlottaV1.vrm': 'CarlottaV1.vrm',
+        'chixia.vrm': 'chixia.vrm',
+        'jinshi.vrm': 'jinshi.vrm',
+        'pinkshi.vrm': 'PinkshiV1.vrm',
+        'PinkshiV1.vrm': 'PinkshiV1.vrm',
+        'roccia.vrm': 'RocciaV3.vrm',
+        'RocciaV3.vrm': 'RocciaV3.vrm',
+        'rover.vrm': 'rover.vrm',
+        'sanhua.vrm': 'SanhuaV2.vrm',
+        'SanhuaV2.vrm': 'SanhuaV2.vrm',
+        'shorekeeper.vrm': 'ShorekeeperV3.vrm',
+        'ShorekeeperV3.vrm': 'ShorekeeperV3.vrm',
+        'verina.vrm': 'verina.vrm',
+        'yangyang.vrm': 'yangyang.vrm',
+        'yinlin.vrm': 'yinlin.vrm',
+    };
 
-    const targetUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${filename}`;
+    const targetFile = FILE_MAP[filename] || filename;
+    const targetUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${targetFile}`;
     
     const reqHeaders = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'

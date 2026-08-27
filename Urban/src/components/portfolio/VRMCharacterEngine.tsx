@@ -104,18 +104,21 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 20.0);
-    camera.position.set(0.0, 1.25, 1.6);
-    camera.lookAt(0.0, 1.15, 0.0);
+    const camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 20.0);
+    camera.position.set(0.0, 1.25, 2.2);
+    camera.lookAt(0.0, 1.05, 0.0);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
     scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xff416c, 2.4);
-    dirLight.position.set(1.0, 2.0, 1.0);
+    const dirLight = new THREE.DirectionalLight(0xfff0f8, 2.2);
+    dirLight.position.set(1.0, 2.0, 1.5);
     scene.add(dirLight);
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 2.0);
-    rimLight.position.set(-1.0, 1.5, -1.0);
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.8);
+    rimLight.position.set(-1.5, 1.5, -1.0);
     scene.add(rimLight);
+    const fillLight = new THREE.DirectionalLight(0xa855f7, 1.2);
+    fillLight.position.set(0, -1.0, 2.0);
+    scene.add(fillLight);
 
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
@@ -144,10 +147,12 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
 
           VRMUtils.removeUnnecessaryVertices(gltf.scene);
           VRMUtils.removeUnnecessaryJoints(gltf.scene);
-          VRMUtils.rotateVRM0(vrm);
+          if (VRMUtils.rotateVRM0) {
+            VRMUtils.rotateVRM0(vrm);
+          }
 
-          vrm.scene.position.set(0, 0, 0);
-          vrm.scene.rotation.y = Math.PI;
+          vrm.scene.position.set(0, -0.35, 0);
+          vrm.scene.scale.setScalar(1.0);
           vrm.scene.traverse((obj: any) => {
             obj.frustumCulled = false;
             if (obj.geometry) {
@@ -233,19 +238,6 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     return () => { isDisposed = true; cancelAnimationFrame(animationFrameId); renderer.dispose(); };
   }, [currentAvatarFile, onAvatarLoaded]);
 
-  if (isMinimized) {
-    return (
-      <button
-        onClick={() => setIsMinimized(false)}
-        className="fixed bottom-28 left-6 p-2.5 rounded-full bg-[#180f2c]/90 border border-purple-500/40 text-purple-300 hover:text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 active:scale-95"
-        style={{ zIndex: 2147483647 }}
-        title="Restore 3D Avatar"
-      >
-        <Maximize2 size={16} />
-      </button>
-    );
-  }
-
   return (
     <div
       ref={containerRef}
@@ -260,7 +252,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-purple-300 pointer-events-none">
             <RefreshCw size={20} className="animate-spin text-[#ff416c]" />
             <span className="text-[10px] font-mono bg-black/75 px-2.5 py-1 rounded-full backdrop-blur-sm">
-              Loading VRM Model...
+              Loading 3D Model...
             </span>
           </div>
         )}
@@ -268,22 +260,6 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
           ref={canvasRef}
           className="w-full h-full object-contain bg-transparent"
         />
-        <div className="absolute top-2 right-2 flex items-center gap-1 pointer-events-auto">
-          <button
-            onClick={(e) => { e.stopPropagation(); (window as any).playWaveAnimation?.(); }}
-            className="p-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 text-xs shadow-md transition-all active:scale-95"
-            title="Wave Greeting"
-          >
-            👋
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
-            className="p-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 hover:text-white border border-purple-500/25 shadow-md transition-all active:scale-95"
-            title="Minimize Avatar"
-          >
-            <Minimize2 size={13} />
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -27,19 +27,19 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           clearInterval(interval);
           setTimeout(() => {
             setIsLoaderHidden(true);
-            setTimeout(() => setPhase('bubbles'), 500);
-          }, 300);
+            setTimeout(() => setPhase('bubbles'), 400);
+          }, 250);
           return 100;
         }
 
-        const next = prev + Math.floor(Math.random() * 14) + 8;
-        if (next > 25 && next < 55) setStatusText("Loading Character Engine...");
-        else if (next >= 55 && next < 85) setStatusText("Decrypting VRM Animations...");
-        else if (next >= 85) setStatusText("Processing Asset...");
+        const next = prev + Math.floor(Math.random() * 12) + 8;
+        if (next > 20 && next < 50) setStatusText("Setting up 3D environment...");
+        else if (next >= 50 && next < 80) setStatusText("Preparing interactive audio & guide...");
+        else if (next >= 80) setStatusText("Welcome! Getting things ready...");
 
         return Math.min(next, 100);
       });
-    }, 80);
+    }, 70);
 
     return () => clearInterval(interval);
   }, [onComplete]);
@@ -52,7 +52,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     if (!container) return;
 
     const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-    const spawnMs = isMobile ? 1200 : 600;
+    const spawnMs = isMobile ? 1000 : 500;
 
     const spawnInterval = setInterval(() => {
       if (!document.getElementById('soap-bubble-container')) {
@@ -62,9 +62,9 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
 
       const b = document.createElement('div');
       b.className = 'soap-bubble';
-      const size = 45 + Math.random() * 85;
-      const leftPos = 6 + Math.random() * 88;
-      const duration = (isMobile ? 7.5 : 4.5) + Math.random() * 3.5;
+      const size = 48 + Math.random() * 80;
+      const leftPos = 5 + Math.random() * 90;
+      const duration = (isMobile ? 7.0 : 4.2) + Math.random() * 3.0;
 
       b.style.cssText = `
         width: ${size}px;
@@ -81,7 +81,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
         // Hide all bubbles
         document.querySelectorAll('.soap-bubble').forEach((el: any) => {
           el.style.opacity = '0';
-          el.style.transform = 'scale(1.2)';
+          el.style.transform = 'scale(1.25)';
         });
 
         // Bubble burst particles & crack lines
@@ -89,8 +89,8 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
         const cy = e.clientY;
         const r = b.getBoundingClientRect().width * 0.5;
 
-        for (let i = 0; i < 5; i++) {
-          const ang = (i / 5) * Math.PI;
+        for (let i = 0; i < 6; i++) {
+          const ang = (i / 6) * Math.PI;
           const len = r * (1.2 + Math.random() * 0.4);
           const l = document.createElement('div');
           l.className = 'soap-crack-line';
@@ -109,8 +109,8 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           setTimeout(() => l.remove(), 450);
         }
 
-        for (let i = 0; i < 8; i++) {
-          const ang = (i / 8) * 2 * Math.PI + Math.random() * 0.4;
+        for (let i = 0; i < 10; i++) {
+          const ang = (i / 10) * 2 * Math.PI + Math.random() * 0.4;
           const dist = r * (0.6 + Math.random() * 0.8);
           const sz = 2.5 + Math.random() * 3.5;
           const m = document.createElement('div');
@@ -130,21 +130,21 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           setTimeout(() => m.remove(), 500);
         }
 
-        // Fade out overlay and unveil
+        // Fade out overlay completely and unveil portfolio
         setTimeout(() => {
           setIsBubbleHidden(true);
           sessionStorage.setItem('raya_bubble_done', '1');
           setTimeout(() => {
             setPhase('done');
             onComplete();
-          }, 350);
+          }, 400);
         }, 220);
       });
 
       container.appendChild(b);
       setTimeout(() => {
         if (b.parentNode) b.remove();
-      }, isMobile ? 14000 : 9000);
+      }, isMobile ? 12000 : 8000);
     }, spawnMs);
 
     return () => clearInterval(spawnInterval);
@@ -154,25 +154,25 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
 
   return (
     <>
-      {/* ═══ Phase 1: SYSTEM INITIALIZING (Realistic Red-Blue Loading Screen) ═══ */}
+      {/* ═══ Phase 1: Progressive Loading Screen ═══ */}
       {phase === 'loader' && (
         <div
-          className={`fixed inset-0 z-[9999999] bg-[#080808] flex items-center justify-center transition-all duration-700 select-none ${
+          className={`fixed inset-0 z-[9999999] bg-[#07050d] flex items-center justify-center transition-all duration-700 select-none ${
             isLoaderHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
           }`}
         >
           {/* Subtle Ambient Glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,65,108,0.2)_0%,transparent_65%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,65,108,0.22)_0%,transparent_65%)] pointer-events-none" />
 
           <div className="relative z-10 w-[85%] max-w-[500px] flex flex-col items-center gap-5 text-center">
             {/* Pulsing Lightning Bolt Icon */}
             <div className="animate-pulse flex items-center justify-center">
-              <Zap size={46} className="text-[#ff416c] fill-[#ff416c]/40 drop-shadow-[0_0_16px_#ff416c]" />
+              <Zap size={46} className="text-[#ff416c] fill-[#ff416c]/40 drop-shadow-[0_0_18px_#ff416c]" />
             </div>
 
             {/* Glowing Title */}
-            <h1 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl text-white tracking-[0.16em] uppercase drop-shadow-[0_0_20px_rgba(255,65,108,0.9)]">
-              SYSTEM INITIALIZING
+            <h1 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl text-white tracking-[0.14em] uppercase drop-shadow-[0_0_22px_rgba(255,65,108,0.9)]">
+              RATNESH SINGH
             </h1>
 
             {/* Red to Blue Gradient Progressive Bar */}
@@ -189,24 +189,30 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
               <span className="text-[#ff416c] font-bold">{progress}%</span>
             </div>
 
-            <p className="text-[11px] text-[#ff416c]/70 font-mono mt-1 tracking-wide">
-              Switch to desktop or rotate your phone for better experience
+            <p className="text-[11px] text-[#ff416c]/80 font-mono mt-1 tracking-wide">
+              Tap a bubble on the next screen to enter
             </p>
           </div>
         </div>
       )}
 
-      {/* ═══ Phase 2: Tap a Bubble to Enter (Transparent Soap Bubbles) ═══ */}
+      {/* ═══ Phase 2: Tap a Bubble to Enter (100% Opaque Backdrop Concealing Portfolio) ═══ */}
       {phase === 'bubbles' && (
         <div
           id="bubble-screen"
-          className={`fixed inset-0 z-[999999] bg-[#060608]/92 backdrop-blur-[12px] flex flex-col items-center justify-center transition-all duration-600 select-none ${
+          className={`fixed inset-0 z-[999999] bg-[#07050d] flex flex-col items-center justify-center transition-all duration-700 select-none ${
             isBubbleHidden ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
           }`}
         >
-          <div className="text-3xl sm:text-5xl font-black text-white font-sans tracking-wide text-center drop-shadow-[0_0_25px_rgba(255,65,108,0.9)] pointer-events-none animate-pulse">
+          {/* Glowing Ambient Background */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(168,85,247,0.15)_0%,rgba(255,65,108,0.12)_40%,transparent_75%)] pointer-events-none" />
+
+          <div className="relative z-10 text-3xl sm:text-5xl font-black text-white font-sans tracking-wide text-center drop-shadow-[0_0_25px_rgba(255,65,108,0.9)] pointer-events-none animate-pulse">
             Tap a Bubble to Enter
           </div>
+          <p className="relative z-10 text-xs sm:text-sm text-purple-300 font-mono mt-3 opacity-80 pointer-events-none">
+            Pop any soap bubble to start the experience
+          </p>
 
           <div id="soap-bubble-container" className="absolute inset-0 overflow-hidden pointer-events-none" />
 

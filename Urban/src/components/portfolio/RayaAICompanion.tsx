@@ -202,37 +202,140 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   const detectLanguage = (text: string): string => {
     if (/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja-JP';
     if (/[\u0900-\u097F]/.test(text)) return 'hi-IN';
-    if (/namaste|kaise|kya|bhai|yaar|aap/i.test(text)) return 'hi-IN';
+    if (/namaste|kaise|kya|bhai|yaar|aap|suno|karo|batao/i.test(text)) return 'hi-IN';
     if (/konnichiwa|arigatou|sugoi|kawaii/i.test(text)) return 'ja-JP';
     return 'en-US';
   };
 
   const speakRaya = (text: string) => {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    try {
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch (e) {}
 
-    // Clean markdown and emojis for clean speech
-    const cleanText = text.replace(/[*#_`~[\]]/g, '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+    // Clean markdown and emojis for clean natural speech
+    const cleanText = text
+      .replace(/[*#_`~[\]]/g, '')
+      .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .trim();
 
-    if (selectedVoiceRef.current) utterance.voice = selectedVoiceRef.current;
-    utterance.rate = RAYA_VOICE_CONFIG.rate;
-    utterance.pitch = RAYA_VOICE_CONFIG.pitch;
-    utterance.volume = RAYA_VOICE_CONFIG.volume;
-    utterance.lang = detectLanguage(text);
+    if (!cleanText) return;
 
-    // Lipsync oscillation flag
-    utterance.onstart = () => {
-      (window as any).chatbotTalking = true;
-    };
-    utterance.onend = () => {
-      (window as any).chatbotTalking = false;
-    };
-    utterance.onerror = () => {
-      (window as any).chatbotTalking = false;
-    };
+    setTimeout(() => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
 
-    window.speechSynthesis.speak(utterance);
+        const voices = window.speechSynthesis.getVoices();
+        let targetVoice = selectedVoiceRef.current;
+        if (!targetVoice && voices.length > 0) {
+          targetVoice = voices.find(v => 
+            v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.includes('Ava') || v.name.includes('Jenny') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Aria'))
+          ) || voices[0];
+          selectedVoiceRef.current = targetVoice;
+        }
+
+        if (targetVoice) utterance.voice = targetVoice;
+        utterance.rate = RAYA_VOICE_CONFIG.rate;
+        utterance.pitch = RAYA_VOICE_CONFIG.pitch;
+        utterance.volume = RAYA_VOICE_CONFIG.volume;
+        utterance.lang = detectLanguage(text);
+
+        // Lipsync oscillation flag
+        utterance.onstart = () => {
+          (window as any).chatbotTalking = true;
+        };
+        utterance.onend = () => {
+          (window as any).chatbotTalking = false;
+        };
+        utterance.onerror = () => {
+          (window as any).chatbotTalking = false;
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn('[Raya Speech Error]', err);
+        (window as any).chatbotTalking = false;
+      }
+    }, 60);
+  };
+
+  const mountFloatingYouTubePlayer = (video: { videoId: string; title: string; artist?: string }) => {
+    document.getElementById('raya-yt-player-widget')?.remove();
+
+    const embedUrl = `https://www.youtube.com/embed/${video.videoId}?autoplay=1&enablejsapi=1`;
+    const watchUrl = `https://www.youtube.com/watch?v=${video.videoId}`;
+    const thumbUrl = `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`;
+
+    const widget = document.createElement('div');
+    widget.id = 'raya-yt-player-widget';
+    widget.style.cssText = `
+      position: fixed;
+      bottom: 84px;
+      left: 20px;
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(14, 9, 26, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 65, 108, 0.45);
+      border-radius: 18px;
+      padding: 10px 14px;
+      max-width: 320px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 65, 108, 0.25);
+    `;
+
+    widget.innerHTML = `
+      <img src="${thumbUrl}" alt="Song thumbnail" style="width: 46px; height: 46px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(255,65,108,0.3); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&auto=format&fit=crop&q=80'" />
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+        <div style="font-size: 10px; font-weight: 700; color: #ff416c; font-family: monospace; letter-spacing: 0.5px;">NOW PLAYING 🎵</div>
+        <div style="font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: sans-serif;">${video.title}</div>
+        <a href="${watchUrl}" target="_blank" rel="noopener noreferrer" style="font-size: 10px; color: #38bdf8; text-decoration: none; font-family: monospace; font-weight: 600;">Open on YouTube ↗</a>
+      </div>
+      <button id="raya-yt-close-btn" style="background: rgba(255,255,255,0.08); border: none; color: #cbd5e1; border-radius: 8px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; flex-shrink: 0;">✕</button>
+      <iframe src="${embedUrl}" allow="autoplay; encrypted-media; clipboard-write; picture-in-picture" style="position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; border: none;"></iframe>
+    `;
+
+    document.body.appendChild(widget);
+
+    document.getElementById('raya-yt-close-btn')?.addEventListener('click', () => {
+      widget.remove();
+    });
+  };
+
+  const searchAndPlayYouTube = async (query: string) => {
+    try {
+      console.log('[Raya] Searching YouTube for:', query);
+      const res = await fetch('/api/yt-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+      const data = await res.json();
+      const results = data?.results || [];
+
+      if (results.length > 0) {
+        const top3 = results.slice(0, Math.min(3, results.length));
+        const video = top3[Math.floor(Math.random() * top3.length)];
+        mountFloatingYouTubePlayer(video);
+      } else {
+        mountFloatingYouTubePlayer({
+          videoId: 'jfKfPfyJRdk',
+          title: `${query} (Audio Stream)`,
+          artist: 'YouTube'
+        });
+      }
+    } catch (err) {
+      console.error('[Raya] YT playback error:', err);
+      mountFloatingYouTubePlayer({
+        videoId: 'jfKfPfyJRdk',
+        title: query,
+        artist: 'YouTube'
+      });
+    }
   };
 
   // Process structured JSON Action commands
@@ -255,7 +358,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
             else if (cmd.target === 'email') window.location.href = `mailto:${PORTFOLIO_DATA.email}`;
           }, 1500);
         } else if (cmd.action === 'play_song' && cmd.query) {
-          setActiveMusicQuery(cmd.query);
+          searchAndPlayYouTube(cmd.query);
         }
       }
     } catch (e) {}

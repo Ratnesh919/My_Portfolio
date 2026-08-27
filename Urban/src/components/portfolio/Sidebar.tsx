@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Navigation Items (Smooth Transitions & Serial Order) */}
+      {/* Navigation Items (Ultra-Smooth Fluid Transitions & Serial Order) */}
       <nav className="my-4 lg:my-6 flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -87,23 +87,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`group relative flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap ${
+              className={`group relative flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-300 ease-out whitespace-nowrap ${
                 isActive
-                  ? 'bg-gradient-to-r from-purple-900/70 via-purple-950/50 to-transparent text-white border border-purple-500/50 shadow-[0_4px_20px_rgba(147,51,234,0.35)] font-semibold translate-x-1'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] hover:translate-x-0.5'
+                  ? 'bg-gradient-to-r from-purple-900/60 via-[#1e1338] to-purple-950/30 text-white border border-purple-500/40 shadow-[0_4px_18px_rgba(147,51,234,0.25)] font-semibold'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.05]'
               }`}
             >
-              {/* Active Left Indicator Pill with Smooth Grow */}
-              {isActive && (
-                <span className="absolute left-0 top-2 bottom-2 w-1.5 bg-purple-400 rounded-r-full shadow-[0_0_12px_#a855f7] transition-all duration-300" />
-              )}
+              {/* Active Left Indicator Pill with Smooth Fade & Glow */}
+              <span
+                className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full transition-all duration-300 ${
+                  isActive
+                    ? 'bg-gradient-to-b from-purple-400 to-fuchsia-400 shadow-[0_0_12px_#a855f7] opacity-100'
+                    : 'opacity-0'
+                }`}
+              />
               <Icon 
                 size={18} 
-                className={`transition-transform duration-300 group-hover:scale-110 ${
-                  isActive ? 'text-purple-400 drop-shadow-[0_0_8px_#a855f7]' : 'text-slate-400 group-hover:text-purple-300'
+                className={`transition-all duration-300 ${
+                  isActive ? 'text-purple-300 drop-shadow-[0_0_8px_#a855f7] scale-105' : 'text-slate-400 group-hover:text-purple-300'
                 }`} 
               />
-              <span>{item.label}</span>
+              <span className="transition-colors duration-200">{item.label}</span>
             </button>
           );
         })}
@@ -111,18 +115,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom Footer: Social Links & Raya Trigger */}
       <div className="pt-4 border-t border-purple-500/10 flex flex-col gap-3">
-        {/* Raya AI Companion Quick Trigger */}
+        {/* Raya Virtual Guide Quick Trigger */}
         <button
           onClick={onToggleRaya}
-          className="w-full group flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-950/50 to-slate-900/70 border border-purple-500/25 hover:border-purple-400/60 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-98"
+          className="w-full group flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-purple-950/60 via-[#180e2b] to-slate-900/70 border border-purple-500/25 hover:border-purple-400/50 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-98"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-purple-900/60 flex items-center justify-center border border-purple-400/30">
               <Bot size={16} className="text-purple-300 group-hover:rotate-12 transition-transform duration-300" />
             </div>
             <div className="text-left">
-              <div className="text-xs font-bold text-purple-200">Raya AI</div>
-              <div className="text-[10px] text-purple-400 font-mono">Interactive Companion</div>
+              <div className="text-xs font-bold text-purple-200">Meet Raya</div>
+              <div className="text-[10px] text-purple-400 font-mono">Virtual Guide & Music</div>
             </div>
           </div>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

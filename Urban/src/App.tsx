@@ -130,7 +130,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white">
+    <div className={`min-h-screen w-full bg-[#07050d] text-slate-100 flex flex-col lg:flex-row m-0 p-0 overflow-x-hidden font-sans antialiased selection:bg-purple-600 selection:text-white transition-opacity duration-700 ${introDone ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       {/* ═══ Phase 1 & 2 Intro Loader & Soap Bubble Screen ═══ */}
       <IntroLoader onComplete={handleIntroComplete} />
 
@@ -162,13 +162,13 @@ export const App: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                    <span>Welcome to Ratnesh's 3D Engineering Portfolio!</span>
+                    <span>Welcome to Ratnesh's Engineering Portfolio!</span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                      Raya AI Active
+                      Raya Active
                     </span>
                   </div>
                   <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
-                    Explore real-time Web Audio DSP (±5ms), Android MediaCodec transcoders, AI agents, and 14 custom 3D Resonator avatars.
+                    Explore real-time Web Audio DSP (±5ms), native Android MediaCodec video transcoders, and 14 custom 3D avatars.
                   </p>
                 </div>
               </div>
