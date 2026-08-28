@@ -9,7 +9,6 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<'loader' | 'bubbles' | 'done'>('loader');
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('Loading...');
-  const [isLoaderHidden, setIsLoaderHidden] = useState(false);
   const [isBubbleHidden, setIsBubbleHidden] = useState(false);
   const isCompletedRef = useRef(false);
 
@@ -22,11 +21,10 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
 
     const finishLoading = () => {
       setProgress(100);
-      setStatusText("Ready! Tap to enter...");
+      setStatusText('Ready! Tap to enter...');
       setTimeout(() => {
-        setIsLoaderHidden(true);
-        setTimeout(() => setPhase('bubbles'), 400);
-      }, 300);
+        setPhase('bubbles');
+      }, 350);
     };
 
     // If VRM already finished loading before IntroLoader mounted
@@ -38,20 +36,20 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     // Hook VRM live download progress
     (window as any).onVRMLoadProgress = (pct: number) => {
       setProgress((prev) => Math.max(prev, Math.min(pct, 99)));
-      if (pct < 30) setStatusText("Loading character...");
-      else if (pct < 70) setStatusText("Setting up graphics...");
-      else if (pct < 95) setStatusText("Getting animations ready...");
-      else setStatusText("Almost there...");
+      if (pct < 30) setStatusText('Loading character...');
+      else if (pct < 70) setStatusText('Setting up graphics...');
+      else if (pct < 95) setStatusText('Getting animations ready...');
+      else setStatusText('Almost there...');
     };
 
     (window as any).onVRMReady = () => {
       finishLoading();
     };
 
-    // Fallback: show bubbles after 4s max — never keep user waiting
+    // Fallback: show bubbles after 3.5s max — never keep user waiting
     const fallbackTimer = setTimeout(() => {
       finishLoading();
-    }, 4000);
+    }, 3500);
 
     return () => {
       clearTimeout(fallbackTimer);
@@ -60,7 +58,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     };
   }, [onComplete]);
 
-  // Transparent Soap Bubbles System
+  // ── Soap Bubble Spawn System ──────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'bubbles') return;
 
@@ -68,108 +66,143 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     if (!container) return;
 
     const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-    const spawnMs = isMobile ? 1000 : 500;
+    const spawnMs = isMobile ? 700 : 450;
 
-    const spawnInterval = setInterval(() => {
-      if (!document.getElementById('soap-bubble-container')) {
-        clearInterval(spawnInterval);
-        return;
-      }
+    const handlePop = (cx: number, cy: number, radius: number) => {
+      if (isCompletedRef.current) return;
+      isCompletedRef.current = true;
 
-      const b = document.createElement('div');
-      b.className = 'soap-bubble';
-      const size = 48 + Math.random() * 80;
-      const leftPos = 5 + Math.random() * 90;
-      const duration = (isMobile ? 7.0 : 4.2) + Math.random() * 3.0;
-
-      b.style.cssText = `
-        width: ${size}px;
-        height: ${size}px;
-        left: ${leftPos}vw;
-        animation-duration: ${duration}s;
-      `;
-
-      b.addEventListener('pointerdown', (e) => {
-        if (isCompletedRef.current) return;
-        isCompletedRef.current = true;
-        clearInterval(spawnInterval);
-
-        // Hide all bubbles
-        document.querySelectorAll('.soap-bubble').forEach((el: any) => {
-          el.style.opacity = '0';
-          el.style.transform = 'scale(1.25)';
-        });
-
-        // Bubble burst particles & crack lines
-        const cx = e.clientX;
-        const cy = e.clientY;
-        const r = b.getBoundingClientRect().width * 0.5;
-
-        for (let i = 0; i < 6; i++) {
-          const ang = (i / 6) * Math.PI;
-          const len = r * (1.2 + Math.random() * 0.4);
-          const l = document.createElement('div');
-          l.className = 'soap-crack-line';
-          l.style.cssText = `
-            left: ${cx}px;
-            top: ${cy}px;
-            width: ${len * 2}px;
-            height: ${1.5 + Math.random()}px;
-            margin-left: ${-len}px;
-            margin-top: -0.75px;
-            background: linear-gradient(90deg, transparent, rgba(255, 180, 220, 0.9) 30%, #fff 50%, rgba(180, 230, 255, 0.9) 70%, transparent);
-            transform: rotate(${ang}rad) scaleX(0);
-            animation-delay: ${i * 0.02}s;
-          `;
-          document.body.appendChild(l);
-          setTimeout(() => l.remove(), 450);
-        }
-
-        for (let i = 0; i < 10; i++) {
-          const ang = (i / 10) * 2 * Math.PI + Math.random() * 0.4;
-          const dist = r * (0.6 + Math.random() * 0.8);
-          const sz = 2.5 + Math.random() * 3.5;
-          const m = document.createElement('div');
-          m.className = 'soap-mist-dot';
-          m.style.cssText = `
-            left: ${cx}px;
-            top: ${cy}px;
-            width: ${sz}px;
-            height: ${sz}px;
-            margin-left: ${-sz / 2}px;
-            margin-top: ${-sz / 2}px;
-          `;
-          document.body.appendChild(m);
-          requestAnimationFrame(() => {
-            m.style.transform = `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0)`;
-          });
-          setTimeout(() => m.remove(), 500);
-        }
-
-        // Fade out overlay completely and unveil portfolio
-        setTimeout(() => {
-          setIsBubbleHidden(true);
-          sessionStorage.setItem('raya_bubble_done', '1');
-          setTimeout(() => {
-            setPhase('done');
-            onComplete();
-            if ((window as any).activateAvatarAndChatbot) {
-              (window as any).activateAvatarAndChatbot();
-            }
-            if ((window as any).onBubblePopped) {
-              (window as any).onBubblePopped();
-            }
-            if ((window as any).chatBot) {
-              (window as any).chatBot._userHasGestured = true;
-            }
-          }, 400);
-        }, 220);
+      // Fade all bubbles out
+      document.querySelectorAll('.soap-bubble-outer').forEach((el: any) => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.2s';
       });
 
-      container.appendChild(b);
+      // Burst crack lines
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI;
+        const len = radius * (1.2 + Math.random() * 0.5);
+        const l = document.createElement('div');
+        l.className = 'soap-crack-line';
+        l.style.cssText = `
+          position: fixed;
+          left: ${cx}px; top: ${cy}px;
+          width: ${len * 2}px; height: 2px;
+          margin-left: ${-len}px; margin-top: -1px;
+          background: linear-gradient(90deg, transparent, rgba(255,180,220,0.9) 30%, #fff 50%, rgba(180,230,255,0.9) 70%, transparent);
+          transform: rotate(${ang}rad) scaleX(0);
+          animation: soapCrackAnim 0.35s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+          animation-delay: ${i * 0.02}s;
+          pointer-events: none;
+          z-index: 2147483647;
+        `;
+        document.body.appendChild(l);
+        setTimeout(() => l.remove(), 400);
+      }
+
+      // Mist particles
+      for (let i = 0; i < 12; i++) {
+        const ang = (i / 12) * 2 * Math.PI + Math.random() * 0.4;
+        const dist = radius * (0.8 + Math.random() * 0.9);
+        const sz = 3 + Math.random() * 4;
+        const m = document.createElement('div');
+        m.className = 'soap-mist-dot';
+        m.style.cssText = `
+          position: fixed;
+          left: ${cx}px; top: ${cy}px;
+          width: ${sz}px; height: ${sz}px;
+          margin-left: ${-sz / 2}px; margin-top: ${-sz / 2}px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #ffffff 30%, rgba(180,230,255,0.9) 70%, transparent 100%);
+          box-shadow: 0 0 10px #ff416c, 0 0 6px #38bdf8;
+          pointer-events: none;
+          z-index: 2147483647;
+          transition: transform 0.45s cubic-bezier(0.1, 0.85, 0.2, 1), opacity 0.45s ease;
+        `;
+        document.body.appendChild(m);
+        requestAnimationFrame(() => {
+          m.style.transform = `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist}px) scale(0)`;
+          m.style.opacity = '0';
+        });
+        setTimeout(() => m.remove(), 500);
+      }
+
+      // Unveil portfolio & start Raya
       setTimeout(() => {
-        if (b.parentNode) b.remove();
-      }, isMobile ? 12000 : 8000);
+        setIsBubbleHidden(true);
+        sessionStorage.setItem('raya_bubble_done', '1');
+        setTimeout(() => {
+          setPhase('done');
+          onComplete();
+          if ((window as any).activateAvatarAndChatbot) (window as any).activateAvatarAndChatbot();
+          if ((window as any).onBubblePopped) (window as any).onBubblePopped();
+          if ((window as any).chatBot) (window as any).chatBot._userHasGestured = true;
+        }, 350);
+      }, 200);
+    };
+
+    const spawnBubble = (initialBottom?: number) => {
+      const outerEl = document.getElementById('soap-bubble-container');
+      if (!outerEl || isCompletedRef.current) return;
+
+      const size = 65 + Math.random() * 85; // 65px - 150px
+      const leftPct = 5 + Math.random() * 88; // 5% - 93%
+      const dur = (isMobile ? 7.0 : 5.0) + Math.random() * 3.0;
+      const wobDur = 3.5 + Math.random() * 2.5;
+
+      const outer = document.createElement('div');
+      outer.className = 'soap-bubble-outer';
+      outer.style.cssText = `
+        position: absolute;
+        left: ${leftPct}vw;
+        bottom: ${initialBottom !== undefined ? initialBottom : -140}px;
+        width: ${size}px;
+        height: ${size}px;
+        animation: floatSoapBubble ${dur}s linear forwards;
+        pointer-events: none;
+        z-index: 30;
+      `;
+
+      const inner = document.createElement('div');
+      inner.className = 'soap-bubble-inner';
+      inner.style.cssText = `
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        animation: bubbleWobble ${wobDur}s ease-in-out infinite alternate;
+        cursor: pointer;
+        pointer-events: auto !important;
+      `;
+
+      const onPointerDown = (e: PointerEvent | MouseEvent | TouchEvent) => {
+        e.stopPropagation();
+        const rect = inner.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        handlePop(cx, cy, rect.width / 2);
+      };
+
+      inner.addEventListener('pointerdown', onPointerDown as any);
+      inner.addEventListener('click', onPointerDown as any);
+
+      outer.appendChild(inner);
+      outerEl.appendChild(outer);
+
+      // Clean up after float animation completes
+      setTimeout(() => {
+        if (outer.parentNode) outer.remove();
+      }, dur * 1000 + 200);
+    };
+
+    // Pre-seed 8 bubbles across different vertical heights so the screen has bubbles instantly
+    const initialHeights = [80, 220, 360, 500, 150, 290, 430, 570];
+    initialHeights.forEach((h, idx) => {
+      setTimeout(() => spawnBubble(h), idx * 30);
+    });
+
+    // Continuously spawn fresh bubbles floating from bottom
+    const spawnInterval = setInterval(() => {
+      spawnBubble();
     }, spawnMs);
 
     return () => clearInterval(spawnInterval);
@@ -227,11 +260,23 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       {phase === 'bubbles' && (
         <div
           id="bubble-screen"
-          className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in duration-500"
+          className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden cursor-pointer"
+          onClick={(e) => {
+            // Background fallback click if user clicks between bubbles
+            if (!isCompletedRef.current) {
+              const cx = e.clientX || window.innerWidth / 2;
+              const cy = e.clientY || window.innerHeight / 2;
+              const firstInner = document.querySelector('.soap-bubble-inner') as HTMLElement;
+              if (firstInner) {
+                firstInner.dispatchEvent(new PointerEvent('pointerdown', { clientX: cx, clientY: cy }));
+              }
+            }
+          }}
         >
           {/* Glowing Ambient Background */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(168,85,247,0.15)_0%,rgba(255,65,108,0.12)_40%,transparent_75%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(168,85,247,0.18)_0%,rgba(255,65,108,0.12)_40%,transparent_75%)] pointer-events-none" />
 
+          {/* Center Call to Action */}
           <div className="relative z-10 text-3xl sm:text-5xl font-black text-white font-sans tracking-wide text-center drop-shadow-[0_0_25px_rgba(255,65,108,0.9)] pointer-events-none animate-pulse">
             Tap a Bubble to Enter
           </div>
@@ -239,38 +284,38 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
             Pop any soap bubble to start the experience
           </p>
 
-          <div id="soap-bubble-container" className="absolute inset-0 overflow-hidden" style={{ pointerEvents: 'none' }} />
+          {/* Bubble container — full screen, bubbles float across entire viewport */}
+          <div
+            id="soap-bubble-container"
+            className="absolute inset-0 overflow-hidden"
+            style={{ pointerEvents: 'none' }}
+          />
 
+          {/* Self-contained CSS rules guarantee instant, high-contrast iridescent soap bubbles */}
           <style>{`
-            /* Ultra-Realistic Thin-Film Iridescent Soap Bubble */
-            .soap-bubble {
-              position: absolute;
-              bottom: -140px;
-              border-radius: 50%;
-              /* Physical thin-film interference: rainbow shimmer with central translucency */
-              background: 
-                radial-gradient(circle at 70% 80%, rgba(255, 120, 180, 0.28) 0%, transparent 45%),
-                radial-gradient(circle at 25% 25%, rgba(130, 240, 255, 0.35) 0%, transparent 40%),
-                radial-gradient(circle at 80% 30%, rgba(255, 230, 120, 0.22) 0%, transparent 35%),
-                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(160, 210, 255, 0.12) 65%, rgba(255, 130, 200, 0.28) 95%, rgba(255, 255, 255, 0.4) 100%);
-              border: 1px solid rgba(255, 255, 255, 0.65);
-              box-shadow: 
-                inset 4px 4px 10px rgba(255, 255, 255, 0.75),
-                inset -4px -4px 12px rgba(120, 220, 255, 0.5),
-                inset 0 0 16px rgba(255, 100, 180, 0.35),
-                inset -2px 5px 8px rgba(255, 225, 120, 0.3),
-                0 0 20px rgba(168, 85, 247, 0.35),
-                0 0 35px rgba(255, 65, 108, 0.25);
-              animation: floatSoapBubble linear infinite, bubbleWobble 4s ease-in-out infinite alternate;
-              cursor: pointer;
-              pointer-events: auto !important;
-              transition: transform 0.2s ease, opacity 0.25s ease;
-              backdrop-filter: blur(2px);
-              -webkit-backdrop-filter: blur(2px);
+            .soap-bubble-outer {
+              will-change: transform, opacity;
             }
 
-            /* Primary Curved Specular Reflection Arc (Top-Left) */
-            .soap-bubble::before {
+            .soap-bubble-inner {
+              background: 
+                radial-gradient(circle at 70% 80%, rgba(255, 120, 180, 0.35) 0%, transparent 45%),
+                radial-gradient(circle at 25% 25%, rgba(130, 240, 255, 0.45) 0%, transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(255, 230, 120, 0.3) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, rgba(160, 210, 255, 0.18) 65%, rgba(255, 130, 200, 0.38) 95%, rgba(255, 255, 255, 0.55) 100%);
+              border: 1.5px solid rgba(255, 255, 255, 0.85);
+              box-shadow: 
+                inset 4px 4px 10px rgba(255, 255, 255, 0.9),
+                inset -4px -4px 12px rgba(120, 220, 255, 0.65),
+                inset 0 0 18px rgba(255, 100, 180, 0.45),
+                0 0 22px rgba(168, 85, 247, 0.4),
+                0 0 35px rgba(255, 65, 108, 0.3);
+              backdrop-filter: blur(1px);
+              -webkit-backdrop-filter: blur(1px);
+              transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+
+            .soap-bubble-inner::before {
               content: '';
               position: absolute;
               top: 10%;
@@ -280,11 +325,11 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
               border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%;
               background: radial-gradient(ellipse at 40% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 45%, transparent 80%);
               transform: rotate(-35deg);
-              filter: blur(0.6px);
+              filter: blur(0.5px);
+              pointer-events: none;
             }
 
-            /* Secondary Specular Rim Light & Internal Glint (Bottom-Right) */
-            .soap-bubble::after {
+            .soap-bubble-inner::after {
               content: '';
               position: absolute;
               bottom: 12%;
@@ -292,65 +337,48 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
               width: 22%;
               height: 16%;
               border-radius: 50%;
-              background: radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.8) 0%, rgba(160, 230, 255, 0.4) 50%, transparent 80%);
+              background: radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.85) 0%, rgba(160, 230, 255, 0.45) 50%, transparent 80%);
               transform: rotate(20deg);
-              filter: blur(0.8px);
+              filter: blur(0.7px);
+              pointer-events: none;
             }
 
-            .soap-bubble:hover {
-              transform: scale(1.15);
+            .soap-bubble-inner:hover {
+              transform: scale(1.12);
               box-shadow: 
-                inset 5px 5px 15px rgba(255, 255, 255, 0.9),
-                inset -5px -5px 15px rgba(120, 240, 255, 0.7),
-                0 0 30px rgba(236, 72, 153, 0.7),
-                0 0 50px rgba(168, 85, 247, 0.5);
-            }
-
-            @keyframes bubbleWobble {
-              0% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: scale(1, 1); }
-              33% { border-radius: 48% 52% 51% 49% / 52% 48% 52% 48%; transform: scale(1.025, 0.975); }
-              66% { border-radius: 52% 48% 49% 51% / 48% 52% 48% 52%; transform: scale(0.975, 1.025); }
-              100% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: scale(1.015, 0.985); }
+                inset 5px 5px 15px rgba(255, 255, 255, 1),
+                inset -5px -5px 15px rgba(120, 240, 255, 0.8),
+                0 0 30px rgba(236, 72, 153, 0.8),
+                0 0 50px rgba(168, 85, 247, 0.6);
             }
 
             @keyframes floatSoapBubble {
               0% {
-                transform: translateY(0) translateX(0);
+                transform: translateY(0);
                 opacity: 0;
               }
-              10% {
+              6% {
                 opacity: 0.95;
               }
-              50% {
-                transform: translateY(-60vh) translateX(15px);
-              }
-              90% {
+              94% {
                 opacity: 0.95;
               }
               100% {
-                transform: translateY(-125vh) translateX(-15px);
+                transform: translateY(-130vh);
                 opacity: 0;
               }
             }
 
-            .soap-crack-line {
-              position: fixed;
-              pointer-events: none;
-              z-index: 1000000;
-              animation: soapCrackAnim 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+            @keyframes bubbleWobble {
+              0% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: scale(1, 1); }
+              33% { border-radius: 48% 52% 51% 49% / 52% 48% 52% 48%; transform: scale(1.03, 0.97); }
+              66% { border-radius: 52% 48% 49% 51% / 48% 52% 48% 52%; transform: scale(0.97, 1.03); }
+              100% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; transform: scale(1.02, 0.98); }
             }
+
             @keyframes soapCrackAnim {
               0% { transform: scaleX(0); opacity: 1; }
               100% { transform: scaleX(1); opacity: 0; }
-            }
-            .soap-mist-dot {
-              position: fixed;
-              border-radius: 50%;
-              background: radial-gradient(circle, #ffffff 30%, rgba(180, 230, 255, 0.8) 70%, transparent 100%);
-              box-shadow: 0 0 10px #ff416c, 0 0 6px #38bdf8;
-              pointer-events: none;
-              z-index: 1000000;
-              transition: transform 0.5s cubic-bezier(0.1, 0.85, 0.2, 1), opacity 0.5s ease;
             }
           `}</style>
         </div>
