@@ -8,7 +8,7 @@ interface IntroLoaderProps {
 export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<'loader' | 'bubbles' | 'done'>('loader');
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('Processing Asset...');
+  const [statusText, setStatusText] = useState('Loading...');
   const [isLoaderHidden, setIsLoaderHidden] = useState(false);
   const [isBubbleHidden, setIsBubbleHidden] = useState(false);
   const isCompletedRef = useRef(false);
@@ -38,20 +38,20 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     // Hook VRM live download progress
     (window as any).onVRMLoadProgress = (pct: number) => {
       setProgress((prev) => Math.max(prev, Math.min(pct, 99)));
-      if (pct < 30) setStatusText("Downloading 3D Resonator & Assets...");
-      else if (pct < 70) setStatusText("Compiling WebGL Shaders & Textures...");
-      else if (pct < 95) setStatusText("Decrypting FBX Motion Pipelines...");
-      else setStatusText("Preparing Raya Companion...");
+      if (pct < 30) setStatusText("Loading character...");
+      else if (pct < 70) setStatusText("Setting up graphics...");
+      else if (pct < 95) setStatusText("Getting animations ready...");
+      else setStatusText("Almost there...");
     };
 
     (window as any).onVRMReady = () => {
       finishLoading();
     };
 
-    // Soft fallback timer so users are never stuck if network throttles
+    // Fallback: show bubbles after 4s max — never keep user waiting
     const fallbackTimer = setTimeout(() => {
       finishLoading();
-    }, 12000);
+    }, 4000);
 
     return () => {
       clearTimeout(fallbackTimer);
@@ -239,7 +239,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
             Pop any soap bubble to start the experience
           </p>
 
-          <div id="soap-bubble-container" className="absolute inset-0 overflow-hidden pointer-events-none" />
+          <div id="soap-bubble-container" className="absolute inset-0 overflow-hidden" style={{ pointerEvents: 'none' }} />
 
           <style>{`
             /* Ultra-Realistic Thin-Film Iridescent Soap Bubble */

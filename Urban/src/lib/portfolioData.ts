@@ -46,9 +46,9 @@ export interface AcademicExperience {
 
 export const PORTFOLIO_DATA = {
   name: "Ratnesh Kumar Singh",
-  role: "Full Stack Developer & Systems Engineer",
-  subRole: "Electronics & Communication Engineer (2026)",
-  tagline: "I craft high-performance, real-time digital experiences for web, mobile, and embedded hardware.",
+  role: "Full Stack Developer & Electronics Engineer",
+  subRole: "Electronics & Communication Engineering (2026)",
+  tagline: "I build apps, websites, and smart hardware that people actually enjoy using.",
   location: "Kolkata, India",
   email: "kumarsinghratnesh3@gmail.com",
   github: "https://github.com/Ratnesh919",
@@ -58,39 +58,39 @@ export const PORTFOLIO_DATA = {
   twitter: "https://x.com",
   stats: [
     { label: "B.Tech ECE (2026)", value: "MAKAUT", icon: "GraduationCap" },
-    { label: "Projects Completed", value: "10+", icon: "FolderGit2" },
-    { label: "DSP Audio Sync", value: "±5ms", icon: "Radio" },
+    { label: "Projects Built", value: "10+", icon: "FolderGit2" },
+    { label: "Audio Precision", value: "±5ms", icon: "Radio" },
     { label: "Certifications", value: "4+", icon: "Award" },
   ],
-  bio: "Electronics and Communication Engineering undergrad (graduating 2026, MAKAUT) with practical experience across embedded systems, mobile app development, full-stack real-time web, automated workflow pipelines, and interactive 3D design. Passionate about building hardware-software convergence, low-latency audio pipelines, and native media processing.",
+  bio: "Final year Electronics & Communication Engineering student (MAKAUT, graduating 2026). I build web apps, Android apps, IoT hardware, and 3D experiences. I enjoy making things work fast, look great, and feel smooth — whether it's a website, a mobile app, or a circuit board.",
   
   projects: [
     {
       id: "syncpulse",
       title: "SyncPulse",
-      subtitle: "Multi-Device Spatial Audio Network",
-      tagline: "Sub-millisecond multi-device synchronized audio playback over WebSockets.",
-      desc: "Architected a real-time distributed audio synchronization engine implementing Cristian's NTP clock sync algorithm to achieve ±5ms precision across diverse client devices, paired with an 8D binaural 360° soundstage and an interactive Three.js 3D audio visualizer.",
+      subtitle: "Synchronized Audio Across Multiple Devices",
+      tagline: "Play music in perfect sync across multiple phones or speakers at the same time.",
+      desc: "A real-time audio sync system that keeps music perfectly timed across different devices on the same network — within 5 milliseconds of each other. Includes an interactive 3D sound visualizer and 8D surround sound effects.",
       category: "Full-Stack",
       tags: ["Node.js", "Web Audio API", "Three.js", "WebSockets", "NTP Sync"],
       techStack: "Node.js · Web Audio · Three.js",
       accent: "#a855f7",
       glowColor: "rgba(168, 85, 247, 0.4)",
-      badge: "Featured / Real-Time DSP",
+      badge: "Featured / Real-Time Audio",
       liveUrl: "https://syncpulse-1igt.onrender.com",
       githubUrl: "https://github.com/Ratnesh919/SyncPulse",
       highlights: [
-        "±5ms multi-device audio clock synchronization via custom NTP implementation",
-        "Interactive 3D Three.js spatial soundstage with head-tracking",
-        "WebSockets broadcast network capable of seamless multi-room streaming"
+        "±5ms timing accuracy — audio stays in sync across all connected devices",
+        "Interactive 3D visualizer that reacts to the music in real time",
+        "Supports multiple rooms and devices over WebSockets"
       ]
     },
     {
       id: "pak-converter",
       title: "PAK Video Converter",
-      subtitle: "Android MediaCodec & MediaMuxer Pipeline",
-      tagline: "Low-latency hardware accelerated video extractor & transcoder.",
-      desc: "Engineered a native Android application using Kotlin and Jetpack Compose that directly interfaces with Android's MediaCodec and MediaMuxer hardware pipelines to extract, transcode, and stream raw video payloads, game archives, and dashcam footage.",
+      subtitle: "Android Video Extractor & Converter",
+      tagline: "Convert, extract and save videos from game files and dashcam footage on Android.",
+      desc: "A native Android app built with Kotlin that uses the phone's own video processing chip to convert game archives, PAK files, and dashcam footage into regular video files — fast and without quality loss.",
       category: "Android",
       tags: ["Kotlin", "Jetpack Compose", "MediaCodec", "Room SQLite", "Coroutines"],
       techStack: "Kotlin · Jetpack Compose · MediaCodec",
@@ -99,57 +99,57 @@ export const PORTFOLIO_DATA = {
       badge: "Native Android",
       githubUrl: "https://github.com/Ratnesh919/PAK_Video_Converter_Android_App",
       highlights: [
-        "Hardware-accelerated transcoding pipeline with zero frame drops",
-        "Reactive modern UI built from scratch using Jetpack Compose",
-        "Custom binary header parser for proprietary container formats"
+        "Uses the phone's hardware chip for fast video conversion with no frame drops",
+        "Clean, modern UI built with Jetpack Compose",
+        "Can read proprietary file formats used in games and dashcams"
       ]
     },
     {
       id: "mediflow",
       title: "MediFlow",
-      subtitle: "Outpatient Queue & Wait-Time Forecasting",
-      tagline: "Machine learning wait-time estimation & real-time queue orchestration.",
-      desc: "Full-stack hospital queue management system combining FastAPI, React 18, and PostgreSQL with a Scikit-Learn Random Forest ML regression model to forecast patient wait times dynamically with real-time WebSocket token broadcasts.",
+      subtitle: "Hospital Queue & Wait-Time Prediction",
+      tagline: "Helps hospitals manage patient queues and predict how long the wait will be.",
+      desc: "A full hospital queue management system that uses machine learning to predict how long a patient will wait, and shows live queue updates on a display board. Built with FastAPI, React, and PostgreSQL.",
       category: "Full-Stack",
       tags: ["FastAPI", "React 18", "PostgreSQL", "Scikit-Learn", "WebSockets"],
       techStack: "FastAPI · React 18 · Scikit-Learn",
       accent: "#ec4899",
       glowColor: "rgba(236, 72, 153, 0.4)",
-      badge: "Healthcare ML",
+      badge: "Healthcare Tech",
       liveUrl: "https://github.com/Ratnesh919/Medi_Flow",
       githubUrl: "https://github.com/Ratnesh919/Medi_Flow",
       highlights: [
-        "Dynamic wait-time prediction using Random Forest regression",
-        "Real-time WebSocket token display boards for hospital waiting rooms",
-        "Emergency triage preemption system with audit logging"
+        "Predicts patient wait time using a machine learning model",
+        "Live queue display board updates in real time",
+        "Emergency patients can be moved to the front automatically"
       ]
     },
     {
       id: "jobpilot",
       title: "JobPilot",
-      subtitle: "Automated Job Pipeline & Application Dispatcher",
-      tagline: "Automated workflow scanning job feeds and dispatching tailored applications.",
-      desc: "Engineered an automated processing workflow on n8n Cloud to continuously aggregate job openings across platforms, evaluate candidate fit, dynamically tailor resumes, and trigger webhook dispatches.",
+      subtitle: "Automated Job Application System",
+      tagline: "Automatically finds job openings and sends tailored applications for you.",
+      desc: "An automated workflow built on n8n that constantly scans job boards, scores each listing against a resume, rewrites the application to match the job, and sends it — all without manual effort.",
       category: "Workflow & Automation",
       tags: ["n8n Cloud", "Google Gemini API", "Webhooks", "Automation", "TypeScript"],
       techStack: "n8n · Cloud Webhooks · TypeScript",
       accent: "#22c55e",
       glowColor: "rgba(34, 197, 94, 0.4)",
-      badge: "Workflow Pipeline",
+      badge: "Workflow Automation",
       liveUrl: "https://ratnesh919.app.n8n.cloud",
       githubUrl: "https://github.com/Ratnesh919/Job_Pilot-AI",
       highlights: [
-        "Continuous multi-source RSS and API ingestion pipeline",
-        "Automated semantic evaluation and match scoring",
-        "Applicant tracking and personalized email notifications"
+        "Scans multiple job sites continuously and scores each match",
+        "Rewrites the resume and cover letter to fit each job automatically",
+        "Sends email notifications and tracks every application"
       ]
     },
     {
       id: "bmw-m3",
       title: "BMW M3 GTR 3D",
-      subtitle: "Interactive WebGL Automotive Showcase",
-      tagline: "Real-time 3D vehicle inspection with custom GLSL lighting shaders.",
-      desc: "Interactive 3D vehicle experience built with Three.js and WebGL. Features real-time PBR shaders, HDRI reflection environment mapping, orbital camera inspection, and interactive customization controls.",
+      subtitle: "Interactive 3D Car Showcase",
+      tagline: "Spin, zoom, and inspect a BMW M3 GTR in real-time 3D right in your browser.",
+      desc: "A 3D car viewer built with Three.js that lets you rotate, zoom, and explore a BMW M3 GTR with realistic lighting, reflections, and paint shaders — all running live in the browser with no app needed.",
       category: "3D Graphics",
       tags: ["Three.js", "WebGL", "GLSL Shaders", "JavaScript", "OrbitControls"],
       techStack: "Three.js · WebGL · GLSL",
@@ -159,36 +159,36 @@ export const PORTFOLIO_DATA = {
       liveUrl: "https://relaxed-nasturtium-3abd55.netlify.app/",
       githubUrl: "https://github.com/Ratnesh919/BMW-M3-GTR",
       highlights: [
-        "Interactive 360° orbit inspection controls with smooth dampening",
-        "Realistic PBR car paint shaders with metallic flakes and clearcoat",
-        "Dynamic HDRI reflections and studio lighting setup"
+        "Drag to spin the car 360° with smooth camera controls",
+        "Realistic paint, metallic flakes, and studio lighting effects",
+        "Live environment reflections on the car body"
       ]
     },
     {
       id: "smart-antenna",
       title: "Vehicular Smart Antenna",
-      subtitle: "Low-Profile Monopole Antenna for V2X",
-      tagline: "Ansys HFSS simulation achieving 74% physical size reduction at 535MHz.",
-      desc: "Designed and simulated a dielectric-loaded and capacitive end-loaded low-profile monopole antenna in Ansys HFSS for V2X communications, achieving a 74% size reduction with high radiation efficiency.",
+      subtitle: "Small Car-to-Car Communication Antenna",
+      tagline: "Designed a tiny antenna for vehicles that communicates with the road and other cars.",
+      desc: "Designed and simulated a compact vehicle antenna in Ansys HFSS that is 74% smaller than a standard antenna while still communicating reliably at the correct frequency for vehicle-to-vehicle and vehicle-to-road systems.",
       category: "Hardware & IoT",
       tags: ["Ansys HFSS", "RF Design", "V2X Antennas", "VNA Testing", "Microwave"],
       techStack: "Ansys HFSS · RF Simulation",
       accent: "#06b6d4",
       glowColor: "rgba(6, 182, 212, 0.4)",
-      badge: "ECE Hardware",
+      badge: "Electronics Hardware",
       githubUrl: "https://github.com/Ratnesh919/Smart_Antenna_For_Vehicular_Applications",
       highlights: [
-        "74% physical height reduction (36 mm) resonating at 535.57 MHz",
-        "-31.87 dB return loss with 1.05 VSWR and 98.34% radiation efficiency",
-        "Validated with Vector Network Analyzer (VNA) S-parameter measurements"
+        "74% size reduction — fits in a tiny space while working at 535 MHz",
+        "Near-perfect signal efficiency with -31.87 dB return loss",
+        "Tested and verified with professional lab equipment"
       ]
     },
     {
       id: "smart-parking",
       title: "Smart Parking System",
-      subtitle: "Ultrasonic Array Embedded Prototype",
-      tagline: "Arduino-powered vacant slot detection with real-time visual telemetry.",
-      desc: "Engineered an IoT embedded system using Arduino microcontrollers and ultrasonic sensor arrays to detect vacant parking bays and broadcast slot availability with visual status indicators.",
+      subtitle: "Sensor-Based Parking Slot Detector",
+      tagline: "Shows drivers which parking spots are free using Arduino and ultrasonic sensors.",
+      desc: "A real hardware prototype that uses ultrasonic distance sensors connected to an Arduino to detect whether each parking bay is occupied or free. Status lights show drivers instantly where to park.",
       category: "Hardware & IoT",
       tags: ["Arduino", "C++", "Ultrasonic Sensors", "IoT", "Embedded C"],
       techStack: "Arduino · C++ · Sensors",
@@ -197,72 +197,72 @@ export const PORTFOLIO_DATA = {
       badge: "IoT Prototype",
       githubUrl: "https://github.com/Ratnesh919/Smart_Parking_System",
       highlights: [
-        "Low-latency ultrasonic array polling for rapid presence detection",
-        "Clean embedded C++ firmware with modular sensor abstractions",
-        "Hardware breadboard prototype with dynamic LED occupancy status"
+        "Detects cars instantly using ultrasonic distance sensors",
+        "Clean C++ firmware that is easy to expand and maintain",
+        "LED lights show free and occupied bays at a glance"
       ]
     }
   ] as ProjectItem[],
 
   skillCategories: [
     {
-      title: "Full-Stack Web & Audio DSP",
-      description: "Building low-latency distributed networks, audio DSP pipelines, and reactive UIs.",
+      title: "Web Apps & Audio",
+      description: "Building fast websites, real-time audio tools, and interactive web experiences.",
       icon: "Code2",
       skills: [
         { name: "React 18 & TypeScript", level: 92, highlight: true },
         { name: "Node.js & FastAPI", level: 88, highlight: true },
-        { name: "Web Audio API & 8D DSP", level: 90, highlight: true },
-        { name: "WebSockets & NTP Sync", level: 92, highlight: true },
+        { name: "Web Audio API & Sound Processing", level: 90, highlight: true },
+        { name: "WebSockets & Real-Time Sync", level: 92, highlight: true },
         { name: "PostgreSQL & Tailwind CSS", level: 86 }
       ]
     },
     {
-      title: "Mobile App Development",
-      description: "Native high-efficiency Android software utilizing hardware decoders.",
+      title: "Android App Development",
+      description: "Building fast, native Android apps that use the phone's hardware directly.",
       icon: "Smartphone",
       skills: [
         { name: "Kotlin & Android SDK", level: 88, highlight: true },
         { name: "Jetpack Compose", level: 85, highlight: true },
-        { name: "MediaCodec & MediaMuxer", level: 90, highlight: true },
-        { name: "Room SQLite Database", level: 84 },
+        { name: "Hardware Video Processing", level: 90, highlight: true },
+        { name: "Room Database (SQLite)", level: 84 },
         { name: "Kotlin Coroutines & Flow", level: 86 }
       ]
     },
     {
-      title: "Automation & Workflow Pipelines",
-      description: "Engineering autonomous webhook processing and cloud pipelines.",
+      title: "Automation & Workflows",
+      description: "Setting up systems that do repetitive work automatically so you don't have to.",
       icon: "Cpu",
       skills: [
         { name: "n8n Workflow Automation", level: 92, highlight: true },
         { name: "Cloud Webhooks & APIs", level: 90, highlight: true },
         { name: "API Integrations", level: 85 },
         { name: "System Integration", level: 94, highlight: true },
-        { name: "Python Scripting & Scikit-Learn", level: 82 }
+        { name: "Python & Machine Learning", level: 82 }
       ]
     },
     {
-      title: "Embedded Systems & RF Hardware",
-      description: "Hardware circuit modeling, RF antenna simulation, and microcontroller firmware.",
+      title: "Electronics & RF Hardware",
+      description: "Designing circuits, antennas, and microcontroller projects in the real world.",
       icon: "Radio",
       skills: [
         { name: "Ansys HFSS Simulation", level: 86, highlight: true },
-        { name: "RF Antennas & V2X", level: 85, highlight: true },
-        { name: "Arduino IDE & IoT Prototypes", level: 88 },
+        { name: "RF Antennas & Wireless", level: 85, highlight: true },
+        { name: "Arduino & IoT Projects", level: 88 },
         { name: "MATLAB & Tinkercad", level: 80 },
-        { name: "Verilog & Digital Systems", level: 75 }
+        { name: "Verilog & Digital Logic", level: 75 }
       ]
     },
     {
-      title: "UI/UX & Interactive 3D",
-      description: "Crafting tactile 3D visuals, shaders, and fluid interfaces.",
+      title: "3D Design & Visual Effects",
+      description: "Creating interactive 3D visuals, animations, and polished user interfaces.",
       icon: "Sparkles",
       skills: [
         { name: "Three.js & WebGL", level: 88, highlight: true },
-        { name: "GLSL Fragment Shaders", level: 82, highlight: true },
+        { name: "GLSL Shader Programming", level: 82, highlight: true },
         { name: "Figma UI/UX Design", level: 90 },
         { name: "Framer Motion", level: 88 },
-        { name: "3D Neomorphism & Glassmorphism", level: 94, highlight: true }
+        { name: "3D & Glass UI Effects", level: 94, highlight: true }
       ]
     }
   ] as SkillCategory[],

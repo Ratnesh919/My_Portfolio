@@ -561,7 +561,7 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     const siteLoaderEl = document.getElementById('site-loader');
     if (siteLoaderEl) {
         const textEl = document.getElementById('site-loader-text');
-        if (textEl) textEl.textContent = 'Decrypting Animations...';
+        if (textEl) textEl.textContent = 'Getting ready...';
     }
 
     poseRestingArms(vrm);
@@ -587,8 +587,19 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         setTimeout(() => siteLoaderEl?.remove(), 800); 
     }
 
-    // Step 2: Load the remaining animations in the background
-    loadBackgroundAnimations(vrm);
+    // Step 2: Gently pre-warm remaining animations in the background.
+    // Starts 5s after load, loads ONE animation every 2.5s with no main-thread blocking.
+    const animsToPrewarm = [ANIM.happy, ANIM.excited, ANIM.yawn, ANIM.angry, ANIM.sad1, ANIM.no];
+    let prewarmIndex = 0;
+    const prewarmNext = () => {
+        if (prewarmIndex >= animsToPrewarm.length || !vrm) return;
+        const file = animsToPrewarm[prewarmIndex++];
+        if (!actions[file]) {
+            loadSingleAnimation(file, vrm).catch(() => {});
+        }
+        setTimeout(prewarmNext, 2500); // 2.5s gap — never causes lag spikes
+    };
+    setTimeout(prewarmNext, 5000); // wait 5s before starting prewarm
 
     // Global helper to play custom animations from Avatar Studio
     window.playVRMAnimation = (animId) => {
@@ -777,7 +788,7 @@ function returnToIdle() {
         playAnim(ANIM.sit2, true, 0.5);
         lastAnimKey = 'sit2';  // ensures pickRandom always picks sit1 next
         // Fixed 25s cycle while sitting before next sit expression
-        const sitDelay = 25000; // 25s
+        const sitDelay = 15000; // 15s between sitting expressions
         autoTimerId = setTimeout(playRandomAnim, sitDelay);
         // Kick off smile scheduler for sitting mode (if not already running)
         if (!smileTimerId) scheduleNextSmile();
@@ -787,7 +798,7 @@ function returnToIdle() {
         introComplete = true;
         // Block auto-cycle scheduling if chatbot is currently speaking
         if (!window.chatbotTalking) {
-            const delay = 25000;   // 25s
+            const delay = 12000;   // 12s — feels alive without being distracting
             autoTimerId = setTimeout(playRandomAnim, delay);
         }
         // Kick off smile scheduler when entering idle (if not already running)
@@ -853,28 +864,39 @@ function playRandomAnim() {
     }
 
     const pick = pickRandom();
-
-    // Safety guard: skip animations whose clip hasn't loaded or has near-zero duration
     const clipKey = ANIM[pick.key];
-    const clip = clips[clipKey];
-    if (!clip || clip.duration < 0.3) {
-        console.warn('[VRM] Skipping animation with missing/short clip:', pick.key);
-        // Just return to idle if no valid clip
-        returnToIdle();
-        return;
-    }
 
     applyState(pick.fingerPose, pick.expr, pick.exprVal);
-    playAnim(ANIM[pick.key], pick.loop, 0.4);
 
-    if (pick.loop) {
-        // Looping animation: cap at maxDuration, then return to idle
-        const cap = (pick.maxDuration ?? 7) * 1000;
-        autoTimerId = setTimeout(() => {
+    // Lazy-load if needed, then play — no more skipping to idle just because clip isn't cached yet
+    (async () => {
+        let action = actions[clipKey];
+        if (!action && vrm) {
+            action = await loadSingleAnimation(clipKey, vrm);
+        }
+        if (!action) {
+            // Genuine failure — just idle and try again later
             returnToIdle();
-        }, cap);
-    }
-    // One-shot: 'finished' event on mixer will call returnToIdle() naturally
+            return;
+        }
+
+        // Make sure VRM is still loaded and we're not talking
+        if (!vrm || (window.chatbotTalking && !isSittingOnChatbox)) {
+            returnToIdle();
+            return;
+        }
+
+        playAnim(clipKey, pick.loop, 0.4);
+
+        if (pick.loop) {
+            // Looping animation: cap at maxDuration, then return to idle
+            const cap = (pick.maxDuration ?? 7) * 1000;
+            autoTimerId = setTimeout(() => {
+                returnToIdle();
+            }, cap);
+        }
+        // One-shot: 'finished' event on mixer will call returnToIdle() naturally
+    })();
 }
 
 // ─── CLICK / DRAG ─────────────────────────────────────────────────────────────
@@ -1344,17 +1366,23 @@ function animate() {
         setVRMExpression('blinkRight', yawnSquint);
     }
 
-    // Chatbot Lipsync (fake talking) — tuned to ~165 WPM / rate 1.10
+    // Chatbot Lipsync — mouth moves only when the chatbot is actually speaking
     if (window.chatbotTalking) {
-        // Primary open-vowel: ~8.5 cycles/s → matches syllable rate at 165 WPM
-        const talkMouth = Math.abs(Math.sin(t * 8.5)) * 0.75;
-        // Secondary vowel for realism: offset phase, lower amplitude
-        const talkIh    = Math.abs(Math.sin(t * 8.5 + 1.8)) * 0.35;
+        // ~6 syllable cycles per second — natural speech rhythm
+        const talkMouth = Math.abs(Math.sin(t * 6.0)) * 0.65;
+        const talkIh    = Math.abs(Math.sin(t * 6.0 + 1.8)) * 0.28;
         setVRMExpression('aa', talkMouth);
         setVRMExpression('a',  talkMouth);
         setVRMExpression('A',  talkMouth);
         setVRMExpression('ih', talkIh);
         setVRMExpression('i',  talkIh);
+    } else {
+        // Always hard-close the mouth when not talking — prevents avatar mutter
+        setVRMExpression('aa', 0);
+        setVRMExpression('a',  0);
+        setVRMExpression('A',  0);
+        setVRMExpression('ih', 0);
+        setVRMExpression('i',  0);
     }
 
     // Dist from cursor to the character on screen
