@@ -575,10 +575,23 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         playAnim(ANIM.idle, true, 0.3);
         if (mixer) mixer.update(0);
 
-        // Notify IntroLoader that VRM is ready
+        // Notify IntroLoader that VRM is fully loaded and ready
         window._vrmIsReady = true;
         if (typeof window.onVRMReady === 'function') {
             window.onVRMReady();
+        }
+
+        // If user already popped the bubble or intro was queued, play wave1 and speak simultaneously
+        if (window._pendingIntroOnVRMLoad || window._pendingIntroWave || (sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce)) {
+            window._hasIntroducedOnce = true;
+            window._pendingIntroOnVRMLoad = false;
+            window._pendingIntroWave = false;
+            setTimeout(() => {
+                window.playWaveAnimation();
+                if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                    window.chatBot.introduceHerself();
+                }
+            }, 250);
         }
     });
 
@@ -625,13 +638,24 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
     // Global helper so chatbot can trigger the intro wave.
     window.playWaveAnimation = async () => {
-        if (!vrm) return;
+        if (!vrm) {
+            window._pendingIntroWave = true;
+            return;
+        }
         const wave1Key = ANIM.wave1;
         clearAutoTimer();
         applyState('wave', 'happy', 0.85);
 
         try {
-            await playAnim(wave1Key, false, 0.35);
+            let action = actions[wave1Key];
+            if (!action && vrm) {
+                action = await loadSingleAnimation(wave1Key, vrm);
+            }
+            if (action) {
+                await playAnim(wave1Key, false, 0.35);
+            } else if (actions[ANIM.wave2]) {
+                await playAnim(ANIM.wave2, false, 0.35);
+            }
         } catch (e) {
             console.warn('[VRM] Wave anim fallback:', e);
             if (actions[ANIM.wave2]) playAnim(ANIM.wave2, false, 0.35);
@@ -641,21 +665,27 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     // Trigger intro: wait for bubble pop if master intro overlay or bubble screen is active
     window.onBubblePopped = () => {
         if (hasDragged || isDragging) return;
-        window.playWaveAnimation();
-        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-            window.chatBot.introduceHerself();
+        window._bubbleHasPopped = true;
+        if (vrm && window._vrmIsReady) {
+            window.playWaveAnimation();
+            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                window.chatBot.introduceHerself();
+            }
+        } else {
+            // Queue intro until VRM is ready
+            window._pendingIntroOnVRMLoad = true;
         }
     };
 
     const hasIntroOverlay = document.getElementById('master-intro-overlay') || document.getElementById('bubble-screen');
-    if (!hasIntroOverlay && sessionStorage.getItem('raya_bubble_done')) {
+    if (!hasIntroOverlay && sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce) {
         setTimeout(async () => {
             if (hasDragged || isDragging) return;
             window.playWaveAnimation();
             if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
                 window.chatBot.introduceHerself();
             }
-        }, 1200);
+        }, 800);
     }
 
 
