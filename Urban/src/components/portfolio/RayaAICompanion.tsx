@@ -499,14 +499,41 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
         } else if (cmd.action === 'change_avatar') {
           if (cmd.target) onChangeAvatar?.(cmd.target);
           else onOpenAvatarStudio?.();
-        } else if (cmd.action === 'open_link' && cmd.target) {
+        } else if ((cmd.action === 'open_link' || cmd.action === 'open_url') && (cmd.target || cmd.url)) {
           setTimeout(() => {
-            if (cmd.target === 'instagram') window.open((PORTFOLIO_DATA as any).instagram, '_blank');
-            else if (cmd.target === 'facebook') window.open((PORTFOLIO_DATA as any).facebook, '_blank');
-            else if (cmd.target === 'linkedin') window.open(PORTFOLIO_DATA.linkedin, '_blank');
-            else if (cmd.target === 'github') window.open(PORTFOLIO_DATA.github, '_blank');
-            else if (cmd.target === 'email') window.location.href = `mailto:${PORTFOLIO_DATA.email}`;
-          }, 1500);
+            const t = (cmd.target || cmd.url || '').toLowerCase();
+            if (t.startsWith('http://') || t.startsWith('https://')) {
+              window.open(cmd.target || cmd.url, '_blank');
+            } else if (t === 'instagram') {
+              window.open((PORTFOLIO_DATA as any).instagram, '_blank');
+            } else if (t === 'facebook') {
+              window.open((PORTFOLIO_DATA as any).facebook, '_blank');
+            } else if (t === 'linkedin') {
+              window.open(PORTFOLIO_DATA.linkedin, '_blank');
+            } else if (t === 'github') {
+              window.open(PORTFOLIO_DATA.github, '_blank');
+            } else if (t === 'email') {
+              window.location.href = `mailto:${PORTFOLIO_DATA.email}`;
+            } else if (t.includes('shopkart') || t.includes('shop_kart')) {
+              window.open('https://shopkart919.netlify.app', '_blank');
+            } else if (t.includes('syncpulse')) {
+              window.open('https://syncpulse-1igt.onrender.com', '_blank');
+            } else if (t.includes('bmw') || t.includes('m3')) {
+              window.open('https://relaxed-nasturtium-3abd55.netlify.app/', '_blank');
+            } else if (t.includes('jobpilot') || t.includes('job_pilot')) {
+              window.open('https://ratnesh919.app.n8n.cloud', '_blank');
+            } else if (t.includes('pak')) {
+              window.open('https://github.com/Ratnesh919/PAK_Video_Converter_Android_App', '_blank');
+            } else if (t.includes('antenna')) {
+              window.open('https://github.com/Ratnesh919/Smart_Antenna_For_Vehicular_Applications', '_blank');
+            } else if (t.includes('parking')) {
+              window.open('https://github.com/Ratnesh919/Smart_Parking_System', '_blank');
+            } else {
+              const proj = PORTFOLIO_DATA.projects.find(p => p.id === t || p.title.toLowerCase().includes(t));
+              if (proj?.liveUrl) window.open(proj.liveUrl, '_blank');
+              else if (proj?.githubUrl) window.open(proj.githubUrl, '_blank');
+            }
+          }, 1200);
         } else if (cmd.action === 'play_song' && cmd.query) {
           searchAndPlayYouTube(cmd.query);
         }
@@ -526,28 +553,60 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       return `Opening Avatar Studio! You can choose from 14 3D Resonator models including Changli, Camellya, Carlotta, Jinhsi, and Yinlin. {"action":"change_avatar"}`;
     }
     if (q.includes('instagram') || q.includes('insta')) {
-      return `Opening Ratnesh's Instagram profile! {"action":"open_link","target":"instagram"}`;
+      return `Opening Ratnesh's Instagram profile for you in a new tab! {"action":"open_link","target":"instagram"}`;
     }
     if (q.includes('facebook') || q.includes('fb')) {
-      return `Opening Ratnesh's Facebook profile! {"action":"open_link","target":"facebook"}`;
+      return `Opening Ratnesh's Facebook profile for you in a new tab! {"action":"open_link","target":"facebook"}`;
     }
     if (q.includes('linkedin')) {
-      return `Opening Ratnesh's verified LinkedIn profile! {"action":"open_link","target":"linkedin"}`;
+      return `Opening Ratnesh's verified LinkedIn profile for you in a new tab! {"action":"open_link","target":"linkedin"}`;
     }
-    if (q.includes('github')) {
-      return `Opening Ratnesh's GitHub repository hub! {"action":"open_link","target":"github"}`;
+    if (q.includes('github') && !q.includes('mediflow') && !q.includes('medi flow')) {
+      return `Opening Ratnesh's GitHub repository hub for you in a new tab! {"action":"open_link","target":"github"}`;
     }
-    if (q.includes('pak') || q.includes('video converter') || q.includes('converter')) {
+    // ShopKart
+    if (q.includes('open shopkart') || q.includes('open shop kart') || (q.includes('shopkart') && (q.includes('demo') || q.includes('live') || q.includes('site') || q.includes('open')))) {
+      return `Opening ShopKart live demo for you in a new tab now! {"action":"open_link","target":"https://shopkart919.netlify.app"}`;
+    }
+    if (q.includes('shopkart') || q.includes('shop kart')) {
       onScrollToSection?.('projects');
-      return `PAK Video Converter is Ratnesh's high-performance native Android media transcoder built with MediaCodec & NDK, achieving 3.8x faster GPU-accelerated video encoding! {"action":"scroll","target":"projects"}`;
+      return `ShopKart is Ratnesh's responsive React e-commerce platform featuring dynamic product catalogs, category filters, and stateful cart management! Would you like me to open the live demo for you in a new tab? Just say 'open shopkart demo'! {"action":"scroll","target":"projects"}`;
+    }
+    // MediFlow
+    if (q.includes('mediflow') || q.includes('medi flow')) {
+      onScrollToSection?.('projects');
+      if (q.includes('repo') || q.includes('link') || q.includes('not open') || q.includes('private') || q.includes('404') || q.includes('broken') || q.includes('issue') || q.includes('why')) {
+        return `Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time queue telemetry. If you'd like an architectural walkthrough or code discussion, feel free to contact Ratnesh directly! {"action":"scroll","target":"projects"}`;
+      }
+      return `MediFlow is Ratnesh's hospital queue management and wait-time forecasting system built with FastAPI, React 18, and Scikit-Learn! (Note: its repository is temporarily private for updates). {"action":"scroll","target":"projects"}`;
+    }
+    // SyncPulse
+    if (q.includes('open syncpulse') || (q.includes('syncpulse') && (q.includes('demo') || q.includes('live') || q.includes('open')))) {
+      return `Opening SyncPulse live demo for you in a new tab! {"action":"open_link","target":"https://syncpulse-1igt.onrender.com"}`;
     }
     if (q.includes('syncpulse') || q.includes('audio') || q.includes('dsp')) {
       onScrollToSection?.('projects');
-      return `SyncPulse is a sub-5ms low-latency multi-track Web Audio DSP workstation featuring custom biquad filters, dynamic compressors, and real-time canvas visualizers. {"action":"scroll","target":"projects"}`;
+      return `SyncPulse is a sub-5ms low-latency multi-track Web Audio DSP workstation featuring custom biquad filters and real-time visualizers. Would you like me to open the live demo for you in a new tab? {"action":"scroll","target":"projects"}`;
+    }
+    // BMW
+    if (q.includes('open bmw') || (q.includes('bmw') && (q.includes('demo') || q.includes('live') || q.includes('3d') || q.includes('open')))) {
+      return `Opening BMW M3 GTR 3D visualizer for you in a new tab! {"action":"open_link","target":"https://relaxed-nasturtium-3abd55.netlify.app/"}`;
+    }
+    // PAK Video Converter
+    if (q.includes('open pak') || (q.includes('pak') && (q.includes('repo') || q.includes('github') || q.includes('open')))) {
+      return `Opening PAK Video Converter repository for you in a new tab! {"action":"open_link","target":"https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"}`;
+    }
+    if (q.includes('pak') || q.includes('video converter') || q.includes('converter')) {
+      onScrollToSection?.('projects');
+      return `PAK Video Converter is Ratnesh's native Android media transcoder built with MediaCodec & NDK, achieving 3.8x faster GPU-accelerated video encoding! Would you like me to open the GitHub repository for you? {"action":"scroll","target":"projects"}`;
+    }
+    // JobPilot
+    if (q.includes('open jobpilot') || (q.includes('jobpilot') && (q.includes('demo') || q.includes('live') || q.includes('open')))) {
+      return `Opening JobPilot AI on n8n Cloud for you in a new tab! {"action":"open_link","target":"https://ratnesh919.app.n8n.cloud"}`;
     }
     if (q.includes('project') || q.includes('work') || q.includes('portfolio')) {
       onScrollToSection?.('projects');
-      return `Here are Ratnesh's featured engineering projects including SyncPulse, PAK Video Converter, and MediFlow. {"action":"scroll","target":"projects"}`;
+      return `Here are Ratnesh's featured engineering projects including SyncPulse, ShopKart, PAK Video Converter, and MediFlow. Tell me any project name and I can open its live demo for you! {"action":"scroll","target":"projects"}`;
     }
     if (q.includes('about') || q.includes('background') || q.includes('who is ratnesh') || q.includes('who are you')) {
       onScrollToSection?.('about');
@@ -591,7 +650,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       return `Konnichiwa! Watashi wa Raya desu. Ratnesh no purojekuto o goannai shimasu!`;
     }
 
-    return `Ratnesh is a multi-disciplinary engineer specializing in Web Audio DSP, Android MediaCodec, AI Agent workflows with Gemini API, and RF antenna simulation in Ansys HFSS. Ask me about any specific project or skill!`;
+    return `Ratnesh is a multi-disciplinary engineer specializing in Web Audio DSP, Android MediaCodec, AI Agent workflows, and RF antenna simulation. Ask me about any specific project (like SyncPulse, ShopKart, PAK Video) and I can open its live demo for you!`;
   };
 
   // Raya's comprehensive system prompt with Creator Profile embedded
@@ -601,8 +660,8 @@ CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at t
 CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during the conversation, even if you know it from previous interactions.
 
 [STRICT ENGLISH-ONLY WRITING RULE]
-- You can UNDERSTAND any language the user speaks or writes in (Hindi, Bengali, Punjabi, Gujarati, Spanish, French, Japanese, German, etc.), but your output text MUST ALWAYS be written in ENGLISH ONLY using the standard English alphabet and words.
-- NEVER write in other languages or non-English scripts (no Devanagari, Bengali, Gurmukhi, Gujarati, Japanese characters, etc.). Always formulate your response in fluent, natural English.
+- You can UNDERSTAND any language the user speaks or writes in (Hindi, Bengali, Punjabi, Gujarati, Spanish, French, Japanese, German, etc.), but your output text MUST ALWAYS be written in ENGLISH ONLY using the standard English alphabet and words (or conversational Romanized script if user speaks regional language).
+- NEVER write in non-English scripts (no Devanagari, Bengali, Gurmukhi, Gujarati, Japanese characters, etc.). Always formulate your response in fluent, natural English.
 - Do NOT use markdown asterisks or emojis in your speech text because it will be spoken out loud by text-to-speech.
 
 [CREATOR PROFILE: RATNESH KUMAR SINGH]
@@ -613,21 +672,22 @@ CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are s
 - Instagram: https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==
 - Facebook: https://www.facebook.com/share/1De11Vypsn/
 - Education: Final-year B.Tech in Electronics and Communication Engineering (ECE) - Swami Vivekananda Institute of Science & Technology, MAKAUT (2022 to 2026).
-- Core Specializations (5 Pillars):
-  1. Full-Stack Real-Time Web & Web Audio DSP (SyncPulse - sub-5ms low latency NTP sync, biquad filters, canvas visualizer)
-  2. Native Android Media Acceleration (PAK Video Converter - MediaCodec, NDK/C++, 3.8x GPU encoding)
-  3. AI Agents & Automation (JobPilot AI - n8n Cloud, Google Gemini API, OpenAI API)
-  4. Embedded Systems & RF Hardware (Ansys HFSS 3D EM simulation, 74% size-reduced microstrip patch antenna at 535MHz, VNA testing, Arduino IoT)
-  5. Interactive 3D WebGL Graphics (Three.js, @pixiv/three-vrm, GLSL shaders, 14 3D Resonator avatars)
+- Core Projects:
+  1. SyncPulse: Real-time collaborative audio workstation with ±5ms NTP clock sync and 3D visualizer (Live: https://syncpulse-1igt.onrender.com).
+  2. ShopKart: E-commerce web platform in React with product catalog and cart (Live: https://shopkart919.netlify.app).
+  3. PAK Video Converter: Native Android app for hardware-accelerated video transcoding via MediaCodec.
+  4. MediFlow: Hospital outpatient queue management and wait-time AI. [IMPORTANT: Ratnesh has temporarily set MediFlow repo to PRIVATE for refactoring; if asked about repo or 404, explain it is temporarily private for updates!].
+  5. BMW M3 GTR 3D: Three.js WebGL automotive viewer (Live: https://relaxed-nasturtium-3abd55.netlify.app/).
+  6. JobPilot AI: Autonomous job hunting & resume matching workflow on n8n Cloud (Live: https://ratnesh919.app.n8n.cloud).
 
-Ratnesh is your creator. Talk about him casually, proudly, and warmly like a close friend would, NOT like a robotic resume.
+Ratnesh is your creator. Talk about him casually, proudly, and warmly like a close friend would.
 
 [COMMANDS & ACTIONS]
-You can control the website based on user commands! When executing an action, ALWAYS speak a brief, friendly confirmation in your text, and append the exact JSON action at the end:
+You can control the website and open any demo/link based on user commands! When executing an action, ALWAYS speak a brief, friendly confirmation in your text, and append the exact JSON action at the end:
+- Open project demo / links: When asked about a project, offer to open its live demo or GitHub repository in a new tab. When requested or confirmed by user (e.g. "open demo", "open shopkart", "open syncpulse", "open linkedin", etc.), append: {"action":"open_link","target":"<url or project_id>"}
 - Scroll down: When asked to scroll down or browse further, say e.g. "Scrolling down for you right now!" and append: {"action":"scroll_down"}
-- Navigate to section: When asked to show projects, skills, about, education/timeline, certifications, contact, or home, say e.g. "Taking you over to Ratnesh's projects!" and append: {"action":"scroll","target":"<home|about|projects|skills|experience|certifications|contact>"}
-- Play music: When asked to play a song or music, say e.g. "Playing that track for you on YouTube now!" and append: {"action":"play_song","query":"<song title or genre>"}
-- Open social links / email: When asked for Ratnesh's Instagram, Facebook, LinkedIn, GitHub, or email, append: {"action":"open_link","target":"<instagram|facebook|linkedin|github|email>"}
+- Navigate to section: When asked to show projects, skills, about, education/timeline, certifications, contact, or home, append: {"action":"scroll","target":"<home|about|projects|skills|experience|certifications|contact>"}
+- Play music: When asked to play a song or music, append: {"action":"play_song","query":"<song title or genre>"}
 - Change 3D avatar: When asked to change or switch 3D character, say "Opening Avatar Studio for you!" and append: {"action":"change_avatar","target":"<character_name or empty>"}`;
 
   const handleSend = async (textToSend?: string) => {

@@ -1290,23 +1290,47 @@ class AvatarChatBot {
             ];
             return jokes[Math.floor(Math.random() * jokes.length)];
         }
+        if (t.includes('shopkart') || t.includes('shop kart')) {
+            if (t.includes('open') || t.includes('demo') || t.includes('live') || t.includes('site')) {
+                return `Opening ShopKart live demo for you in a new tab now! {"action":"open_link","target":"https://shopkart919.netlify.app"}`;
+            }
+            return `ShopKart is Ratnesh's responsive React e-commerce platform featuring dynamic product catalogs, category filters, and stateful cart management! Would you like me to open the live demo for you in a new tab? {"action":"scroll","target":"projects"}`;
+        }
+        if (t.includes('mediflow') || t.includes('medi flow')) {
+            if (t.includes('repo') || t.includes('link') || t.includes('not open') || t.includes('private') || t.includes('404') || t.includes('broken') || t.includes('issue') || t.includes('why')) {
+                return `Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time telemetry. If you'd like an architectural walkthrough, feel free to contact Ratnesh directly! {"action":"scroll","target":"projects"}`;
+            }
+            return `MediFlow is Ratnesh's hospital queue management and wait-time forecasting system built with FastAPI, React 18, and Scikit-Learn! (Note: its repository is temporarily private for updates). {"action":"scroll","target":"projects"}`;
+        }
         if (t.includes('project') || t.includes('work') || t.includes('built')) {
-            return "Ratnesh has built exciting engineering projects like SyncPulse (Real-Time Audio DSP), PAK Video Converter (Android MediaCodec), JobPilot (AI Workflows), and Smart Antenna V2X! {" + '"action":"scroll","target":"projects"' + "}";
+            return "Ratnesh has built exciting engineering projects like SyncPulse (Real-Time Audio DSP), ShopKart (E-Commerce), PAK Video Converter (Android MediaCodec), and BMW 3D Visualizer! Just tell me any project name and I can open its live demo for you. {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('syncpulse') || t.includes('dsp') || t.includes('audio')) {
-            return "SyncPulse is Ratnesh's real-time collaborative audio workstation with ultra-low latency Web Audio DSP, 8D binaural spatial panning, and Cristian's NTP clock sync! {" + '"action":"scroll","target":"projects"' + "}";
+            if (t.includes('open') || t.includes('demo') || t.includes('live')) {
+                return `Opening SyncPulse live demo for you in a new tab! {"action":"open_link","target":"https://syncpulse-1igt.onrender.com"}`;
+            }
+            return "SyncPulse is Ratnesh's real-time collaborative audio workstation with ultra-low latency Web Audio DSP, 8D binaural spatial panning, and Cristian's NTP clock sync! Would you like me to open the live demo for you in a new tab? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('pak') || t.includes('video') || t.includes('android') || t.includes('mediacodec')) {
-            return "PAK Video Converter is an Android app with hardware-accelerated video transcoding using MediaCodec and Kotlin coroutines! {" + '"action":"scroll","target":"projects"' + "}";
+            if (t.includes('open') || t.includes('repo') || t.includes('github')) {
+                return `Opening PAK Video Converter repository for you in a new tab! {"action":"open_link","target":"https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"}`;
+            }
+            return "PAK Video Converter is an Android app with hardware-accelerated video transcoding using MediaCodec and Kotlin coroutines! Would you like me to open the GitHub repository for you? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('jobpilot') || t.includes('agent') || t.includes('automation')) {
-            return "JobPilot is an automated workflow engine connecting n8n, Gemini API, and webhooks for intelligent lead processing! {" + '"action":"scroll","target":"projects"' + "}";
+            if (t.includes('open') || t.includes('demo') || t.includes('live')) {
+                return `Opening JobPilot AI on n8n Cloud for you in a new tab! {"action":"open_link","target":"https://ratnesh919.app.n8n.cloud"}`;
+            }
+            return "JobPilot is an automated workflow engine connecting n8n, Gemini API, and webhooks for intelligent lead processing! Would you like me to open the live workflow demo? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('antenna') || t.includes('rf') || t.includes('hardware') || t.includes('hfss')) {
             return "Ratnesh engineered a high-frequency microstrip patch antenna with 74% size reduction and dual-band resonance using Ansys HFSS! {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('bmw') || t.includes('3d') || t.includes('webgl') || t.includes('m3')) {
-            return "The BMW M3 GTR 3D Visualizer is built with Three.js, WebGL shaders, and real-time physical lighting! {" + '"action":"scroll","target":"projects"' + "}";
+            if (t.includes('open') || t.includes('demo') || t.includes('live')) {
+                return `Opening BMW M3 GTR 3D visualizer for you in a new tab! {"action":"open_link","target":"https://relaxed-nasturtium-3abd55.netlify.app/"}`;
+            }
+            return "The BMW M3 GTR 3D Visualizer is built with Three.js, WebGL shaders, and real-time physical lighting! Would you like me to open the interactive 3D demo? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('skill') || t.includes('stack') || t.includes('tech')) {
             return "Ratnesh specializes in 5 core pillars: Real-Time Web & Audio DSP, Native Android MediaCodec, AI & Automation, RF Hardware & Embedded Systems, and Interactive 3D WebGL! {" + '"action":"scroll","target":"skills"' + "}";
@@ -1576,15 +1600,21 @@ class AvatarChatBot {
                 } else {
                     console.log('[Raya Guard] Suppressed automatic scroll action for query:', originalQuery);
                 }
-            } else if (actionObj.action === 'open_link') {
-                const lnk = (actionObj.target || '').toLowerCase();
+            } else if (actionObj.action === 'open_link' || actionObj.action === 'open_url') {
+                const lnk = (actionObj.target || actionObj.url || '').toLowerCase();
                 let url = '';
-                if (lnk.includes('email') || lnk.includes('mail')) url = 'mailto:kumarsinghratnesh3@gmail.com';
+                if (lnk.startsWith('http://') || lnk.startsWith('https://')) url = actionObj.target || actionObj.url;
+                else if (lnk.includes('email') || lnk.includes('mail')) url = 'mailto:kumarsinghratnesh3@gmail.com';
+                else if (lnk.includes('shopkart') || lnk.includes('shop_kart')) url = 'https://shopkart919.netlify.app';
+                else if (lnk.includes('syncpulse')) url = 'https://syncpulse-1igt.onrender.com';
+                else if (lnk.includes('bmw') || lnk.includes('m3')) url = 'https://relaxed-nasturtium-3abd55.netlify.app/';
+                else if (lnk.includes('jobpilot') || lnk.includes('job_pilot')) url = 'https://ratnesh919.app.n8n.cloud';
+                else if (lnk.includes('pak')) url = 'https://github.com/Ratnesh919/PAK_Video_Converter_Android_App';
                 else if (lnk.includes('git'))   url = 'https://github.com/Ratnesh919';
                 else if (lnk.includes('insta')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
                 else if (lnk.includes('face'))  url = 'https://www.facebook.com/share/1De11Vypsn/';
-                else if (lnk.includes('link'))  url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b?utm_source=share_via&utm_content=profile&utm_medium=member_android';
-                if (url) setTimeout(() => window.open(url, '_blank'), 1500);
+                else if (lnk.includes('link'))  url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b';
+                if (url) setTimeout(() => window.open(url, '_blank'), 1200);
             } else if (actionObj.action === 'change_avatar') {
                 this.executeChangeAvatar(actionObj.target);
             }
