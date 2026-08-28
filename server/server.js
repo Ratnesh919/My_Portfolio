@@ -153,6 +153,8 @@ function getGroqApiKeys() {
     const rawSources = [
         process.env.GROQ_API_KEYS,
         process.env.GROQ_API_KEY,
+        process.env.GROQ_KEY,
+        process.env.GROQ_API_KEY_1,
         process.env.GROQ_API_KEY_2,
         process.env.GROQ_API_KEY_3,
         process.env.GROQ_API_KEY_4,
@@ -166,131 +168,330 @@ function getGroqApiKeys() {
         keys.push(...parts);
     }
     const uniqueKeys = [...new Set(keys)];
-    // Filter out disabled invalid keys unless all keys are disabled
     const activeKeys = uniqueKeys.filter(k => !disabledKeys.has(k));
     return activeKeys.length > 0 ? activeKeys : uniqueKeys;
 }
 
-let currentKeyIndex = 0;
-async function callGroqWithRetry(payload) {
-    // 1. Try NVIDIA NIM API (meta/llama-3.1-8b-instruct) FIRST when NVIDIA_API_KEY is set for ultra-fast response (~425ms)
-    const nvidiaKey = decrypt(process.env.NVIDIA_API_KEY || process.env.NV_API_KEY || '');
-    if (nvidiaKey) {
-        try {
-            const res = await axios.post(
-                'https://integrate.api.nvidia.com/v1/chat/completions',
-                {
-                    model: 'meta/llama-3.1-8b-instruct',
-                    messages: payload.messages,
-                    temperature: payload.temperature || 0.7,
-                    max_tokens: payload.max_tokens || 120
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${nvidiaKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 8000
-                }
-            );
-            return res; // Sub-second NVIDIA NIM Success
-        } catch (nvErr) {
-            console.warn('⚠️ [NVIDIA NIM Primary Attempt Warning] Swapping to Groq keys:', nvErr.response?.data || nvErr.message);
-        }
-    }
-
-    // 2. Groq Multi-Key & Multi-Model Rotation System
-    const keys = getGroqApiKeys();
-    if (keys.length === 0) {
-        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY, GROQ_API_KEYS, or NVIDIA_API_KEY in your environment variables.');
-    }
-
-    // List of active Groq models optimized for ultra-low latency (sub-second response speed)
-    const primaryModel = payload.model || 'llama-3.3-70b-versatile';
-    const modelsToTry = [
-        primaryModel,
-        'llama-3.3-70b-versatile',
-        'llama-3.1-8b-instant',
-        'llama3-70b-8192',
-        'llama3-8b-8192'
+function getGeminiApiKeys() {
+    const rawSources = [
+        process.env.GEMINI_API_KEY,
+        process.env.GOOGLE_GEMINI_API_KEY,
+        process.env.GOOGLE_API_KEY,
+        process.env.GEMINI_KEY,
+        process.env.GOOGLE_AI_API_KEY
     ];
+    const keys = [];
+    for (const src of rawSources) {
+        if (!src || typeof src !== 'string') continue;
+        const parts = src.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+        keys.push(...parts);
+    }
+    return [...new Set(keys)];
+}
 
-    let lastError = null;
+function getOpenAIApiKeys() {
+    const rawSources = [
+        process.env.OPENAI_API_KEY,
+        process.env.OPENAI_KEY
+    ];
+    const keys = [];
+    for (const src of rawSources) {
+        if (!src || typeof src !== 'string') continue;
+        const parts = src.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+        keys.push(...parts);
+    }
+    return [...new Set(keys)];
+}
 
-    for (const modelCandidate of modelsToTry) {
-        let attempts = 0;
-        const currentPayload = { ...payload, model: modelCandidate };
+function getNvidiaApiKeys() {
+    const rawSources = [
+        process.env.NVIDIA_API_KEY,
+        process.env.NV_API_KEY
+    ];
+    const keys = [];
+    for (const src of rawSources) {
+        if (!src || typeof src !== 'string') continue;
+        const parts = src.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+        keys.push(...parts);
+    }
+    return [...new Set(keys)];
+}
 
-        while (attempts < keys.length) {
-            const apiKeyIndex = currentKeyIndex % keys.length;
-            const apiKey = keys[apiKeyIndex];
-            
-            try {
-                const response = await axios.post(
-                    'https://api.groq.com/openai/v1/chat/completions',
-                    currentPayload,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${apiKey}`,
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: 15000
-                    }
-                );
+function getOpenRouterKeys() {
+    const rawSources = [
+        process.env.OPENROUTER_API_KEY,
+        process.env.OPENROUTER_KEY
+    ];
+    const keys = [];
+    for (const src of rawSources) {
+        if (!src || typeof src !== 'string') continue;
+        const parts = src.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+        keys.push(...parts);
+    }
+    return [...new Set(keys)];
+}
 
-                if (attempts > 0) {
-                    console.log(`🟢 [Groq Key Failover Success] Request completed using Backup Key #${apiKeyIndex + 1} on model '${modelCandidate}'`);
-                }
-                return response; // Success
-            } catch (err) {
-                lastError = err;
-                const status = err.response?.status;
-                const errMsg = err.response?.data?.error?.message || err.message;
-                
-                console.warn(`⚠️ [Groq API Key #${apiKeyIndex + 1} Fail] Model '${modelCandidate}' (Status ${status || 'Network'}): ${errMsg}`);
+// ── Google Gemini Provider ──────────────────────────────────────────────────
+async function callGeminiDirect(geminiKey, payload) {
+    const messages = payload.messages || [];
+    let systemText = '';
+    const contents = [];
 
-                if (status === 401 || status === 403) {
-                    console.warn(`🚨 [Groq Key Disabled] Key #${apiKeyIndex + 1} returned status ${status}. Temporarily disabling key...`);
-                    disabledKeys.add(apiKey);
-                }
-
-                // Automatically rotate to the next backup API key!
-                currentKeyIndex = (currentKeyIndex + 1) % keys.length;
-                attempts++;
-
-                console.log(`🔄 [Groq Key Failover] Rotating to Backup API Key #${(currentKeyIndex % keys.length) + 1} (Attempt ${attempts}/${keys.length})...`);
-            }
+    for (const m of messages) {
+        if (m.role === 'system') {
+            systemText += (systemText ? '\n\n' : '') + m.content;
+        } else {
+            contents.push({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content || '' }]
+            });
         }
     }
 
-    // Ultimate Fallback: NVIDIA NIM API (if all Groq keys & models fail)
-    if (nvidiaKey) {
+    if (contents.length === 0) {
+        contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
+    }
+
+    const geminiPayload = {
+        contents: contents,
+        generationConfig: {
+            temperature: payload.temperature || 0.7,
+            maxOutputTokens: payload.max_tokens ? Math.min(payload.max_tokens * 2, 400) : 250,
+        }
+    };
+
+    if (systemText) {
+        geminiPayload.systemInstruction = {
+            parts: [{ text: systemText }]
+        };
+    }
+
+    const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    let lastErr = null;
+
+    for (const model of models) {
         try {
-            console.log('🔄 [LLM Fallback] Groq keys exhausted, falling back to NVIDIA NIM API (meta/llama-3.1-8b-instruct)...');
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+            const res = await axios.post(url, geminiPayload, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 15000
+            });
+            const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+                return {
+                    data: {
+                        choices: [{
+                            message: { role: 'assistant', content: text }
+                        }]
+                    }
+                };
+            }
+        } catch (err) {
+            lastErr = err;
+            console.warn(`[Gemini API Warning] Model ${model} failed:`, err.response?.data || err.message);
+        }
+    }
+    throw lastErr || new Error('Gemini API failed to generate text');
+}
+
+// ── OpenAI Provider ─────────────────────────────────────────────────────────
+async function callOpenAIDirect(openaiKey, payload) {
+    const models = ['gpt-4o-mini', 'gpt-3.5-turbo'];
+    let lastErr = null;
+    for (const model of models) {
+        try {
             const res = await axios.post(
-                'https://integrate.api.nvidia.com/v1/chat/completions',
+                'https://api.openai.com/v1/chat/completions',
                 {
-                    model: 'meta/llama-3.1-8b-instruct',
+                    model,
                     messages: payload.messages,
                     temperature: payload.temperature || 0.7,
-                    max_tokens: payload.max_tokens || 120
+                    max_tokens: payload.max_tokens || 160
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${nvidiaKey}`,
+                        Authorization: `Bearer ${openaiKey}`,
                         'Content-Type': 'application/json'
                     },
                     timeout: 15000
                 }
             );
-            console.log('🟢 [NVIDIA NIM Success] Reply received from NVIDIA NIM backup provider!');
             return res;
-        } catch (nvErr) {
-            console.warn('⚠️ [NVIDIA NIM Fallback Failed]:', nvErr.response?.data || nvErr.message);
+        } catch (err) {
+            lastErr = err;
+            console.warn(`[OpenAI API Warning] Model ${model} failed:`, err.response?.data || err.message);
+        }
+    }
+    throw lastErr || new Error('OpenAI API failed');
+}
+
+// ── OpenRouter Provider ─────────────────────────────────────────────────────
+async function callOpenRouterDirect(openrouterKey, payload) {
+    const models = ['meta-llama/llama-3.3-70b-instruct', 'google/gemini-flash-1.5', 'openai/gpt-4o-mini'];
+    let lastErr = null;
+    for (const model of models) {
+        try {
+            const res = await axios.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                {
+                    model,
+                    messages: payload.messages,
+                    temperature: payload.temperature || 0.7,
+                    max_tokens: payload.max_tokens || 160
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${openrouterKey}`,
+                        'HTTP-Referer': 'https://ratnesh-portfolio.vercel.app',
+                        'X-Title': 'Ratnesh Portfolio Raya AI',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 15000
+                }
+            );
+            return res;
+        } catch (err) {
+            lastErr = err;
+            console.warn(`[OpenRouter API Warning] Model ${model} failed:`, err.response?.data || err.message);
+        }
+    }
+    throw lastErr || new Error('OpenRouter API failed');
+}
+
+let currentKeyIndex = 0;
+
+async function callGroqWithRetry(payload) {
+    // Collect all available LLM providers
+    const groqKeys = getGroqApiKeys();
+    const geminiKeys = getGeminiApiKeys();
+    const openaiKeys = getOpenAIApiKeys();
+    const nvidiaKeys = getNvidiaApiKeys();
+    const openrouterKeys = getOpenRouterKeys();
+
+    const hasAnyKeys = groqKeys.length > 0 || geminiKeys.length > 0 || openaiKeys.length > 0 || nvidiaKeys.length > 0 || openrouterKeys.length > 0;
+    if (!hasAnyKeys) {
+        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY, or NVIDIA_API_KEY in your Vercel environment variables.');
+    }
+
+    // 1. Try Groq (ultra-low latency) if available
+    if (groqKeys.length > 0) {
+        const primaryModel = payload.model || 'llama-3.3-70b-versatile';
+        const modelsToTry = [
+            primaryModel,
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'llama3-70b-8192',
+            'llama3-8b-8192'
+        ];
+
+        for (const modelCandidate of modelsToTry) {
+            let attempts = 0;
+            const currentPayload = { ...payload, model: modelCandidate };
+
+            while (attempts < groqKeys.length) {
+                const apiKeyIndex = currentKeyIndex % groqKeys.length;
+                const apiKey = groqKeys[apiKeyIndex];
+                
+                try {
+                    const response = await axios.post(
+                        'https://api.groq.com/openai/v1/chat/completions',
+                        currentPayload,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${apiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 12000
+                        }
+                    );
+                    return response;
+                } catch (err) {
+                    const status = err.response?.status;
+                    const errMsg = err.response?.data?.error?.message || err.message;
+                    console.warn(`⚠️ [Groq Key #${apiKeyIndex + 1} Fail] Model '${modelCandidate}' (Status ${status || 'Network'}): ${errMsg}`);
+
+                    if (status === 401 || status === 403) {
+                        disabledKeys.add(apiKey);
+                    }
+                    currentKeyIndex = (currentKeyIndex + 1) % groqKeys.length;
+                    attempts++;
+                }
+            }
         }
     }
 
-    throw new Error(`All Groq API key(s) and NVIDIA backup providers failed: ${lastError?.message || 'Rate-limited or exhausted'}`);
+    // 2. Failover to Google Gemini API (high reliability & quota)
+    if (geminiKeys.length > 0) {
+        for (const gKey of geminiKeys) {
+            try {
+                console.log('🔄 [LLM Failover] Calling Google Gemini API...');
+                const res = await callGeminiDirect(gKey, payload);
+                console.log('🟢 [Gemini Success] Response received from Google Gemini API!');
+                return res;
+            } catch (gErr) {
+                console.warn('⚠️ [Gemini Failover Error]:', gErr.response?.data || gErr.message);
+            }
+        }
+    }
+
+    // 3. Failover to OpenAI API
+    if (openaiKeys.length > 0) {
+        for (const oKey of openaiKeys) {
+            try {
+                console.log('🔄 [LLM Failover] Calling OpenAI API...');
+                const res = await callOpenAIDirect(oKey, payload);
+                console.log('🟢 [OpenAI Success] Response received from OpenAI API!');
+                return res;
+            } catch (oErr) {
+                console.warn('⚠️ [OpenAI Failover Error]:', oErr.response?.data || oErr.message);
+            }
+        }
+    }
+
+    // 4. Failover to NVIDIA NIM API
+    if (nvidiaKeys.length > 0) {
+        for (const nvKey of nvidiaKeys) {
+            try {
+                console.log('🔄 [LLM Failover] Calling NVIDIA NIM API...');
+                const res = await axios.post(
+                    'https://integrate.api.nvidia.com/v1/chat/completions',
+                    {
+                        model: 'meta/llama-3.1-8b-instruct',
+                        messages: payload.messages,
+                        temperature: payload.temperature || 0.7,
+                        max_tokens: payload.max_tokens || 140
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${nvKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 12000
+                    }
+                );
+                console.log('🟢 [NVIDIA NIM Success] Response received from NVIDIA NIM!');
+                return res;
+            } catch (nvErr) {
+                console.warn('⚠️ [NVIDIA NIM Failover Error]:', nvErr.response?.data || nvErr.message);
+            }
+        }
+    }
+
+    // 5. Failover to OpenRouter API
+    if (openrouterKeys.length > 0) {
+        for (const orKey of openrouterKeys) {
+            try {
+                console.log('🔄 [LLM Failover] Calling OpenRouter API...');
+                const res = await callOpenRouterDirect(orKey, payload);
+                console.log('🟢 [OpenRouter Success] Response received from OpenRouter!');
+                return res;
+            } catch (orErr) {
+                console.warn('⚠️ [OpenRouter Failover Error]:', orErr.response?.data || orErr.message);
+            }
+        }
+    }
+
+    throw new Error('All configured LLM providers (Groq, Gemini, OpenAI, NVIDIA NIM, OpenRouter) returned errors or rate limits.');
 }
 
 // ── Circuit Breaker Setup ──────────────────────────────────────────────────────

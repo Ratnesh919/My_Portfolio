@@ -1271,6 +1271,17 @@ class AvatarChatBot {
 
     generateSmartFallback(userText) {
         const t = (userText || '').toLowerCase();
+        if (t.includes('joke') || t.includes('funny') || t.includes('laugh') || t.includes('riddle') || t.includes('pun') || t.includes('humor')) {
+            const jokes = [
+                "Why do programmers prefer dark mode? Because light attracts bugs!",
+                "Why did the JavaScript developer wear glasses? Because they didn't C#!",
+                "There are 10 types of people in the world: those who understand binary, and those who don't!",
+                "Why was the cell phone wearing glasses? It lost its contacts!",
+                "A SQL query walks into a bar, walks up to two tables and asks: 'Can I join you?'",
+                "How many programmers does it take to change a light bulb? None, that's a hardware problem!"
+            ];
+            return jokes[Math.floor(Math.random() * jokes.length)];
+        }
         if (t.includes('project') || t.includes('work') || t.includes('built')) {
             return "Ratnesh has built exciting engineering projects like SyncPulse (Real-Time Audio DSP), PAK Video Converter (Android MediaCodec), JobPilot (AI Workflows), and Smart Antenna V2X! {" + '"action":"scroll","target":"projects"' + "}";
         }
@@ -1304,7 +1315,11 @@ class AvatarChatBot {
         if (t.includes('hello') || t.includes('hi') || t.includes('hey')) {
             return "Hello there! I'm Raya, Ratnesh's companion. What would you like to explore in his portfolio?";
         }
-        return "I'm right here with you! You can ask me about Ratnesh's 5 skill pillars, his projects like SyncPulse and PAK Video, or ask me to scroll to any section!";
+        if (t.includes('song') || t.includes('music') || t.includes('play')) {
+            const cleanSongName = userText.replace(/play|song|music|a|the|for|me|on|youtube/gi, '').trim() || 'lofi hip hop';
+            return `Playing ${cleanSongName} for you on YouTube! {"action":"play_song","query":"${cleanSongName}"}`;
+        }
+        return "I'm right here with you! You can ask me about Ratnesh's 5 skill pillars, his projects like SyncPulse and PAK Video, tell me to play a song, or ask me to scroll to any section!";
     }
 
     // LOCAL COMMAND MATCHER
