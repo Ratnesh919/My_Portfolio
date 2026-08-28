@@ -219,12 +219,17 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     const femaleVoices = voices.filter(v => v && v.name && !MALE_FILTER.test(v.name));
     const candidateVoices = femaleVoices.length > 0 ? femaleVoices : voices;
 
+    // Dialect detection
+    const isUKEnglish = /\b(colour|flavour|favour|honour|neighbour|theatre|centre|metre|cheers|mate|brilliant|proper|bloke|fancy|bloody|splendid|sorted|reckon|quid|rubbish|trousers|flat|postcode|lorry|biscuit)\b/i.test(text);
+    const isIndianEnglish = /\b(ratnesh|svist|makaut|syncpulse|pak|btech|ece|kolkata|india|indian|pass out|prepone|revert back|good name|do the needful|bhai|yaar)\b/i.test(text) || (typeof navigator !== 'undefined' && navigator.language === 'en-IN');
+
     if (isBengali) {
       lang = 'bn-IN';
       rate = 1.0;
       pitch = 1.15;
       voice = candidateVoices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Tanishaa/i.test(v.name) || /Nabami/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isPunjabi) {
@@ -233,6 +238,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       pitch = 1.15;
       voice = candidateVoices.find(v => /Gurpreet.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Gurpreet/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isGujarati) {
@@ -241,6 +247,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       pitch = 1.15;
       voice = candidateVoices.find(v => /Dhwani.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Dhwani/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isMarathi) {
@@ -249,6 +256,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       pitch = 1.15;
       voice = candidateVoices.find(v => /Aarohi.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Aarohi/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.name.includes('मराठी') || v.name.includes('Marathi')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isTamil) {
@@ -278,18 +286,39 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       voice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Swara/i.test(v.name)) ||
               candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) || null;
-    } else {
+              candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) || null;
+    } else if (isUKEnglish) {
+      // UK English British Accent
+      lang = 'en-GB';
+      rate = 1.05;
+      pitch = 1.20;
+      voice = candidateVoices.find(v => /Sonia.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Libby.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Maisie.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => v.name === 'Google UK English Female') ||
+              candidateVoices.find(v => (v.lang.startsWith('en-GB') || v.lang.startsWith('en_GB')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) || null;
+    } else if (isIndianEnglish) {
+      // Indian English Accent
       lang = 'en-IN';
+      rate = 1.08;
+      pitch = 1.25;
+      voice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja/i.test(v.name)) ||
+              candidateVoices.find(v => /Heera/i.test(v.name)) ||
+              candidateVoices.find(v => (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) || null;
+    } else {
+      // Standard US / Global English
+      lang = 'en-US';
       rate = 1.08;
       pitch = 1.25;
       voice = candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Jenny.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Aria.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-              candidateVoices.find(v => v.name === 'Google UK English Female') ||
               candidateVoices.find(v => v.name === 'Google US English') ||
               candidateVoices.find(v => /Samantha/i.test(v.name)) ||
               candidateVoices.find(v => /Karen/i.test(v.name)) ||
@@ -520,11 +549,20 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       searchAndPlayYouTube(cleanSongName);
       return `Playing ${cleanSongName} for you on YouTube now! Enjoy the music. {"action":"play_song","query":"${cleanSongName}"}`;
     }
-    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal') || q.includes('kemon') || q.includes('kidda') || q.includes('kem cho')) {
-      return `Hello! I'm doing great. What would you like to explore about Ratnesh's engineering projects, skills, or certifications?`;
+    if (q.includes('kemon') || q.includes('ki korcho') || q.includes('ki korchis') || q.includes('bhalo')) {
+      return `Ami khub bhalo achi! Tumi Ratnesh-er engineering projects ba skills niye kichu jante chao?`;
+    }
+    if (q.includes('kidda') || q.includes('sat sri akal') || q.includes('kive')) {
+      return `Main vadiya han ji! Tussi Ratnesh de projects baare ki puchna chaunde ho?`;
+    }
+    if (q.includes('kem cho') || q.includes('majama') || q.includes('su kare')) {
+      return `Hu majama chu! Tame Ratnesh na projects vishe su janva mango cho?`;
+    }
+    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal') || q.includes('kya kar rahe') || q.includes('kuch batao')) {
+      return `Main badhiya hoon! Aap Ratnesh ke 5 skill pillars, SyncPulse ya PAK Video Converter ke baare mein kya jaanna chahte hain?`;
     }
     if (q.includes('konnichiwa') || q.includes('arigatou')) {
-      return `Hello! I am Raya, your guide to Ratnesh's interactive portfolio. How can I assist you today?`;
+      return `Konnichiwa! Watashi wa Raya desu. Ratnesh no purojekuto o goannai shimasu!`;
     }
 
     return `Ratnesh is a multi-disciplinary engineer specializing in Web Audio DSP, Android MediaCodec, AI Agent workflows with Gemini API, and RF antenna simulation in Ansys HFSS. Ask me about any specific project or skill!`;

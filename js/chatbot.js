@@ -2037,15 +2037,40 @@ class AvatarChatBot {
                 selectedVoice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Swara/i.test(v.name)) ||
                                 candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
+                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name));
+                                candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name));
             } else {
-                langCode = 'en-IN';
-                speechRate = 1.08;
-                speechPitch = 1.25;
-                if (!this.femaleVoice) this.loadVoices();
-                selectedVoice = this.femaleVoice;
+                // English Dialect Resolution (UK vs Indian vs US English)
+                const isUKEnglish = /\b(colour|flavour|favour|honour|neighbour|theatre|centre|metre|cheers|mate|brilliant|proper|bloke|fancy|bloody|splendid|sorted|reckon|quid|rubbish|trousers|flat|postcode|lorry|biscuit)\b/i.test(cleanText);
+                const isIndianEnglish = /\b(ratnesh|svist|makaut|syncpulse|pak|btech|ece|kolkata|india|indian|pass out|prepone|revert back|good name|do the needful|bhai|yaar)\b/i.test(cleanText) || (typeof navigator !== 'undefined' && navigator.language === 'en-IN');
+
+                if (isUKEnglish) {
+                    langCode = 'en-GB';
+                    speechRate = 1.05;
+                    speechPitch = 1.20;
+                    selectedVoice = candidateVoices.find(v => /Sonia.*Natural/i.test(v.name)) ||
+                                    candidateVoices.find(v => /Libby.*Natural/i.test(v.name)) ||
+                                    candidateVoices.find(v => /Maisie.*Natural/i.test(v.name)) ||
+                                    candidateVoices.find(v => v.name === 'Google UK English Female') ||
+                                    candidateVoices.find(v => (v.lang.startsWith('en-GB') || v.lang.startsWith('en_GB')) && !MALE_FILTER.test(v.name)) ||
+                                    candidateVoices.find(v => /Ava.*Natural/i.test(v.name));
+                } else if (isIndianEnglish) {
+                    langCode = 'en-IN';
+                    speechRate = 1.08;
+                    speechPitch = 1.25;
+                    selectedVoice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+                                    candidateVoices.find(v => /Neerja/i.test(v.name)) ||
+                                    candidateVoices.find(v => /Heera/i.test(v.name)) ||
+                                    candidateVoices.find(v => (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
+                                    candidateVoices.find(v => /Ava.*Natural/i.test(v.name));
+                } else {
+                    langCode = 'en-US';
+                    speechRate = 1.08;
+                    speechPitch = 1.25;
+                    if (!this.femaleVoice) this.loadVoices();
+                    selectedVoice = this.femaleVoice;
+                }
             }
 
             if (!selectedVoice) {
