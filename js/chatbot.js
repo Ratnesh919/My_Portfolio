@@ -1957,6 +1957,7 @@ class AvatarChatBot {
             }
 
             // Universal multi-language script and Romanized phonetics detection
+            // Universal multi-language script and Romanized phonetics detection
             const isBengali = /[\u0980-\u09FF]/.test(cleanText) || /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob)\b/i.test(cleanText);
             const isPunjabi = /[\u0A00-\u0A7F]/.test(cleanText) || /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi)\b/i.test(cleanText);
             const isGujarati = /[\u0A80-\u0AFF]/.test(cleanText) || /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame)\b/i.test(cleanText);
@@ -1971,71 +1972,74 @@ class AvatarChatBot {
             let speechRate = 1.08;
             let speechPitch = 1.25;
 
-            const voices = this.synth.getVoices();
+            const allVoices = this.synth.getVoices();
+            // Strict filter to guarantee ONLY female voices are ever used for Raya
+            const MALE_FILTER = /male|bashkar|madhur|hemant|ojas|niranjan|manohar|valluvar|mohan|gagan|midhun|keita|david|mark|george|james|ravi|guy|ryan|christopher|eric|andrew|brian|roger|steffan|prabhat/i;
+            const femaleVoices = allVoices.filter(v => v && v.name && !MALE_FILTER.test(v.name));
+            const candidateVoices = femaleVoices.length > 0 ? femaleVoices : allVoices;
 
             if (isBengali) {
                 langCode = 'bn-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
-                                voices.find(v => /Tanishaa/i.test(v.name)) ||
-                                voices.find(v => /Bashkar.*Natural/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) ||
-                                voices.find(v => v.name.includes('বাংলা') || v.name.includes('Bengali'));
+                selectedVoice = candidateVoices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Tanishaa/i.test(v.name) || /Nabami/i.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name));
             } else if (isPunjabi) {
                 langCode = 'pa-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Gurpreet.*Natural/i.test(v.name) || /Ojas.*Natural/i.test(v.name)) ||
-                                voices.find(v => /Gurpreet/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) ||
-                                voices.find(v => v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi'));
+                selectedVoice = candidateVoices.find(v => /Gurpreet.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Gurpreet/i.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name));
             } else if (isGujarati) {
                 langCode = 'gu-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Dhwani.*Natural/i.test(v.name) || /Niranjan.*Natural/i.test(v.name)) ||
-                                voices.find(v => /Dhwani/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) ||
-                                voices.find(v => v.name.includes('ગુજરાતી') || v.name.includes('Gujarati'));
+                selectedVoice = candidateVoices.find(v => /Dhwani.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Dhwani/i.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name));
             } else if (isMarathi) {
                 langCode = 'mr-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Aarohi.*Natural/i.test(v.name) || /Manohar.*Natural/i.test(v.name)) ||
-                                voices.find(v => /Aarohi/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) ||
-                                voices.find(v => v.name.includes('मराठी') || v.name.includes('Marathi'));
+                selectedVoice = candidateVoices.find(v => /Aarohi.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Aarohi/i.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.name.includes('मराठी') || v.name.includes('Marathi')) && !MALE_FILTER.test(v.name));
             } else if (isTamil) {
                 langCode = 'ta-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Pallavi.*Natural/i.test(v.name) || /Valluvar.*Natural/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('ta'));
+                selectedVoice = candidateVoices.find(v => /Pallavi.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Pallavi/i.test(v.name)) ||
+                                candidateVoices.find(v => v.lang.startsWith('ta') && !MALE_FILTER.test(v.name));
             } else if (isTelugu) {
                 langCode = 'te-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Shruti.*Natural/i.test(v.name) || /Mohan.*Natural/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('te'));
+                selectedVoice = candidateVoices.find(v => /Shruti.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Shruti/i.test(v.name)) ||
+                                candidateVoices.find(v => v.lang.startsWith('te') && !MALE_FILTER.test(v.name));
             } else if (isJapanese) {
                 langCode = 'ja-JP';
                 speechRate = 1.05;
                 speechPitch = 1.25;
-                selectedVoice = voices.find(v => /Nanami.*Natural/i.test(v.name) || /Keita.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('ja'));
+                selectedVoice = candidateVoices.find(v => /Nanami.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name)) ||
+                                candidateVoices.find(v => v.lang.startsWith('ja') && !MALE_FILTER.test(v.name));
             } else if (isHindi) {
                 langCode = 'hi-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
-                selectedVoice = voices.find(v => /Swara.*Natural/i.test(v.name)) ||
-                                voices.find(v => /Swara/i.test(v.name)) ||
-                                voices.find(v => /Madhur.*Natural/i.test(v.name)) ||
-                                voices.find(v => /Kalpana/i.test(v.name)) ||
-                                voices.find(v => /Hemant.*Natural/i.test(v.name)) ||
-                                voices.find(v => v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) ||
-                                voices.find(v => v.name.includes('हिन्दी') || v.name.includes('Hindi')) ||
-                                voices.find(v => /Neerja.*Natural/i.test(v.name));
+                selectedVoice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Swara/i.test(v.name)) ||
+                                candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name));
             } else {
                 langCode = 'en-IN';
                 speechRate = 1.08;
@@ -2046,7 +2050,7 @@ class AvatarChatBot {
 
             if (!selectedVoice) {
                 if (!this.femaleVoice) this.loadVoices();
-                selectedVoice = this.femaleVoice || voices[0];
+                selectedVoice = this.femaleVoice || candidateVoices[0];
             }
 
             const utterance = new SpeechSynthesisUtterance(cleanText);

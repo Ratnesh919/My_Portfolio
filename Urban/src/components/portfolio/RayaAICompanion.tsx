@@ -214,87 +214,91 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     let rate = 1.08;
     let pitch = 1.25;
 
+    // Strict filter to guarantee ONLY female voices are ever chosen
+    const MALE_FILTER = /male|bashkar|madhur|hemant|ojas|niranjan|manohar|valluvar|mohan|gagan|midhun|keita|david|mark|george|james|ravi|guy|ryan|christopher|eric|andrew|brian|roger|steffan|prabhat/i;
+    const femaleVoices = voices.filter(v => v && v.name && !MALE_FILTER.test(v.name));
+    const candidateVoices = femaleVoices.length > 0 ? femaleVoices : voices;
+
     if (isBengali) {
       lang = 'bn-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
-              voices.find(v => /Tanishaa/i.test(v.name)) ||
-              voices.find(v => /Bashkar.*Natural/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) ||
-              voices.find(v => v.name.includes('বাংলা') || v.name.includes('Bengali')) || null;
+      voice = candidateVoices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Tanishaa/i.test(v.name) || /Nabami/i.test(v.name)) ||
+              candidateVoices.find(v => (v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isPunjabi) {
       lang = 'pa-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Gurpreet.*Natural/i.test(v.name) || /Ojas.*Natural/i.test(v.name)) ||
-              voices.find(v => /Gurpreet/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) ||
-              voices.find(v => v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) || null;
+      voice = candidateVoices.find(v => /Gurpreet.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Gurpreet/i.test(v.name)) ||
+              candidateVoices.find(v => (v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isGujarati) {
       lang = 'gu-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Dhwani.*Natural/i.test(v.name) || /Niranjan.*Natural/i.test(v.name)) ||
-              voices.find(v => /Dhwani/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) ||
-              voices.find(v => v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) || null;
+      voice = candidateVoices.find(v => /Dhwani.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Dhwani/i.test(v.name)) ||
+              candidateVoices.find(v => (v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isMarathi) {
       lang = 'mr-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Aarohi.*Natural/i.test(v.name) || /Manohar.*Natural/i.test(v.name)) ||
-              voices.find(v => /Aarohi/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) ||
-              voices.find(v => v.name.includes('मराठी') || v.name.includes('Marathi')) || null;
+      voice = candidateVoices.find(v => /Aarohi.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Aarohi/i.test(v.name)) ||
+              candidateVoices.find(v => (v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => (v.name.includes('मराठी') || v.name.includes('Marathi')) && !MALE_FILTER.test(v.name)) || null;
     } else if (isTamil) {
       lang = 'ta-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Pallavi.*Natural/i.test(v.name) || /Valluvar.*Natural/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('ta')) || null;
+      voice = candidateVoices.find(v => /Pallavi.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Pallavi/i.test(v.name)) ||
+              candidateVoices.find(v => v.lang.startsWith('ta') && !MALE_FILTER.test(v.name)) || null;
     } else if (isTelugu) {
       lang = 'te-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Shruti.*Natural/i.test(v.name) || /Mohan.*Natural/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('te')) || null;
+      voice = candidateVoices.find(v => /Shruti.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Shruti/i.test(v.name)) ||
+              candidateVoices.find(v => v.lang.startsWith('te') && !MALE_FILTER.test(v.name)) || null;
     } else if (isJapanese) {
       lang = 'ja-JP';
       rate = 1.05;
       pitch = 1.25;
-      voice = voices.find(v => /Nanami.*Natural/i.test(v.name) || /Keita.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('ja')) || null;
+      voice = candidateVoices.find(v => /Nanami.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name)) ||
+              candidateVoices.find(v => v.lang.startsWith('ja') && !MALE_FILTER.test(v.name)) || null;
     } else if (isHindi) {
       lang = 'hi-IN';
       rate = 1.0;
       pitch = 1.15;
-      voice = voices.find(v => /Swara.*Natural/i.test(v.name)) ||
-              voices.find(v => /Swara/i.test(v.name)) ||
-              voices.find(v => /Madhur.*Natural/i.test(v.name)) ||
-              voices.find(v => /Kalpana/i.test(v.name)) ||
-              voices.find(v => /Hemant.*Natural/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) ||
-              voices.find(v => v.name.includes('हिन्दी') || v.name.includes('Hindi')) ||
-              voices.find(v => /Neerja.*Natural/i.test(v.name)) || null;
+      voice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Swara/i.test(v.name)) ||
+              candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
+              candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) || null;
     } else {
       lang = 'en-IN';
       rate = 1.08;
       pitch = 1.25;
-      voice = voices.find(v => /Ava.*Natural/i.test(v.name)) ||
-              voices.find(v => /Jenny.*Natural/i.test(v.name)) ||
-              voices.find(v => /Aria.*Natural/i.test(v.name)) ||
-              voices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-              voices.find(v => v.name === 'Google UK English Female') ||
-              voices.find(v => v.name === 'Google US English') ||
-              voices.find(v => /Samantha/i.test(v.name)) ||
-              voices.find(v => /Karen/i.test(v.name)) ||
-              voices.find(v => /Zira/i.test(v.name)) ||
-              voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
-              voices.find(v => v.lang.startsWith('en')) || null;
+      voice = candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Jenny.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Aria.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => v.name === 'Google UK English Female') ||
+              candidateVoices.find(v => v.name === 'Google US English') ||
+              candidateVoices.find(v => /Samantha/i.test(v.name)) ||
+              candidateVoices.find(v => /Karen/i.test(v.name)) ||
+              candidateVoices.find(v => /Zira/i.test(v.name)) ||
+              candidateVoices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
+              candidateVoices.find(v => v.lang.startsWith('en') && !MALE_FILTER.test(v.name)) || null;
     }
 
-    return { voice: voice || voices[0] || null, lang, rate, pitch };
+    return { voice: voice || candidateVoices[0] || null, lang, rate, pitch };
   };
 
   const speakRaya = (text: string) => {
