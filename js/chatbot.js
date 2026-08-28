@@ -59,8 +59,7 @@ function getTimeOfDayGreeting() {
 }
 
 function getIntroText() {
-    const greeting = getTimeOfDayGreeting();
-    return `${greeting}! I am Raya, Ratnesh's virtual companion. Welcome to his engineering portfolio! You can explore his 5 core specializations in Web Audio DSP, Android MediaCodec, Automated Pipelines, RF Hardware, and 3D Graphics. What is your name?`;
+    return "Hi! I am Raya, your guide for this portfolio. Welcome to Ratnesh's portfolio! I can navigate you through the portfolio, tell you about Ratnesh and his projects, or play a song. What is your name?";
 }
 
 const THEME_PROMPT = "Explore Ratnesh's 5 core skill tracks: 1 Full-Stack Web & Audio DSP, 2 Native Android, 3 Workflow Automation & Pipelines, 4 Embedded & RF Hardware, or 5 Interactive 3D Graphics. Which one would you like to explore?";
@@ -196,12 +195,12 @@ class AvatarChatBot {
         let introMessage;
         const isReturning = this.userName || localStorage.getItem('rayaHasVisited') === 'true';
         if (isReturning) {
-            const greeting = getTimeOfDayGreeting();
-            const namePart = this.userName ? `, ${this.userName}` : '';
-            introMessage = `${greeting}${namePart}! Welcome to Ratnesh's engineering portfolio. You can explore his 5 core skill tracks and projects, or ask me any question!`;
+            introMessage = this.userName 
+                ? `Welcome back, ${this.userName}! It's nice to have you back. How can I help you?`
+                : "Welcome! It's nice to have you back. How can I help you?";
             this._awaitingTheme = true;
         } else {
-            // New user — combined intro + theme list in one message
+            // New user intro
             introMessage = getIntroText();
             this._awaitingName    = true;
             this._awaitingTheme   = true;

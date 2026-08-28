@@ -33,14 +33,27 @@
 
     <link rel="stylesheet" href="./css/chatbot.css">
     
-    <script type="module" crossorigin src="/assets/index-DLS8Tg0Q.js"></script>
+    <script type="module" crossorigin src="/assets/index-DgS-FAh7.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BPGCvqat.css">
   </head>
   <body class="bg-[#07050d] text-slate-100 selection:bg-purple-600 selection:text-white m-0 p-0 overflow-x-hidden">
     <div id="root"></div>
-
     <!-- ═══ 3D VRM Full-Body Canvas & Vanilla Scripts ═══ -->
     <canvas id="vrm-canvas"></canvas>
+
+    <!-- ═══ Avatar Switch & Loading Indicator ═══ -->
+    <div id="vrm-loading" class="fixed inset-0 z-[2147483645] flex items-center justify-center bg-black/65 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300" style="display: none;">
+      <div class="flex flex-col items-center gap-3 p-6 rounded-3xl bg-[#120a22]/95 border border-purple-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(168,85,247,0.25)] min-w-[260px] text-center">
+        <div class="w-10 h-10 border-3 border-purple-500/20 border-t-[#ff416c] rounded-full animate-spin"></div>
+        <div class="flex flex-col items-center">
+          <span class="loading-text text-xs sm:text-sm font-bold text-white tracking-wider font-mono uppercase">Switching Avatar...</span>
+          <span id="vrm-loading-pct" class="text-xs text-[#ff416c] font-bold font-mono mt-1">0%</span>
+        </div>
+        <div class="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
+          <div id="vrm-loading-bar" class="h-full bg-gradient-to-r from-[#ff416c] to-[#a855f7] rounded-full transition-all duration-150" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
 
     <script>
       window.getAvatarUrl = function(localPath) {

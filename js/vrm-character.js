@@ -624,16 +624,17 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     };
 
     // Global helper so chatbot can trigger the intro wave.
-    window.playWaveAnimation = () => {
+    window.playWaveAnimation = async () => {
         if (!vrm) return;
         const wave1Key = ANIM.wave1;
         clearAutoTimer();
         applyState('wave', 'happy', 0.85);
 
-        if (actions[wave1Key]) {
-            playAnim(wave1Key, false, 0.35);
-        } else if (actions[ANIM.wave2]) {
-            playAnim(ANIM.wave2, false, 0.35);
+        try {
+            await playAnim(wave1Key, false, 0.35);
+        } catch (e) {
+            console.warn('[VRM] Wave anim fallback:', e);
+            if (actions[ANIM.wave2]) playAnim(ANIM.wave2, false, 0.35);
         }
     };
 
@@ -780,17 +781,16 @@ function clearAutoTimer() {
     if (autoTimerId !== null) { clearTimeout(autoTimerId); autoTimerId = null; }
 }
 
-// After any animation ends → go to idle/sit, then schedule next auto-anim
+// After any animation ends → go to idle/sit, then schedule next auto-anim (30s gap)
 function returnToIdle() {
     if (isSittingOnChatbox) {
-        // Sitting cycle base: sit2 is the resting pose (sit1 is the expression break)
+        // Sitting cycle base: sit2 is the resting pose
         applyState('happyIdle', 'relaxed', 0.55);
         playAnim(ANIM.sit2, true, 0.5);
-        lastAnimKey = 'sit2';  // ensures pickRandom always picks sit1 next
-        // Fixed 25s cycle while sitting before next sit expression
-        const sitDelay = 15000; // 15s between sitting expressions
+        lastAnimKey = 'sit2';
+        // 30s cycle while sitting before next sit expression
+        const sitDelay = 30000; // 30s between sitting expressions
         autoTimerId = setTimeout(playRandomAnim, sitDelay);
-        // Kick off smile scheduler for sitting mode (if not already running)
         if (!smileTimerId) scheduleNextSmile();
     } else {
         applyState('idle', 'happy', 0.6);
@@ -798,10 +798,9 @@ function returnToIdle() {
         introComplete = true;
         // Block auto-cycle scheduling if chatbot is currently speaking
         if (!window.chatbotTalking) {
-            const delay = 12000;   // 12s — feels alive without being distracting
+            const delay = 30000; // 30s between random animations
             autoTimerId = setTimeout(playRandomAnim, delay);
         }
-        // Kick off smile scheduler when entering idle (if not already running)
         if (!smileTimerId) scheduleNextSmile();
     }
 }
@@ -1034,8 +1033,8 @@ window.addEventListener('pointerup', e => {
                 applyState('happyIdle', 'relaxed', 0.55);  // sit2 expression
                 playAnim(ANIM.sit2, true, 0.5);            // sit2 FIRST
                 lastAnimKey = 'sit2';                      // so pickRandom picks sit1 next
-                // Cycle to sit1 after exactly 25s, then sit2 again, etc.
-                autoTimerId = setTimeout(() => playRandomAnim(), 25000);
+                // Cycle to sit1 after exactly 30s, then sit2 again, etc.
+                autoTimerId = setTimeout(() => playRandomAnim(), 30000);
                 return;
             }
         }
@@ -1487,13 +1486,14 @@ window.switchVRM = function(modelPath) {
     const thisReqId = ++activeSwitchReqId;
     const loadingEl = document.getElementById('vrm-loading');
     if (loadingEl) {
+        loadingEl.classList.add('active');
         loadingEl.style.display = 'flex';
         void loadingEl.offsetWidth; // force reflow
         loadingEl.style.opacity = '1';
         const pctEl = document.getElementById('vrm-loading-pct');
         const barEl = document.getElementById('vrm-loading-bar');
         const textEl = loadingEl.querySelector('.loading-text');
-        if (textEl && textEl.firstChild) textEl.firstChild.textContent = 'SWITCHING AVATAR... ';
+        if (textEl) textEl.textContent = 'SWITCHING AVATAR...';
         if (pctEl) pctEl.textContent = '0%';
         if (barEl) barEl.style.width = '0%';
     }
@@ -1594,12 +1594,16 @@ window.switchVRM = function(modelPath) {
 
         if (loadingEl) {
             loadingEl.style.opacity = '0';
-            setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+            setTimeout(() => {
+                loadingEl.classList.remove('active');
+                loadingEl.style.display = 'none';
+            }, 300);
         }
 
         loadBackgroundAnimations(vrm);
     }, xhr => {
         if (loadingEl && thisReqId === activeSwitchReqId) {
+            loadingEl.classList.add('active');
             loadingEl.style.display = 'flex';
             loadingEl.style.opacity = '1';
             const totalSize = AVATAR_SIZES[modelPath] || 31422968;
@@ -1614,7 +1618,11 @@ window.switchVRM = function(modelPath) {
         if (loadingEl && thisReqId === activeSwitchReqId) {
             const textEl = loadingEl.querySelector('.loading-text');
             if (textEl) textEl.textContent = 'Failed to load model.';
-            setTimeout(() => { loadingEl.style.display = 'none'; }, 2000);
+            setTimeout(() => {
+                loadingEl.classList.remove('active');
+                loadingEl.style.opacity = '0';
+                setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+            }, 2000);
         }
     });
 };

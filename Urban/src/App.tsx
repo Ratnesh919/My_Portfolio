@@ -31,7 +31,7 @@ export const App: React.FC = () => {
 
   // Raya Speech Bubble text (exact user requested intro)
   const [rayaBubbleText, setRayaBubbleText] = useState<string>(
-    "Welcome back! It's nice to have you back, what can I help you with?"
+    "Welcome! It's nice to have you back. How can I help you?"
   );
   const introSpokenRef = useRef(false);
 
@@ -118,10 +118,14 @@ export const App: React.FC = () => {
     if ((window as any).playWaveAnimation) {
       (window as any).playWaveAnimation();
     }
-    if ((window as any).introduceRaya) {
+    if ((window as any).chatBot && typeof (window as any).chatBot.introduceHerself === 'function') {
+      setTimeout(() => {
+        (window as any).chatBot.introduceHerself();
+      }, 300);
+    } else if ((window as any).introduceRaya) {
       setTimeout(() => {
         (window as any).introduceRaya();
-      }, 500);
+      }, 300);
     }
   };
 
