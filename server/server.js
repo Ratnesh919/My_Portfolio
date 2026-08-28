@@ -577,11 +577,8 @@ const generalApiLimiter = rateLimit({
     message: { error: 'Rate limit exceeded.' }
 });
 
-// Admin Password — MUST be set via environment variables, never hardcoded
-const ADMIN_TOKEN = process.env.ADMIN_PASSWORD;
-if (!ADMIN_TOKEN) {
-    console.error('[Security] CRITICAL: ADMIN_PASSWORD environment variable is not set! Admin endpoints are disabled.');
-}
+// Admin Password — Supports Vercel env variables with Ratnesh@231 default fallback
+const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || process.env.ADMIN_KEY || process.env.VITE_ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Ratnesh@231';
 
 const checkAdmin = async (req, res, next) => {
     if (!ADMIN_TOKEN || ADMIN_TOKEN.trim().length === 0) {

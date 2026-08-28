@@ -26,16 +26,15 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
   const [showCommandsMenu, setShowCommandsMenu] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  // Built-in commands matching exact user requirements
+  // Built-in commands matching exact user requirements (strictly the 7 requested)
   const builtInCommands: Array<{ label: string; actionType: string; category?: string }> = [
-    { label: "📜 Scroll down", actionType: "scroll_down", category: "Action" },
-    { label: "📩 Leave a message for Ratnesh", actionType: "leave_msg", category: "Contact" },
-    { label: "📂 Take me to project section", actionType: "scroll_projects", category: "Navigation" },
+    { label: "📩 Leave a message", actionType: "leave_msg", category: "Contact" },
+    { label: "📜 Scroll down", actionType: "scroll_down", category: "Navigation" },
+    { label: "🚀 Tell me about Ratnesh's project", actionType: "ask_projects", category: "Projects" },
+    { label: "😄 Tell me a joke", actionType: "tell_joke", category: "Fun" },
     { label: "⚡ Tell me about Ratnesh's skills", actionType: "ask_skills", category: "Skills" },
-    { label: "🚀 Tell me about his projects", actionType: "ask_projects", category: "Projects" },
-    { label: "🎥 Tell me about PAK Video Converter", actionType: "ask_pak", category: "Project" },
-    { label: "🎵 Play a song on YouTube", actionType: "play_music", category: "Music" },
-    { label: "🎭 Change Raya's 3D Avatar", actionType: "avatar_studio", category: "Avatar" },
+    { label: "📞 Take me to contact section", actionType: "scroll_contact", category: "Contact" },
+    { label: "🎵 Play a song", actionType: "play_music", category: "Music" },
   ];
 
   // Initialize Speech Recognition
@@ -90,22 +89,20 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
   };
 
   const handleCommandClick = (cmd: any) => {
-    if (cmd.actionType === "avatar_studio") {
-      onSendMessage("Change Raya's 3D Avatar");
-    } else if (cmd.actionType === "leave_msg") {
+    if (cmd.actionType === "leave_msg") {
       setInput("Hi Ratnesh, ");
     } else if (cmd.actionType === "scroll_down") {
       onSendMessage("Scroll down the page");
-    } else if (cmd.actionType === "scroll_projects") {
-      onSendMessage("Take me to the project section");
+    } else if (cmd.actionType === "ask_projects") {
+      onSendMessage("Tell me about Ratnesh's project");
+    } else if (cmd.actionType === "tell_joke") {
+      onSendMessage("Tell me a joke");
     } else if (cmd.actionType === "ask_skills") {
       onSendMessage("Tell me about Ratnesh's skills");
-    } else if (cmd.actionType === "ask_projects") {
-      onSendMessage("Tell me about Ratnesh's featured engineering projects");
-    } else if (cmd.actionType === "ask_pak") {
-      onSendMessage("Tell me about PAK Video Converter for Android");
+    } else if (cmd.actionType === "scroll_contact") {
+      onSendMessage("Take me to contact section");
     } else if (cmd.actionType === "play_music") {
-      onSendMessage("Play a relaxing lofi song for me on YouTube");
+      onSendMessage("Play a song for me on YouTube");
     } else {
       onSendMessage(cmd.label.replace(/^[^\w\s]+/, '').trim());
     }
