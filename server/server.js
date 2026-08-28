@@ -206,7 +206,10 @@ function getOpenAIApiKeys() {
 function getNvidiaApiKeys() {
     const rawSources = [
         process.env.NVIDIA_API_KEY,
-        process.env.NV_API_KEY
+        process.env.NV_API_KEY,
+        process.env.NVIDIA_KEY,
+        process.env.NVIDIA_NIM_API_KEY,
+        process.env.NVIDIA_NIM_KEY
     ];
     const keys = [];
     for (const src of rawSources) {
@@ -229,6 +232,44 @@ function getOpenRouterKeys() {
         keys.push(...parts);
     }
     return [...new Set(keys)];
+}
+
+// ── NVIDIA NIM Provider (PRIMARY) ──────────────────────────────────────────
+async function callNvidiaDirect(nvidiaKey, payload) {
+    const models = [
+        'meta/llama-3.1-8b-instruct',
+        'meta/llama-3.3-70b-instruct',
+        'mistralai/mistral-7b-instruct-v0.3',
+        'nvidia/llama-3.1-nemotron-70b-instruct'
+    ];
+    let lastErr = null;
+    for (const model of models) {
+        try {
+            const res = await axios.post(
+                'https://integrate.api.nvidia.com/v1/chat/completions',
+                {
+                    model,
+                    messages: payload.messages,
+                    temperature: payload.temperature || 0.7,
+                    max_tokens: payload.max_tokens || 140
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${nvidiaKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 12000
+                }
+            );
+            if (res.data?.choices?.[0]?.message?.content) {
+                return res;
+            }
+        } catch (err) {
+            lastErr = err;
+            console.warn(`[NVIDIA NIM Warning] Model '${model}' failed:`, err.response?.data || err.message);
+        }
+    }
+    throw lastErr || new Error('NVIDIA NIM API failed to generate text');
 }
 
 // ── Google Gemini Provider ──────────────────────────────────────────────────
@@ -362,18 +403,31 @@ let currentKeyIndex = 0;
 
 async function callGroqWithRetry(payload) {
     // Collect all available LLM providers
+    const nvidiaKeys = getNvidiaApiKeys();
     const groqKeys = getGroqApiKeys();
     const geminiKeys = getGeminiApiKeys();
     const openaiKeys = getOpenAIApiKeys();
-    const nvidiaKeys = getNvidiaApiKeys();
     const openrouterKeys = getOpenRouterKeys();
 
-    const hasAnyKeys = groqKeys.length > 0 || geminiKeys.length > 0 || openaiKeys.length > 0 || nvidiaKeys.length > 0 || openrouterKeys.length > 0;
+    const hasAnyKeys = nvidiaKeys.length > 0 || groqKeys.length > 0 || geminiKeys.length > 0 || openaiKeys.length > 0 || openrouterKeys.length > 0;
     if (!hasAnyKeys) {
-        throw new Error('MISSING_GROQ_API_KEY: Please set GROQ_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY, or NVIDIA_API_KEY in your Vercel environment variables.');
+        throw new Error('MISSING_LLM_API_KEY: Please set NVIDIA_API_KEY, GROQ_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY in your Vercel environment variables.');
     }
 
-    // 1. Try Groq (ultra-low latency) if available
+    // 1. PRIMARY: Try NVIDIA NIM API (ultra-fast ~400ms neural inference)
+    if (nvidiaKeys.length > 0) {
+        for (const nvKey of nvidiaKeys) {
+            try {
+                const res = await callNvidiaDirect(nvKey, payload);
+                console.log('🟢 [NVIDIA NIM Primary Success] Response received from NVIDIA NIM!');
+                return res;
+            } catch (nvErr) {
+                console.warn('⚠️ [NVIDIA NIM Primary Failover]:', nvErr.response?.data || nvErr.message);
+            }
+        }
+    }
+
+    // 2. FAILOVER 1: Groq Multi-Key & Multi-Model Rotation
     if (groqKeys.length > 0) {
         const primaryModel = payload.model || 'llama-3.3-70b-versatile';
         const modelsToTry = [
@@ -420,7 +474,7 @@ async function callGroqWithRetry(payload) {
         }
     }
 
-    // 2. Failover to Google Gemini API (high reliability & quota)
+    // 3. FAILOVER 2: Google Gemini API (high reliability & massive context)
     if (geminiKeys.length > 0) {
         for (const gKey of geminiKeys) {
             try {
@@ -434,7 +488,7 @@ async function callGroqWithRetry(payload) {
         }
     }
 
-    // 3. Failover to OpenAI API
+    // 4. FAILOVER 3: OpenAI API
     if (openaiKeys.length > 0) {
         for (const oKey of openaiKeys) {
             try {
@@ -448,36 +502,7 @@ async function callGroqWithRetry(payload) {
         }
     }
 
-    // 4. Failover to NVIDIA NIM API
-    if (nvidiaKeys.length > 0) {
-        for (const nvKey of nvidiaKeys) {
-            try {
-                console.log('🔄 [LLM Failover] Calling NVIDIA NIM API...');
-                const res = await axios.post(
-                    'https://integrate.api.nvidia.com/v1/chat/completions',
-                    {
-                        model: 'meta/llama-3.1-8b-instruct',
-                        messages: payload.messages,
-                        temperature: payload.temperature || 0.7,
-                        max_tokens: payload.max_tokens || 140
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${nvKey}`,
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: 12000
-                    }
-                );
-                console.log('🟢 [NVIDIA NIM Success] Response received from NVIDIA NIM!');
-                return res;
-            } catch (nvErr) {
-                console.warn('⚠️ [NVIDIA NIM Failover Error]:', nvErr.response?.data || nvErr.message);
-            }
-        }
-    }
-
-    // 5. Failover to OpenRouter API
+    // 5. FAILOVER 4: OpenRouter API
     if (openrouterKeys.length > 0) {
         for (const orKey of openrouterKeys) {
             try {
@@ -491,7 +516,7 @@ async function callGroqWithRetry(payload) {
         }
     }
 
-    throw new Error('All configured LLM providers (Groq, Gemini, OpenAI, NVIDIA NIM, OpenRouter) returned errors or rate limits.');
+    throw new Error('All configured LLM providers (NVIDIA NIM, Groq, Gemini, OpenAI, OpenRouter) returned errors or rate limits.');
 }
 
 // ── Circuit Breaker Setup ──────────────────────────────────────────────────────
