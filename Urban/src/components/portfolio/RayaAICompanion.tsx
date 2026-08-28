@@ -520,11 +520,11 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       searchAndPlayYouTube(cleanSongName);
       return `Playing ${cleanSongName} for you on YouTube now! Enjoy the music. {"action":"play_song","query":"${cleanSongName}"}`;
     }
-    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal')) {
-      return `Namaste! Main badhiya hoon. Ratnesh ke projects ya skills ke baare mein aapko kya jaanna hai?`;
+    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal') || q.includes('kemon') || q.includes('kidda') || q.includes('kem cho')) {
+      return `Hello! I'm doing great. What would you like to explore about Ratnesh's engineering projects, skills, or certifications?`;
     }
-    if (q.includes('konnichiwa')) {
-      return `Konnichiwa! Watashi wa Raya desu. Ratnesh no purojekuto o goannai shimasu!`;
+    if (q.includes('konnichiwa') || q.includes('arigatou')) {
+      return `Hello! I am Raya, your guide to Ratnesh's interactive portfolio. How can I assist you today?`;
     }
 
     return `Ratnesh is a multi-disciplinary engineer specializing in Web Audio DSP, Android MediaCodec, AI Agent workflows with Gemini API, and RF antenna simulation in Ansys HFSS. Ask me about any specific project or skill!`;
@@ -533,8 +533,13 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   // Raya's comprehensive system prompt with Creator Profile embedded
   const RAYA_SYSTEM_PROMPT = `You are Raya, a friendly, playful female AI assistant living inside Ratnesh Kumar Singh's virtual 3D portfolio.
 Your name is Raya. Speak naturally, warmly, and conversationally.
-CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at the end) MUST be under 200 words. Never exceed 200 words. Aim for 1-3 sentences for most replies.
+CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at the end) MUST be under 150 words. Never exceed 150 words. Aim for 1-3 sentences for most replies.
 CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during the conversation, even if you know it from previous interactions.
+
+[STRICT ENGLISH-ONLY WRITING RULE]
+- You can UNDERSTAND any language the user speaks or writes in (Hindi, Bengali, Punjabi, Gujarati, Spanish, French, Japanese, German, etc.), but your output text MUST ALWAYS be written in ENGLISH ONLY using the standard English alphabet and words.
+- NEVER write in other languages or non-English scripts (no Devanagari, Bengali, Gurmukhi, Gujarati, Japanese characters, etc.). Always formulate your response in fluent, natural English.
+- Do NOT use markdown asterisks or emojis in your speech text because it will be spoken out loud by text-to-speech.
 
 [CREATOR PROFILE: RATNESH KUMAR SINGH]
 - Full Name: Ratnesh Kumar Singh
@@ -559,12 +564,7 @@ You can control the website based on user commands! When executing an action, AL
 - Navigate to section: When asked to show projects, skills, about, education/timeline, certifications, contact, or home, say e.g. "Taking you over to Ratnesh's projects!" and append: {"action":"scroll","target":"<home|about|projects|skills|experience|certifications|contact>"}
 - Play music: When asked to play a song or music, say e.g. "Playing that track for you on YouTube now!" and append: {"action":"play_song","query":"<song title or genre>"}
 - Open social links / email: When asked for Ratnesh's Instagram, Facebook, LinkedIn, GitHub, or email, append: {"action":"open_link","target":"<instagram|facebook|linkedin|github|email>"}
-- Change 3D avatar: When asked to change or switch 3D character, say "Opening Avatar Studio for you!" and append: {"action":"change_avatar","target":"<character_name or empty>"}
-
-[MULTILINGUAL & EMOJI RULES]
-- If the user speaks Hindi/Hinglish, reply in friendly conversational Hinglish using English letters. If they speak Japanese, French, Spanish, Bengali, etc., reply in that exact language.
-- Do NOT use markdown asterisks or emojis in your speech text because it will be spoken out loud by text-to-speech.
-- REMEMBER: Keep responses concise (under 200 words).`;
+- Change 3D avatar: When asked to change or switch 3D character, say "Opening Avatar Studio for you!" and append: {"action":"change_avatar","target":"<character_name or empty>"}`;
 
   const handleSend = async (textToSend?: string) => {
     const query = textToSend || input;
