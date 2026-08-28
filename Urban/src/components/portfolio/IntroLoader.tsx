@@ -28,56 +28,41 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       setStatusText('Ready! Tap to enter...');
       setTimeout(() => {
         setPhase('bubbles');
-      }, 350);
+      }, 400);
     };
-
-    // Smooth progressive progress advancement (reaches ~90% while VRM streams)
-    const ticker = setInterval(() => {
-      if (isFinished) return;
-      setProgress((prev) => {
-        if (prev < 30) {
-          setStatusText('Loading 3D character...');
-          return prev + 6;
-        } else if (prev < 65) {
-          setStatusText('Setting up graphics & textures...');
-          return prev + 4;
-        } else if (prev < 90) {
-          setStatusText('Getting animations ready...');
-          return prev + 2;
-        }
-        return prev;
-      });
-    }, 120);
 
     // If VRM already finished loading before IntroLoader mounted
     if ((window as any)._vrmIsReady) {
-      clearInterval(ticker);
       finishLoading();
       return;
     }
 
     // Hook VRM live download progress
-    (window as any).onVRMLoadProgress = (pct: number) => {
-      setProgress((prev) => Math.max(prev, Math.min(pct, 98)));
-      if (pct < 35) setStatusText('Loading 3D character...');
-      else if (pct < 75) setStatusText('Setting up graphics & textures...');
-      else if (pct < 95) setStatusText('Getting animations ready...');
-      else setStatusText('Almost ready...');
+    (window as any).onVRMLoadProgress = (pct: number, customStatus?: string) => {
+      setProgress((prev) => Math.max(prev, Math.min(pct, 100)));
+      if (customStatus) {
+        setStatusText(customStatus);
+      } else {
+        if (pct < 30) setStatusText('Loading 3D character...');
+        else if (pct < 75) setStatusText('Downloading textures & materials...');
+        else if (pct < 95) setStatusText('Retargeting animations...');
+        else setStatusText('Ready! Tap to enter...');
+      }
+      if (pct >= 100) {
+        finishLoading();
+      }
     };
 
     (window as any).onVRMReady = () => {
-      clearInterval(ticker);
       finishLoading();
     };
 
-    // Safe fallback timeout (12s max) — allows large models to load comfortably
+    // 20-second fallback timeout in case WebGL or network completely fails
     const fallbackTimer = setTimeout(() => {
-      clearInterval(ticker);
       finishLoading();
-    }, 12000);
+    }, 20000);
 
     return () => {
-      clearInterval(ticker);
       clearTimeout(fallbackTimer);
       delete (window as any).onVRMLoadProgress;
       delete (window as any).onVRMReady;

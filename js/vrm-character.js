@@ -569,11 +569,19 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     vrm.update(0);
     scene.add(vrm.scene);
 
+    if (typeof window.onVRMLoadProgress === 'function') {
+        window.onVRMLoadProgress(80, 'Setting up graphics & shaders...');
+    }
+
     loadEssentialAnimations(vrm).then(() => {
         // Step 1: Start idle immediately
         applyState('idle', 'happy', 0.6);
         playAnim(ANIM.idle, true, 0.3);
         if (mixer) mixer.update(0);
+
+        if (typeof window.onVRMLoadProgress === 'function') {
+            window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
+        }
 
         // Notify IntroLoader that VRM is fully loaded and ready
         window._vrmIsReady = true;
@@ -690,11 +698,12 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
 
 }, xhr => {
-    const totalSize = xhr.total || AVATAR_SIZES[initialFile] || 31422968;
-    const pct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
+    const totalSize = (xhr.total && xhr.total > 0) ? xhr.total : (AVATAR_SIZES[initialFile] || 31422968);
+    const rawPct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
+    const scaledPct = Math.round(rawPct * 0.75); // 0 - 75% for VRM bytes stream
 
     if (typeof window.onVRMLoadProgress === 'function') {
-        window.onVRMLoadProgress(pct);
+        window.onVRMLoadProgress(scaledPct, `Loading 3D Character (${rawPct}%)...`);
     }
 
     const siteLoaderEl = document.getElementById('site-loader');
@@ -703,9 +712,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
         const barEl = document.getElementById('site-loader-bar');
         const textEl = document.getElementById('site-loader-text');
         
-        if (pctEl) pctEl.textContent = `${pct}%`;
-        if (barEl) barEl.style.width = `${pct}%`;
-        if (textEl && pct === 100) textEl.textContent = 'Processing Asset...';
+        if (pctEl) pctEl.textContent = `${scaledPct}%`;
+        if (barEl) barEl.style.width = `${scaledPct}%`;
+        if (textEl) textEl.textContent = `Loading 3D Character (${rawPct}%)...`;
     }
 }, err => {
     console.error(err);
@@ -754,6 +763,7 @@ async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
     console.log('[VRM] Loading initial essential animations (idle & wave)...');
     const animsToLoad = [...ESSENTIAL_ANIMS, ...extraAnims];
     const uniqueAnims = Array.from(new Set(animsToLoad));
+    let loadedCount = 0;
     await Promise.all(uniqueAnims.map(async (file) => {
         try {
             const fbx = await new Promise((res, rej) => fbxLoader.load(file, res, undefined, rej));
@@ -764,10 +774,18 @@ async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
                 actions[file] = mixer.clipAction(clip);
                 console.log('[VRM] ✓ Loaded Essential:', file);
             }
+            loadedCount++;
+            const animPct = 80 + Math.round((loadedCount / uniqueAnims.length) * 18); // 80% -> 98%
+            if (typeof window.onVRMLoadProgress === 'function') {
+                window.onVRMLoadProgress(animPct, `Setting up animations (${loadedCount}/${uniqueAnims.length})...`);
+            }
         } catch (e) {
             console.error('[VRM] ✗ Essential FBX load error:', file, e.message || e);
         }
     }));
+    if (typeof window.onVRMLoadProgress === 'function') {
+        window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
+    }
     console.log('[VRM] Essential animations ready. Remaining animations will stream on-demand.');
 }
 
