@@ -37,6 +37,13 @@ export const ChatbotBar: React.FC<ChatbotBarProps> = ({
     { label: "🎵 Play a song", actionType: "play_music", category: "Music" },
   ];
 
+  // Expose command menu toggle globally for Raya's intro sequence
+  useEffect(() => {
+    (window as any).openCommandsMenu = (show: boolean = true) => {
+      setShowCommandsMenu(show);
+    };
+  }, []);
+
   // Initialize Speech Recognition
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;

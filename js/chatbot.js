@@ -59,7 +59,8 @@ function getTimeOfDayGreeting() {
 }
 
 function getIntroText() {
-    return "Hi! I am Raya, your guide for this portfolio. Welcome to Ratnesh's portfolio! I can navigate you through the portfolio, tell you about Ratnesh and his projects, or play a song. What is your name?";
+    const greeting = getTimeOfDayGreeting();
+    return `${greeting}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh, or play a song. You can also choose any inbuilt command from this panel. By the way, what is your name?`;
 }
 
 const THEME_PROMPT = "Explore Ratnesh's 5 core skill tracks: 1 Full-Stack Web & Audio DSP, 2 Native Android, 3 Workflow Automation & Pipelines, 4 Embedded & RF Hardware, or 5 Interactive 3D Graphics. Which one would you like to explore?";
@@ -205,6 +206,13 @@ class AvatarChatBot {
             this._awaitingName    = true;
             this._awaitingTheme   = true;
             this._awaitingCommand = true;
+
+            // Automatically open quick commands menu for new users when Raya mentions it
+            setTimeout(() => {
+                if (typeof window !== 'undefined' && typeof window.openCommandsMenu === 'function') {
+                    window.openCommandsMenu(true);
+                }
+            }, 3400);
         }
         try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
 

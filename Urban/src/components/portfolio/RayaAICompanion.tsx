@@ -79,11 +79,22 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   onUpdateSpeechText
 }) => {
   const sessionIdRef = useRef<string>('ses_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return 'Good morning';
+    if (hr >= 12 && hr < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const isReturningUser = typeof window !== 'undefined' && localStorage.getItem('rayaHasVisited') === 'true';
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'raya',
-      text: `Welcome back! It's nice to have you back, what can I help you with?`,
+      text: isReturningUser
+        ? `Welcome back! It's nice to have you back, what can I help you with?`
+        : `${getGreeting()}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh, or play a song. You can also choose any inbuilt command from this panel. By the way, what is your name?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -121,7 +132,22 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   // Expose global introduction trigger
   useEffect(() => {
     (window as any).introduceRaya = () => {
-      const welcomeText = `Welcome back! It's nice to have you back, what can I help you with?`;
+      const isReturning = localStorage.getItem('rayaHasVisited') === 'true';
+      let welcomeText: string;
+
+      if (isReturning) {
+        welcomeText = `Welcome back! It's nice to have you back, what can I help you with?`;
+      } else {
+        const greeting = getGreeting();
+        welcomeText = `${greeting}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh, or play a song. You can also choose any inbuilt command from this panel. By the way, what is your name?`;
+        try { localStorage.setItem('rayaHasVisited', 'true'); } catch (e) {}
+
+        // Smoothly pop open the quick command panel for new users when Raya mentions it
+        setTimeout(() => {
+          (window as any).openCommandsMenu?.(true);
+        }, 3400);
+      }
+
       onUpdateSpeechText?.(welcomeText);
       speakRaya(welcomeText);
     };
