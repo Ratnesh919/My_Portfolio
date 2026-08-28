@@ -9,7 +9,7 @@
     width: 100vw;
     height: 100vh;
     pointer-events: none;
-    z-index: 55 !important;
+    z-index: 1000 !important;
     touch-action: none;
     opacity: 1 !important;
     display: block !important;

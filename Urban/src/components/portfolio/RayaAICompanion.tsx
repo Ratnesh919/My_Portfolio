@@ -199,12 +199,102 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     }
   };
 
-  const detectLanguage = (text: string): string => {
-    if (/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja-JP';
-    if (/[\u0900-\u097F]/.test(text)) return 'hi-IN';
-    if (/namaste|kaise|kya|bhai|yaar|aap|suno|karo|batao/i.test(text)) return 'hi-IN';
-    if (/konnichiwa|arigatou|sugoi|kawaii/i.test(text)) return 'ja-JP';
-    return 'en-US';
+  const resolveRayaVoiceAndLanguage = (text: string, voices: SpeechSynthesisVoice[]) => {
+    const isBengali = /[\u0980-\u09FF]/.test(text) || /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob)\b/i.test(text);
+    const isPunjabi = /[\u0A00-\u0A7F]/.test(text) || /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi)\b/i.test(text);
+    const isGujarati = /[\u0A80-\u0AFF]/.test(text) || /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame)\b/i.test(text);
+    const isMarathi  = /\b(kasa|ahes|kay|challay|namaskar|marathi|sang|ahe|aahaat)\b/i.test(text);
+    const isTamil    = /[\u0B80-\u0BFF]/.test(text) || /\b(vanakkam|epadi|irukinga|nandri)\b/i.test(text);
+    const isTelugu   = /[\u0C00-\u0C7F]/.test(text) || /\b(namaskaram|ela|unnaru|cheppandi|telugu)\b/i.test(text);
+    const isJapanese = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(text) || /\b(konnichiwa|arigatou|sugoi|kawaii|ohayou)\b/i.test(text);
+    const isHindi    = /[\u0900-\u097F]/.test(text) || /\b(namaste|kaise|kaisi|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|haan|nahi|kaisa|main|meri|mera|mujhe|tum|kar|rahe|rahi|samjho|baat)\b/i.test(text);
+
+    let lang = 'en-IN';
+    let voice: SpeechSynthesisVoice | null = null;
+    let rate = 1.08;
+    let pitch = 1.25;
+
+    if (isBengali) {
+      lang = 'bn-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
+              voices.find(v => /Tanishaa/i.test(v.name)) ||
+              voices.find(v => /Bashkar.*Natural/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) ||
+              voices.find(v => v.name.includes('বাংলা') || v.name.includes('Bengali')) || null;
+    } else if (isPunjabi) {
+      lang = 'pa-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Gurpreet.*Natural/i.test(v.name) || /Ojas.*Natural/i.test(v.name)) ||
+              voices.find(v => /Gurpreet/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) ||
+              voices.find(v => v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) || null;
+    } else if (isGujarati) {
+      lang = 'gu-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Dhwani.*Natural/i.test(v.name) || /Niranjan.*Natural/i.test(v.name)) ||
+              voices.find(v => /Dhwani/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) ||
+              voices.find(v => v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) || null;
+    } else if (isMarathi) {
+      lang = 'mr-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Aarohi.*Natural/i.test(v.name) || /Manohar.*Natural/i.test(v.name)) ||
+              voices.find(v => /Aarohi/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) ||
+              voices.find(v => v.name.includes('मराठी') || v.name.includes('Marathi')) || null;
+    } else if (isTamil) {
+      lang = 'ta-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Pallavi.*Natural/i.test(v.name) || /Valluvar.*Natural/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('ta')) || null;
+    } else if (isTelugu) {
+      lang = 'te-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Shruti.*Natural/i.test(v.name) || /Mohan.*Natural/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('te')) || null;
+    } else if (isJapanese) {
+      lang = 'ja-JP';
+      rate = 1.05;
+      pitch = 1.25;
+      voice = voices.find(v => /Nanami.*Natural/i.test(v.name) || /Keita.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('ja')) || null;
+    } else if (isHindi) {
+      lang = 'hi-IN';
+      rate = 1.0;
+      pitch = 1.15;
+      voice = voices.find(v => /Swara.*Natural/i.test(v.name)) ||
+              voices.find(v => /Swara/i.test(v.name)) ||
+              voices.find(v => /Madhur.*Natural/i.test(v.name)) ||
+              voices.find(v => /Kalpana/i.test(v.name)) ||
+              voices.find(v => /Hemant.*Natural/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) ||
+              voices.find(v => v.name.includes('हिन्दी') || v.name.includes('Hindi')) ||
+              voices.find(v => /Neerja.*Natural/i.test(v.name)) || null;
+    } else {
+      lang = 'en-IN';
+      rate = 1.08;
+      pitch = 1.25;
+      voice = voices.find(v => /Ava.*Natural/i.test(v.name)) ||
+              voices.find(v => /Jenny.*Natural/i.test(v.name)) ||
+              voices.find(v => /Aria.*Natural/i.test(v.name)) ||
+              voices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              voices.find(v => v.name === 'Google UK English Female') ||
+              voices.find(v => v.name === 'Google US English') ||
+              voices.find(v => /Samantha/i.test(v.name)) ||
+              voices.find(v => /Karen/i.test(v.name)) ||
+              voices.find(v => /Zira/i.test(v.name)) ||
+              voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
+              voices.find(v => v.lang.startsWith('en')) || null;
+    }
+
+    return { voice: voice || voices[0] || null, lang, rate, pitch };
   };
 
   const speakRaya = (text: string) => {
@@ -227,21 +317,14 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     setTimeout(() => {
       try {
         const utterance = new SpeechSynthesisUtterance(cleanText);
-
         const voices = window.speechSynthesis.getVoices();
-        let targetVoice = selectedVoiceRef.current;
-        if (!targetVoice && voices.length > 0) {
-          targetVoice = voices.find(v => 
-            v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.includes('Ava') || v.name.includes('Jenny') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Aria'))
-          ) || voices[0];
-          selectedVoiceRef.current = targetVoice;
-        }
+        const { voice, lang, rate, pitch } = resolveRayaVoiceAndLanguage(cleanText, voices);
 
-        if (targetVoice) utterance.voice = targetVoice;
-        utterance.rate = RAYA_VOICE_CONFIG.rate;
-        utterance.pitch = RAYA_VOICE_CONFIG.pitch;
-        utterance.volume = RAYA_VOICE_CONFIG.volume;
-        utterance.lang = detectLanguage(text);
+        if (voice) utterance.voice = voice;
+        utterance.lang = lang;
+        utterance.rate = rate;
+        utterance.pitch = pitch;
+        utterance.volume = 1.0;
 
         // Lipsync oscillation flag
         utterance.onstart = () => {
