@@ -2355,26 +2355,6 @@ class AvatarChatBot {
                 speechPitch = 1.0;
                 speechRate = 1.0;
             }
-'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
-                    return textStr.replace(/\b[a-zA-Z]+\b/g, w => guDict[w.toLowerCase()] || w);
-                }
-                if (lang.startsWith('hi')) {
-                    if (/[\u0900-\u097F]/.test(textStr)) return textStr;
-                    const hiDict = { 'haan': 'हाँ', 'bilkul': 'बिल्कुल', 'main': 'मैं', 'hindi': 'हिंदी', 'mein': 'में', 'baat': 'बात', 'kar': 'कर', 'sakti': 'सकती', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे', 'ratnesh': 'रत्नेश', 'ke': 'के', 'projects': 'प्रोजेक्ट्स', 'ya': 'या', 'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे', 'pooch': 'पूछ', 'sakte': 'सकते', 'hain': 'हैं', 'ekdam': 'एकदम', 'badhiya': 'बढ़िया', 'bataiye': 'बताइए', 'kaise': 'कैसे', 'kya': 'क्या', 'rahi': 'रही', 'rahe': 'रहे', 'guide': 'गाइड', 'namaste': 'नमस्ते' };
-                    return textStr.replace(/\b[a-zA-Z]+\b/g, w => hiDict[w.toLowerCase()] || w);
-                }
-                return textStr;
-            };
-
-            const spokenScriptText = getNativeScriptForTTS(cleanText, langCode);
-            const utterance = new SpeechSynthesisUtterance(spokenScriptText);
-
-            // Microsoft Edge Natural neural voices strictly require pitch 1.0 (they reject modified pitch with synthesis-failed)
-            const isNaturalNeuralVoice = selectedVoice?.name?.includes('Natural') || selectedVoice?.name?.includes('Online');
-            if (isNaturalNeuralVoice) {
-                speechPitch = 1.0;
-                speechRate = 1.05;
-            }
 
             utterance.voice = selectedVoice;
             utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
