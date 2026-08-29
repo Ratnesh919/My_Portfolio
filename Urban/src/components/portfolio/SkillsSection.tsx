@@ -31,10 +31,10 @@ export const SkillsSection: React.FC = () => {
       <div>
         <div className="flex items-center gap-2 text-purple-400 text-xs font-mono font-semibold uppercase tracking-wider mb-1">
           <Sparkles size={14} />
-          <span>Technical Expertise Matrix</span>
+          <span>Technical Expertise</span>
         </div>
         <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Technical Expertise & Skills
+          Software & Technical Skills
         </h2>
       </div>
 

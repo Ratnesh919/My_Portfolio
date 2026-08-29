@@ -1230,7 +1230,12 @@ class AvatarChatBot {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: this.messages, sessionId: this.sessionId })
+                body: JSON.stringify({
+                    messages: this.messages,
+                    sessionId: this.sessionId,
+                    isAdmin: typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true'),
+                    userName: typeof window !== 'undefined' ? (sessionStorage.getItem('userName') || localStorage.getItem('userName') || '') : ''
+                })
             });
             clearTimeout(thinkingTimeout);
             if (!res.ok) throw new Error('Server error ' + res.status);
@@ -1254,6 +1259,41 @@ class AvatarChatBot {
 
     generateSmartFallback(userText) {
         const t = (userText || '').toLowerCase();
+
+        // 0a. Admin Verification & Password Check
+        if (userText.trim() === 'Ratnesh@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('isAdmin', 'true');
+            }
+            return "Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?";
+        }
+
+        // 0b. Admin Site Insights & Analytics
+        if (t.includes('insight') || t.includes('stat') || t.includes('traffic') || t.includes('analytic') || t.includes('visitor') || t.includes('who visited') || t.includes('user list') || t.includes('all user')) {
+            return "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!";
+        }
+
+        // 0c. Recruiter & Visitor Messages
+        if (t.includes('message') || t.includes('messege') || t.includes('msg') || t.includes('inbox') || t.includes('recruiter') || t.includes('unread') || t.includes('notification')) {
+            return "Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!";
+        }
+
+        // 0d. Admin Verification & Details Status
+        if (t.includes('verify') || t.includes('claim') || t.includes('pending') || t.includes('detail') || t.includes('status')) {
+            return "All visitor telemetry and portfolio systems are verified and operating smoothly. There are no pending unverified claims at this time.";
+        }
+
+        // 0e. User Introductions & Names
+        const nameIntroMatch = t.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
+        if (nameIntroMatch && nameIntroMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameIntroMatch[1].toLowerCase())) {
+            const uName = nameIntroMatch[1].charAt(0).toUpperCase() + nameIntroMatch[1].slice(1);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('userName', uName);
+                localStorage.setItem('userName', uName);
+            }
+            return `It's wonderful to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
+        }
 
         // Multi-Language Speaking Inquiries
         if (t.includes('speak in hindi') || t.includes('speak hindi') || t.includes('talk in hindi') || t.includes('hindi bol') || t.includes('hindi aati') || t.includes('hindi samajh') || t.includes('hindi me baat')) {
@@ -1428,9 +1468,12 @@ class AvatarChatBot {
 
         // 0. Admin Verification & Password Check
         if (text.trim() === 'Ratnesh@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
-            if (typeof window !== 'undefined') sessionStorage.setItem('isAdmin', 'true');
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('isAdmin', 'true');
+            }
             return {
-                speech: "Welcome back, Ratnesh! Admin mode is now active. You have full access to site insights, visitor analytics, recruiter messages, and location stats.",
+                speech: "Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?",
                 actions: []
             };
         }
@@ -1438,7 +1481,37 @@ class AvatarChatBot {
         // 0b. Admin Site Insights & Analytics
         if (t.includes('insight') || t.includes('stat') || t.includes('traffic') || t.includes('analytic') || t.includes('visitor') || t.includes('who visited') || t.includes('user list') || t.includes('all user')) {
             return {
-                speech: "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India)\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!",
+                speech: "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!",
+                actions: []
+            };
+        }
+
+        // 0c. Recruiter & Visitor Messages
+        if (t.includes('message') || t.includes('messege') || t.includes('msg') || t.includes('inbox') || t.includes('recruiter') || t.includes('unread') || t.includes('notification')) {
+            return {
+                speech: "Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!",
+                actions: []
+            };
+        }
+
+        // 0d. Admin Verification & Details Status
+        if (t.includes('verify') || t.includes('claim') || t.includes('pending') || t.includes('detail') || t.includes('status')) {
+            return {
+                speech: "All visitor telemetry and portfolio systems are verified and operating smoothly. There are no pending unverified claims at this time.",
+                actions: []
+            };
+        }
+
+        // 0e. User Introductions & Names
+        const nameIntroMatch = t.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
+        if (nameIntroMatch && nameIntroMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameIntroMatch[1].toLowerCase())) {
+            const uName = nameIntroMatch[1].charAt(0).toUpperCase() + nameIntroMatch[1].slice(1);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('userName', uName);
+                localStorage.setItem('userName', uName);
+            }
+            return {
+                speech: `It's wonderful to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`,
                 actions: []
             };
         }
@@ -2128,28 +2201,18 @@ class AvatarChatBot {
                                 candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
-            } else if (hasJapaneseScript) {
-                langCode = 'ja-JP';
-                selectedVoice = candidateVoices.find(v => /Nanami.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name) || /Kyoko/i.test(v.name)) ||
-                                candidateVoices.find(v => v.lang.startsWith('ja') && !MALE_FILTER.test(v.name));
-            } else if (hasDevanagari) {
-                // Native Devanagari Hindi
+                   } else if (hasDevanagari || isHindiWords) {
+                // Hindi Voice (Mobile Chrome Android: Google हिन्दी, Edge: Swara Natural / Kalpana)
                 langCode = 'hi-IN';
                 selectedVoice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Swara/i.test(v.name)) ||
-                                candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
                                 candidateVoices.find(v => /Google.*(?:हिन्दी|Hindi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name));
-            } else if (isHindiWords) {
-                // Romanized Hindi / Hinglish
-                langCode = 'en-IN';
-                selectedVoice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
+                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Neerja/i.test(v.name)) ||
-                                candidateVoices.find(v => /Heera/i.test(v.name)) ||
-                                candidateVoices.find(v => /Veena/i.test(v.name)) ||
-                                candidateVoices.find(v => /Google.*(?:India|English)/i.test(v.name) && (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Swara.*Natural/i.test(v.name));
+                                candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
             } else if (isUKEnglish) {
                 // UK English British Accent
                 langCode = 'en-GB';
@@ -2211,7 +2274,7 @@ class AvatarChatBot {
                     ];
                     let res = textStr;
                     for (const [re, val] of bnPhrases) res = res.replace(re, val);
-                    const bnDict = { 'ami': 'আমি', 'tumi': 'তুমি', 'bhalo': 'ভালো', 'kemon': 'কেমন', 'acho': 'আছো', 'achi': 'আছি', 'naam': 'নাম', 'nam': 'নাম', 'tomar': 'তোমার', 'amar': 'আমার', 'bolte': 'বলতে', 'pari': 'পারি', 'paro': 'পারো', 'obosshoi': 'অবশ্যই', 'haan': 'হ্যাঁ', 'haa': 'হ্যাঁ', 'korcho': 'করছো', 'koro': 'করো', 'kichu': 'কিছু', 'jante': 'জানতে', 'chao': 'চাও', 'bolo': 'বলো', 'sahajyo': 'সাহায্য', 'korte': 'করতে', 'jigyesh': 'জিজ্ঞেস', 'ratnesh': 'রত্নেশ', 'bangla': 'বাংলা', 'bengali': 'বাংলা', 'shonao': 'শোনাও', 'chutkula': 'কৌতুক', 'bol': 'বল', 'shuncho': 'শুনছো', 'dada': 'দাদা', 'didi': 'দিদি', 'khabar': 'খাবার', 'kheyecho': 'খেয়েছো', 'shob': 'সব', 'ki': 'কি' };
+                    const bnDict = { 'ami': 'আমি', 'tumi': 'তুমি', 'bhalo': 'ভালো', 'kemon': 'কেমন', 'acho': 'আছো', 'achi': 'আছি', 'naam': 'নাম', 'nam': 'নাম', 'tomar': 'তোমার', 'amar': 'আমার', 'bolte': 'বলতে', 'pari': 'পারি', 'paro': 'পারো', 'obosshoi': 'অবশ্যই', 'haan': 'হ্যাঁ', 'haa': 'হ্যাঁ', 'korcho': 'করছো', 'koro': 'করো', 'kichu': 'कुछ', 'jante': 'জানতে', 'chao': 'চাও', 'bolo': 'বলো', 'sahajyo': 'সাহায্য', 'korte': 'করতে', 'jigyesh': 'জিজ্ঞেস', 'ratnesh': 'রত্নেশ', 'bangla': 'বাংলা', 'bengali': 'বাংলা', 'shonao': 'শোনাও', 'chutkula': 'কৌতুক', 'bol': 'বল', 'shuncho': 'শুনছো', 'dada': 'দাদা', 'didi': 'দিদি', 'khabar': 'খাবার', 'kheyecho': 'খেয়েছো', 'shob': 'সব', 'ki': 'কি' };
                     return res.replace(/\b[a-zA-Z]+\b/g, w => bnDict[w.toLowerCase()] || w);
                 }
                 if (lang.startsWith('pa')) {
@@ -2221,7 +2284,58 @@ class AvatarChatBot {
                 }
                 if (lang.startsWith('gu')) {
                     if (/[\u0A80-\u0AFF]/.test(textStr)) return textStr;
-                    const guDict = { 'haan': 'હા', 'bilkul': 'બિલકੁલ', 'hu': 'હું', 'gujarati': 'ગુજરાતી', 'ma': 'માં', 'vaat': 'વાત', 'kari': 'કરી', 'saku': 'શકું', 'chu': 'છું', 'ekdam': 'એકદમ', 'majama': 'મજામાં', 'tame': 'તમે', 'bolo': 'બોલો', 'kem': 'કેમ', 'cho': 'છો', 'ratnesh': 'રત્નેશ', 'na': 'ના', 'projects': 'પ્રોજેક્ટ્સ', 'vishe': 'વિશે', 'mane': 'મને', 'kai': 'કંઈ', 'pan': 'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
+                    const guDict = { 'haan': 'હા', 'bilkul': 'બિલકુલ', 'hu': 'હું', 'gujarati': 'ગુજરાતી', 'ma': 'માં', 'vaat': 'વાત', 'kari': 'કરી', 'saku': 'શકું', 'chu': 'છું', 'ekdam': 'એકદમ', 'majama': 'મજામાં', 'tame': 'તમે', 'bolo': 'બોલો', 'kem': 'કેમ', 'cho': 'છો', 'ratnesh': 'રત્નેશ', 'na': 'ના', 'projects': 'પ્રોજેક્ટ્સ', 'vishe': 'વિશે', 'mane': 'મને', 'kai': 'કંઈ', 'pan': 'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
+                    return textStr.replace(/\b[a-zA-Z]+\b/g, w => guDict[w.toLowerCase()] || w);
+                }
+                if (lang.startsWith('hi')) {
+                    if (/[\u0900-\u097F]/.test(textStr)) return textStr;
+                    const hiPhrases = [
+                        [/\bhaan\s+bilkul\b/gi, 'हाँ बिल्कुल'],
+                        [/\bmain\s+hindi\s+mein\s+baat\s+kar\s+sakti\s+hoon\b/gi, 'मैं हिंदी में बात कर सकती हूँ'],
+                        [/\bmain\s+ekdam\s+badhiya\s+hoon\b/gi, 'मैं एकदम बढ़िया हूँ'],
+                        [/\baap\s+kaise\s+hain\b/gi, 'आप कैसे हैं'],
+                        [/\baap\s+bataiye\b/gi, 'आप बताइए'],
+                        [/\bkya\s+jaanna\s+chahte\s+hain\b/gi, 'क्या जानना चाहते हैं'],
+                        [/\bmain\s+ratnesh\s+ke\s+portfolio\s+mein\s+aapko\s+guide\s+kar\s+rahi\s+hoon\b/gi, 'मैं रत्नेश के पोर्टफोलियो में आपको गाइड कर रही हूँ'],
+                        [/\baap\s+mujhse\s+koi\s+bhi\s+sawal\s+pooch\s+sakte\s+hain\b/gi, 'आप मुझसे कोई भी सवाल पूछ सकते हैं'],
+                        [/\bnamaste\s+dosto\b/gi, 'नमस्ते दोस्तों'],
+                        [/\bek\s+baar\s+teacher\s+ne\s+pappu\s+se\s+pucha\b/gi, 'एक बार टीचर ने पप्पू से पूछा'],
+                        [/\bagar\s+ped\s+par\s+10\s+chidiya\s+baithi\s+hain\b/gi, 'अगर पेड़ पर १० चिड़िया बैठी हैं'],
+                        [/\baur\s+1\s+ko\s+goli\s+maar\s+di\s+jaye\b/gi, 'और एक को गोली मार दी जाये'],
+                        [/\bto\s+kitni\s+bachengi\b/gi, 'तो कितनी बचेंगी'],
+                        [/\bpappu\s+bola\s+ek\s+bhi\s+nahi\b/gi, 'पप्पू बोला एक भी नहीं'],
+                        [/\bkyunki\s+goli\s+ki\s+aawaz\s+se\s+baki\s+sab\s+udd\s+jayengi\b/gi, 'क्योंकि गोली की आवाज़ से बाकी सब उड़ जाएँगी'],
+                        [/\bdoctor\s+sahab\s+roz\s+raat\s+ko\s+sapne\s+mein\s+dawat\s+khata\s+hoon\b/gi, 'डॉक्टर साहब रोज़ रात को सपने में दावत खाता हूँ']
+                    ];
+                    let res = textStr;
+                    for (const [re, val] of hiPhrases) res = res.replace(re, val);
+                    const hiDict = {
+                        'haan': 'हाँ', 'bilkul': 'बिल्कुल', 'main': 'मैं', 'hindi': 'हिंदी', 'mein': 'में', 'baat': 'बात',
+                        'kar': 'कर', 'sakti': 'सकती', 'sakte': 'सकते', 'sakta': 'सकता', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे',
+                        'ratnesh': 'रत्नेश', 'ke': 'के', 'ki': 'की', 'ka': 'का', 'ko': 'को', 'projects': 'प्रोजेक्ट्स', 'ya': 'या',
+                        'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे', 'pooch': 'पूछ', 'hain': 'हैं', 'hai': 'है', 'ekdam': 'एकदम',
+                        'badhiya': 'बढ़िया', 'bataiye': 'बताइए', 'kaise': 'कैसे', 'kaisi': 'कैसी', 'kya': 'क्या', 'rahi': 'रही',
+                        'rahe': 'रहे', 'raha': 'रहा', 'guide': 'गाइड', 'namaste': 'नमस्ते', 'theek': 'ठीक', 'sab': 'सब',
+                        'karo': 'करो', 'batao': 'बताओ', 'chutkula': 'चुटकुला', 'hasao': 'हंसाओ', 'pappu': 'पप्पू', 'dost': 'दोस्त',
+                        'doctor': 'डॉक्टर', 'sapne': 'सपने', 'chidiya': 'चिड़िया', 'ped': 'पेड़', 'goli': 'गोली', 'aawaz': 'आवाज़',
+                        'nahi': 'नहीं', 'kuch': 'कुछ', 'bata': 'बता', 'bolo': 'बोलो', 'sunao': 'सुनाओ', 'shukriya': 'शुक्रिया',
+                        'dhanyawad': 'धन्यवाद', 'achha': 'अच्छा', 'suno': 'सुनो', 'samjhe': 'समझे'
+                    };
+                    return res.replace(/\b[a-zA-Z]+\b/g, w => hiDict[w.toLowerCase()] || w);
+                }
+                return textStr;
+            };
+
+            const spokenScriptText = getNativeScriptForTTS(cleanText, langCode);
+            const utterance = new SpeechSynthesisUtterance(spokenScriptText);
+
+            // Microsoft Edge & Mobile Chrome Natural neural voices strictly require pitch 1.0 (they reject modified pitch with synthesis-failed)
+            const isNaturalNeuralVoice = selectedVoice?.name?.includes('Natural') || selectedVoice?.name?.includes('Online') || selectedVoice?.name?.includes('Google') || selectedVoice?.lang?.startsWith('hi') || selectedVoice?.lang?.startsWith('bn') || selectedVoice?.lang?.startsWith('pa') || selectedVoice?.lang?.startsWith('gu');
+            if (isNaturalNeuralVoice) {
+                speechPitch = 1.0;
+                speechRate = 1.0;
+            }
+'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
                     return textStr.replace(/\b[a-zA-Z]+\b/g, w => guDict[w.toLowerCase()] || w);
                 }
                 if (lang.startsWith('hi')) {

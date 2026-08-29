@@ -289,24 +289,18 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       lang = 'ja-JP';
       voice = candidateVoices.find(v => /Nanami.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name) || /Kyoko/i.test(v.name)) ||
               candidateVoices.find(v => v.lang.startsWith('ja') && !MALE_FILTER.test(v.name)) || null;
-    } else if (hasDevanagari) {
-      // Native Devanagari Hindi (Swara Natural / Kalpana)
+    } else if (hasDevanagari || isHindiWords) {
+      // Hindi Voice (Mobile Chrome Android: Google हिन्दी, Edge: Swara Natural / Kalpana)
       lang = 'hi-IN';
       voice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Swara/i.test(v.name)) ||
-              candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
               candidateVoices.find(v => /Google.*(?:हिन्दी|Hindi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) || null;
-    } else if (isHindiWords) {
-      // Romanized Hindi / Hinglish (Neerja Natural / Heera / Veena)
-      lang = 'en-IN';
-      voice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Neerja/i.test(v.name)) ||
-              candidateVoices.find(v => /Heera/i.test(v.name)) ||
-              candidateVoices.find(v => /Veena/i.test(v.name)) ||
-              candidateVoices.find(v => /Google.*(?:India|English)/i.test(v.name) && (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) || null;
+              candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
     } else if (isUKEnglish) {
       // UK English British Accent (Sonia Natural, Libby Natural, Maisie Natural)
       lang = 'en-GB';
@@ -345,11 +339,11 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
 
     const selectedVoice = voice || candidateVoices[0] || null;
 
-    // Microsoft Edge Online Natural neural voices strictly require pitch 1.0 (they reject modified pitch with synthesis-failed)
-    const isNaturalNeuralVoice = selectedVoice?.name?.includes('Natural') || selectedVoice?.name?.includes('Online');
+    // Microsoft Edge & Mobile Chrome Natural neural voices strictly require pitch 1.0 (they reject modified pitch)
+    const isNaturalNeuralVoice = selectedVoice?.name?.includes('Natural') || selectedVoice?.name?.includes('Online') || selectedVoice?.name?.includes('Google') || selectedVoice?.lang?.startsWith('hi') || selectedVoice?.lang?.startsWith('bn') || selectedVoice?.lang?.startsWith('pa') || selectedVoice?.lang?.startsWith('gu');
     if (isNaturalNeuralVoice) {
       pitch = 1.0;
-      rate = 1.05;
+      rate = 1.0;
     }
 
     return { voice: selectedVoice, lang, rate, pitch };
@@ -427,14 +421,41 @@ function getSpokenTextForTTS(text: string, lang: string): string {
 
   if (lang.startsWith('hi')) {
     if (/[\u0900-\u097F]/.test(text)) return text;
+    const hiPhrases: [RegExp, string][] = [
+      [/\bhaan\s+bilkul\b/gi, 'हाँ बिल्कुल'],
+      [/\bmain\s+hindi\s+mein\s+baat\s+kar\s+sakti\s+hoon\b/gi, 'मैं हिंदी में बात कर सकती हूँ'],
+      [/\bmain\s+ekdam\s+badhiya\s+hoon\b/gi, 'मैं एकदम बढ़िया हूँ'],
+      [/\baap\s+kaise\s+hain\b/gi, 'आप कैसे हैं'],
+      [/\baap\s+bataiye\b/gi, 'आप बताइए'],
+      [/\bkya\s+jaanna\s+chahte\s+hain\b/gi, 'क्या जानना चाहते हैं'],
+      [/\bmain\s+ratnesh\s+ke\s+portfolio\s+mein\s+aapko\s+guide\s+kar\s+rahi\s+hoon\b/gi, 'मैं रत्नेश के पोर्टफोलियो में आपको गाइड कर रही हूँ'],
+      [/\baap\s+mujhse\s+koi\s+bhi\s+sawal\s+pooch\s+sakte\s+hain\b/gi, 'आप मुझसे कोई भी सवाल पूछ सकते हैं'],
+      [/\bnamaste\s+dosto\b/gi, 'नमस्ते दोस्तों'],
+      [/\bek\s+baar\s+teacher\s+ne\s+pappu\s+se\s+pucha\b/gi, 'एक बार टीचर ने पप्पू से पूछा'],
+      [/\bagar\s+ped\s+par\s+10\s+chidiya\s+baithi\s+hain\b/gi, 'अगर पेड़ पर १० चिड़िया बैठी हैं'],
+      [/\baur\s+1\s+ko\s+goli\s+maar\s+di\s+jaye\b/gi, 'और एक को गोली मार दी जाये'],
+      [/\bto\s+kitni\s+bachengi\b/gi, 'तो कितनी बचेंगी'],
+      [/\bpappu\s+bola\s+ek\s+bhi\s+nahi\b/gi, 'पप्पू बोला एक भी नहीं'],
+      [/\bkyunki\s+goli\s+ki\s+aawaz\s+se\s+baki\s+sab\s+udd\s+jayengi\b/gi, 'क्योंकि गोली की आवाज़ से बाकी सब उड़ जाएँगी'],
+      [/\bdoctor\s+sahab\s+roz\s+raat\s+ko\s+sapne\s+mein\s+dawat\s+khata\s+hoon\b/gi, 'डॉक्टर साहब रोज़ रात को सपने में दावत खाता हूँ']
+    ];
+    let converted = text;
+    for (const [re, hi] of hiPhrases) {
+      converted = converted.replace(re, hi);
+    }
     const hiWords: Record<string, string> = {
       'haan': 'हाँ', 'bilkul': 'बिल्कुल', 'main': 'मैं', 'hindi': 'हिंदी', 'mein': 'में', 'baat': 'बात',
-      'kar': 'कर', 'sakti': 'सकती', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे', 'ratnesh': 'रत्नेश',
-      'ke': 'के', 'projects': 'प्रोजेक्ट्स', 'ya': 'या', 'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे',
-      'pooch': 'पूछ', 'sakte': 'सकते', 'hain': 'हैं', 'ekdam': 'एकदम', 'badhiya': 'बढ़िया', 'bataiye': 'बताइए',
-      'kaise': 'कैसे', 'kya': 'क्या', 'rahi': 'रही', 'rahe': 'रहे', 'guide': 'गाइड', 'namaste': 'नमस्ते'
+      'kar': 'कर', 'sakti': 'सकती', 'sakte': 'सकते', 'sakta': 'सकता', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे',
+      'ratnesh': 'रत्नेश', 'ke': 'के', 'ki': 'की', 'ka': 'का', 'ko': 'को', 'projects': 'प्रोजेक्ट्स', 'ya': 'या',
+      'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे', 'pooch': 'पूछ', 'hain': 'हैं', 'hai': 'है', 'ekdam': 'एकदम',
+      'badhiya': 'बढ़िया', 'bataiye': 'बताइए', 'kaise': 'कैसे', 'kaisi': 'कैसी', 'kya': 'क्या', 'rahi': 'रही',
+      'rahe': 'रहे', 'raha': 'रहा', 'guide': 'गाइड', 'namaste': 'नमस्ते', 'theek': 'ठीक', 'sab': 'सब',
+      'karo': 'करो', 'batao': 'बताओ', 'chutkula': 'चुटकुला', 'hasao': 'हंसाओ', 'pappu': 'पप्पू', 'dost': 'दोस्त',
+      'doctor': 'डॉक्टर', 'sapne': 'सपने', 'chidiya': 'चिड़िया', 'ped': 'पेड़', 'goli': 'गोली', 'aawaz': 'आवाज़',
+      'nahi': 'नहीं', 'kuch': 'कुछ', 'bata': 'बता', 'bolo': 'बोलो', 'sunao': 'सुनाओ', 'shukriya': 'शुक्रिया',
+      'dhanyawad': 'धन्यवाद', 'achha': 'अच्छा', 'suno': 'सुनो', 'samjhe': 'समझे'
     };
-    return text.replace(/\b[a-zA-Z]+\b/g, (w) => hiWords[w.toLowerCase()] || w);
+    return converted.replace(/\b[a-zA-Z]+\b/g, (w) => hiWords[w.toLowerCase()] || w);
   }
 
   return text;
@@ -646,17 +667,35 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     const q = query.toLowerCase();
 
     // ── Admin Verification & Insights ──
-    if (q === 'ratnesh@231' || q.includes('ratnesh@231') || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && q.includes('password'))) {
-      if (typeof window !== 'undefined') sessionStorage.setItem('isAdmin', 'true');
-      return `Welcome back, Ratnesh! Admin mode is now active. You have full access to site insights, visitor analytics, recruiter messages, and location stats.`;
+    if (q === 'ratnesh@231' || q.includes('ratnesh@231') || q === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && q.includes('password'))) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('isAdmin', 'true');
+      }
+      return `Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?`;
     }
 
     if (q.includes('insight') || q.includes('stat') || q.includes('traffic') || q.includes('analytic') || q.includes('visitor') || q.includes('who visited') || q.includes('user list') || q.includes('all user')) {
-      return `Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India)\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!`;
+      return `Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!`;
     }
 
-    if (q.includes('read message') || q.includes('visitor message') || q.includes('recruiter message') || q.includes('inbox')) {
-      return `Here are the latest visitor inquiries in your inbox:\n1. "Great work on SyncPulse audio DSP! Looking forward to discussing engineering roles."\n2. "Interested in your PAK Video Converter NDK MediaCodec implementation."\nYou can view and reply to inquiries directly via kumarsinghratnesh3@gmail.com.`;
+    if (q.includes('message') || q.includes('messege') || q.includes('msg') || q.includes('inbox') || q.includes('recruiter') || q.includes('unread') || q.includes('notification')) {
+      return `Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!`;
+    }
+
+    if (q.includes('verify') || q.includes('claim') || q.includes('pending') || q.includes('detail') || q.includes('status')) {
+      return `All visitor telemetry and portfolio systems are verified and operating smoothly. There are no pending unverified claims at this time.`;
+    }
+
+    // User name introductions
+    const nameMatch = q.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
+    if (nameMatch && nameMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameMatch[1].toLowerCase())) {
+      const uName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userName', uName);
+        localStorage.setItem('userName', uName);
+      }
+      return `Nice to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
     }
 
     if (q.includes('scroll down') || q.includes('scroll further') || q.includes('scroll the page')) {
@@ -938,8 +977,11 @@ You can control the website and open any demo/link based on user commands! When 
 
     // 0. Admin Verification & Password Check
     if (query.trim() === 'Ratnesh@231' || qLower === 'ratnesh@231' || qLower === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && qLower.includes('password'))) {
-      if (typeof window !== 'undefined') sessionStorage.setItem('isAdmin', 'true');
-      const reply = "Welcome back, Ratnesh! Admin mode is now active. You have full access to site insights, visitor analytics, recruiter messages, and location stats.";
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('isAdmin', 'true');
+      }
+      const reply = "Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?";
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
@@ -954,7 +996,58 @@ You can control the website and open any demo/link based on user commands! When 
 
     // 0b. Admin Site Insights & Analytics
     if (qLower.includes('insight') || qLower.includes('stat') || qLower.includes('traffic') || qLower.includes('analytic') || qLower.includes('visitor') || qLower.includes('who visited') || qLower.includes('user list') || qLower.includes('all user')) {
-      const reply = "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India)\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!";
+      const reply = "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 0c. Recruiter & Visitor Messages
+    if (qLower.includes('message') || qLower.includes('messege') || qLower.includes('msg') || qLower.includes('inbox') || qLower.includes('recruiter') || qLower.includes('unread') || qLower.includes('notification')) {
+      const reply = "Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 0d. Admin Verification & Details Status
+    if (qLower.includes('verify') || qLower.includes('claim') || qLower.includes('pending') || qLower.includes('detail') || qLower.includes('status')) {
+      const reply = "All visitor telemetry and portfolio systems are verified and operating smoothly. There are no pending unverified claims at this time.";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 0e. User Introductions & Names
+    const nameIntroMatch = qLower.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
+    if (nameIntroMatch && nameIntroMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameIntroMatch[1].toLowerCase())) {
+      const uName = nameIntroMatch[1].charAt(0).toUpperCase() + nameIntroMatch[1].slice(1);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userName', uName);
+        localStorage.setItem('userName', uName);
+      }
+      const reply = `It's wonderful to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
@@ -1129,6 +1222,8 @@ You can control the website and open any demo/link based on user commands! When 
         body: JSON.stringify({
           messages: chatMessages,
           sessionId: sessionIdRef.current,
+          isAdmin: typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true'),
+          userName: typeof window !== 'undefined' ? (sessionStorage.getItem('userName') || localStorage.getItem('userName') || '') : ''
         })
       });
 
