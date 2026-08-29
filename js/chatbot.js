@@ -224,6 +224,7 @@ class AvatarChatBot {
 
         // Always attempt to speak immediately (Autoplay)
         console.log('[Raya Intro] Attempting auto-play immediately.');
+        try { window.playWaveAnimation?.(); } catch(e) {}
         this.speakAvatar(introMessage, false);
 
         if (!this._userHasGestured) {
@@ -471,7 +472,7 @@ class AvatarChatBot {
                 <button class="info-panel-close">&times;</button>
             </div>
             <ul class="info-panel-commands">
-                <li class="suggest-cmd suggest-cmd-leave-msg">"📩 Leave a message"</li>
+                <li class="suggest-cmd">"📩 Leave a message"</li>
                 <li class="suggest-cmd">"📜 Scroll down"</li>
                 <li class="suggest-cmd">"🚀 Tell me about Ratnesh's project"</li>
                 <li class="suggest-cmd">"😄 Tell me a joke"</li>
@@ -483,33 +484,19 @@ class AvatarChatBot {
         panel.appendChild(this.infoPanel);
         panel.appendChild(inputRow);
 
-        // Suggestions Click Handlers
+        // Suggestions Click Handlers — All commands route through LLM API
         this.infoPanel.querySelectorAll('.suggest-cmd').forEach(item => {
             item.addEventListener('click', (e) => {
                 let cmdText = e.target.textContent.replace(/"/g, '').trim();
                 this.infoPanel.style.display = 'none';
 
                 if (cmdText.includes('Leave a message')) {
-                    const promptMsg = "Sure thing! Please type or speak your message, and I'll deliver it directly to Ratnesh for you.";
-                    this.speakAvatar(promptMsg, false);
+                    this.textInput.value = "Hi Ratnesh, ";
                     this.textInput.placeholder = "Type your message for Ratnesh...";
-                    this.textInput.value = "";
                     this.textInput.focus();
-                } else if (cmdText.includes('Scroll down')) {
-                    this.executeScroll('down');
-                } else if (cmdText.includes('project')) {
-                    this.processQuery("Tell me about Ratnesh's project");
-                } else if (cmdText.includes('joke')) {
-                    this.processQuery("Tell me a joke");
-                } else if (cmdText.includes('skills')) {
-                    this.processQuery("Tell me about Ratnesh's skills");
-                } else if (cmdText.includes('contact')) {
-                    this.executeScroll('contact');
-                } else if (cmdText.includes('song')) {
-                    this.processQuery("Play a song");
                 } else {
-                    this.textInput.value = cmdText;
-                    this.textInput.focus();
+                    const cleanCmd = cmdText.replace(/^[^\w\s]+/, '').trim();
+                    this.handleUserInput(cleanCmd);
                 }
             });
         });
@@ -1211,43 +1198,7 @@ class AvatarChatBot {
         this.messages.push({ role: 'user', content: text });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
-        // LOCAL COMMAND ROUTING - handles simple commands with zero API calls
-        // Also handles dual-commands (e.g. open theme + play music simultaneously)
-        const localResult = this._tryLocalCommand(text);
-        if (localResult) {
-            this.isThinking = false;
-            this._awaitingCommand = false;
-            this.updateMicUI();
-            this.messages.push({ role: 'assistant', content: localResult.speech });
-            localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-            // Execute all actions (supports multi-action combos)
-            const actions = localResult.actions || (localResult.action ? [localResult.action] : []);
-            actions.forEach(fn => { try { fn(); } catch(e) { console.warn('[Raya] Action error:', e); } });
-            this.speakAvatar(localResult.speech, true);
-            return;
-        }
-
-        // SMART COMMAND CACHE CHECK - Learn from crowd behavior to save API calls
-        // Do NOT cache or reuse responses for jokes/creative queries so they are never repetitive!
-        const isJokeOrCreative = /\b(joke|jokes|funny|riddle|riddles|laugh|humor|story|roast|pun)\b/i.test(text);
-        if (!isJokeOrCreative) {
-            try {
-                const cacheRes = await fetch('/api/cmd/lookup?q=' + encodeURIComponent(text));
-                if (cacheRes.ok) {
-                    const cacheData = await cacheRes.json();
-                    if (cacheData.cached) {
-                        console.log('🧠 [Raya Smart Cache] Hit for query:', text);
-                        this.hideTyping();
-                        this.processAIResponse(cacheData.response, text, true); // true = fromCache
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn('[Raya Smart Cache] Lookup failed:', e);
-            }
-        }
-
-        // Fall through to Groq for real conversation
+        // Route all user queries and built-in commands directly to LLM API key
         this.showTyping();
 
         // -- Safety timeout: if no reply in 30s, reset and prompt user to retry
@@ -1615,7 +1566,7 @@ class AvatarChatBot {
         this.updateMicUI();
 
         // Extract ALL JSON action blocks from the reply (supports dual/multi commands)
-        const jsonPattern = /\{[^{}]*"action"\s*:\s*"(?:play_song|navigate|scroll|change_avatar|open_link)"[^{}]*\}/gi;
+        const jsonPattern = /\{[^{}]*"action"\s*:\s*"(?:play_song|navigate|scroll|scroll_down|leave_message|change_avatar|open_link|open_url)"[^{}]*\}/gi;
         const allMatches = [...fullMsg.matchAll(jsonPattern)];
         const actionObjs = [];
         let spokenText = fullMsg;
@@ -1650,18 +1601,16 @@ class AvatarChatBot {
 
         // Execute every action that was found concurrently
         actionObjs.forEach(async (actionObj) => {
-            if (actionObj.action === 'play_song' && actionObj.query) {
+            if (actionObj.action === 'scroll_down') {
+                this.executeScroll('down');
+            } else if (actionObj.action === 'leave_message') {
+                this.textInput.value = "Hi Ratnesh, ";
+                this.textInput.placeholder = "Type your message for Ratnesh...";
+                this.textInput.focus();
+            } else if (actionObj.action === 'play_song' && actionObj.query) {
                 await this.searchAndPlay(actionObj.query);
-            } else if (actionObj.action === 'navigate') {
-                this.executeNavigation(actionObj.target);
-            } else if (actionObj.action === 'scroll') {
-                const qLower = (originalQuery || '').toLowerCase().trim();
-                const isExplicitScrollReq = /\b(scroll|go to|take me|navigate|section|where is|show me about|show me projects|show me skills|show me contact)\b/i.test(qLower);
-                if (isExplicitScrollReq) {
-                    this.executeScroll(actionObj.target);
-                } else {
-                    console.log('[Raya Guard] Suppressed automatic scroll action for query:', originalQuery);
-                }
+            } else if (actionObj.action === 'navigate' || actionObj.action === 'scroll') {
+                this.executeScroll(actionObj.target);
             } else if (actionObj.action === 'open_link' || actionObj.action === 'open_url') {
                 const lnk = (actionObj.target || actionObj.url || '').toLowerCase();
                 let url = '';
@@ -2061,11 +2010,16 @@ class AvatarChatBot {
             const isBengali = /[\u0980-\u09FF]/.test(cleanText) || /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob)\b/i.test(cleanText);
             const isPunjabi = /[\u0A00-\u0A7F]/.test(cleanText) || /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi)\b/i.test(cleanText);
             const isGujarati = /[\u0A80-\u0AFF]/.test(cleanText) || /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame)\b/i.test(cleanText);
-            const isMarathi  = /\b(kasa|ahes|kay|challay|namaskar|marathi|sang|ahe|aahaat)\b/i.test(cleanText);
-            const isTamil    = /[\u0B80-\u0BFF]/.test(cleanText) || /\b(vanakkam|epadi|irukinga|nandri)\b/i.test(cleanText);
-            const isTelugu   = /[\u0C00-\u0C7F]/.test(cleanText) || /\b(namaskaram|ela|unnaru|cheppandi|telugu)\b/i.test(cleanText);
-            const isJapanese = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(cleanText) || /\b(konnichiwa|arigatou|sugoi|kawaii|ohayou)\b/i.test(cleanText);
-            const isHindi    = /[\u0900-\u097F]/.test(cleanText) || /\b(namaste|kaise|kaisi|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|haan|nahi|kaisa|main|meri|mera|mujhe|tum|kar|rahe|rahi|samjho|baat)\b/i.test(cleanText);
+            const hasBengaliScript  = /[\u0980-\u09FF]/.test(cleanText);
+            const hasPunjabiScript  = /[\u0A00-\u0A7F]/.test(cleanText);
+            const hasGujaratiScript = /[\u0A80-\u0AFF]/.test(cleanText);
+            const hasJapaneseScript = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(cleanText);
+            const hasDevanagari     = /[\u0900-\u097F]/.test(cleanText);
+
+            const isBengaliWords = /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob)\b/i.test(cleanText);
+            const isPunjabiWords = /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi|bolde|kaddan|baraf|tukda)\b/i.test(cleanText);
+            const isGujaratiWords = /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame|aavde|vaat)\b/i.test(cleanText);
+            const isHindiWords = /\b(namaste|kaise|kaisi|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|haan|nahi|kaisa|main|meri|mera|mujhe|tum|kar|rahe|rahi|samjho|baat|bol|sakdi|sakta|saktee|shonao|pappu|dost|sapne|khata)\b/i.test(cleanText);
 
             let langCode = 'en-IN';
             let selectedVoice = null;
@@ -2078,122 +2032,83 @@ class AvatarChatBot {
             const femaleVoices = allVoices.filter(v => v && v.name && !MALE_FILTER.test(v.name));
             const candidateVoices = femaleVoices.length > 0 ? femaleVoices : allVoices;
 
-            if (isBengali) {
+            // Dialect detection
+            const isUKEnglish = /\b(colour|flavour|favour|honour|neighbour|theatre|centre|metre|cheers|mate|brilliant|proper|bloke|fancy|bloody|splendid|sorted|reckon|quid|rubbish|trousers|flat|postcode|lorry|biscuit)\b/i.test(cleanText);
+            const isIndianEnglish = isHindiWords || isBengaliWords || isPunjabiWords || isGujaratiWords || /\b(ratnesh|svist|makaut|syncpulse|pak|btech|ece|kolkata|india|indian|pass out|prepone|revert back|good name|do the needful|bhai|yaar)\b/i.test(cleanText) || (typeof navigator !== 'undefined' && navigator.language === 'en-IN');
+
+            if (hasBengaliScript) {
                 langCode = 'bn-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
                 selectedVoice = candidateVoices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Tanishaa/i.test(v.name) || /Nabami/i.test(v.name)) ||
-                                candidateVoices.find(v => /Google.*(?:বাংলা|Bengali)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => (v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Veena|Heera/i.test(v.name));
-            } else if (isPunjabi) {
+                                candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name)) || null;
+            } else if (hasPunjabiScript) {
                 langCode = 'pa-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
                 selectedVoice = candidateVoices.find(v => /Gurpreet.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Gurpreet/i.test(v.name)) ||
-                                candidateVoices.find(v => /Google.*(?:ਪੰਜਾਬੀ|Punjabi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => (v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Veena|Heera/i.test(v.name));
-            } else if (isGujarati) {
+                                candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name)) || null;
+            } else if (hasGujaratiScript) {
                 langCode = 'gu-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
                 selectedVoice = candidateVoices.find(v => /Dhwani.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Dhwani/i.test(v.name)) ||
-                                candidateVoices.find(v => /Google.*(?:ગુજરાતી|Gujarati)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => (v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Veena|Heera/i.test(v.name));
-            } else if (isMarathi) {
-                langCode = 'mr-IN';
-                speechRate = 1.0;
-                speechPitch = 1.15;
-                selectedVoice = candidateVoices.find(v => /Aarohi.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Aarohi/i.test(v.name)) ||
-                                candidateVoices.find(v => (v.lang.startsWith('mr') || v.lang.replace('_', '-').startsWith('mr')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => (v.name.includes('मराठी') || v.name.includes('Marathi')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name));
-            } else if (isTamil) {
-                langCode = 'ta-IN';
-                speechRate = 1.0;
-                speechPitch = 1.15;
-                selectedVoice = candidateVoices.find(v => /Pallavi.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Pallavi/i.test(v.name)) ||
-                                candidateVoices.find(v => v.lang.startsWith('ta') && !MALE_FILTER.test(v.name));
-            } else if (isTelugu) {
-                langCode = 'te-IN';
-                speechRate = 1.0;
-                speechPitch = 1.15;
-                selectedVoice = candidateVoices.find(v => /Shruti.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Shruti/i.test(v.name)) ||
-                                candidateVoices.find(v => v.lang.startsWith('te') && !MALE_FILTER.test(v.name));
-            } else if (isJapanese) {
+                                candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) || null;
+            } else if (hasJapaneseScript) {
                 langCode = 'ja-JP';
                 speechRate = 1.05;
                 speechPitch = 1.25;
                 selectedVoice = candidateVoices.find(v => /Nanami.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name) || /Kyoko/i.test(v.name)) ||
                                 candidateVoices.find(v => v.lang.startsWith('ja') && !MALE_FILTER.test(v.name));
-            } else if (isHindi) {
+            } else if (hasDevanagari) {
                 langCode = 'hi-IN';
                 speechRate = 1.0;
                 speechPitch = 1.15;
                 selectedVoice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Swara/i.test(v.name)) ||
                                 candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
-                                candidateVoices.find(v => /Lekha|Kavya|Isha/i.test(v.name)) ||
                                 candidateVoices.find(v => /Google.*(?:हिन्दी|Hindi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-                                candidateVoices.find(v => /Veena|Heera/i.test(v.name)) ||
-                                candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
-                                candidateVoices.find(v => (v.name.includes('हिन्दी') || v.name.includes('Hindi')) && !MALE_FILTER.test(v.name));
+                                candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name));
+            } else if (isUKEnglish) {
+                // UK English British Accent
+                langCode = 'en-GB';
+                speechRate = 1.05;
+                speechPitch = 1.20;
+                selectedVoice = candidateVoices.find(v => /Sonia.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Libby.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Maisie.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Serena/i.test(v.name)) ||
+                                candidateVoices.find(v => v.name === 'Google UK English Female') ||
+                                candidateVoices.find(v => (v.lang.startsWith('en-GB') || v.lang.startsWith('en_GB')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => /Ava.*Natural/i.test(v.name));
+            } else if (isIndianEnglish) {
+                // Indian English / Romanized Hindi Accent (Edge Natural Microsoft Neerja / Apple Veena / Google Indian English)
+                langCode = 'en-IN';
+                speechRate = 1.08;
+                speechPitch = 1.25;
+                selectedVoice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Neerja/i.test(v.name)) ||
+                                candidateVoices.find(v => /Veena/i.test(v.name)) ||
+                                candidateVoices.find(v => /Heera/i.test(v.name)) ||
+                                candidateVoices.find(v => /Google.*(?:India|English)/i.test(v.name) && (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => /Ava.*Natural/i.test(v.name));
             } else {
-                // English Dialect Resolution (UK vs Indian vs US English)
-                const isUKEnglish = /\b(colour|flavour|favour|honour|neighbour|theatre|centre|metre|cheers|mate|brilliant|proper|bloke|fancy|bloody|splendid|sorted|reckon|quid|rubbish|trousers|flat|postcode|lorry|biscuit)\b/i.test(cleanText);
-                const isIndianEnglish = /\b(ratnesh|svist|makaut|syncpulse|pak|btech|ece|kolkata|india|indian|pass out|prepone|revert back|good name|do the needful|bhai|yaar)\b/i.test(cleanText) || (typeof navigator !== 'undefined' && navigator.language === 'en-IN');
-
-                if (isUKEnglish) {
-                    langCode = 'en-GB';
-                    speechRate = 1.05;
-                    speechPitch = 1.20;
-                    selectedVoice = candidateVoices.find(v => /Sonia.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Libby.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Maisie.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Serena/i.test(v.name)) ||
-                                    candidateVoices.find(v => v.name === 'Google UK English Female') ||
-                                    candidateVoices.find(v => (v.lang.startsWith('en-GB') || v.lang.startsWith('en_GB')) && !MALE_FILTER.test(v.name)) ||
-                                    candidateVoices.find(v => /Ava.*Natural/i.test(v.name));
-                } else if (isIndianEnglish) {
-                    langCode = 'en-IN';
-                    speechRate = 1.08;
-                    speechPitch = 1.25;
-                    selectedVoice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Neerja/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Veena/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Heera/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Google.*(?:India|English)/i.test(v.name) && (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
-                                    candidateVoices.find(v => (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
-                                    candidateVoices.find(v => /Ava.*Natural/i.test(v.name));
-                } else {
-                    langCode = 'en-US';
-                    speechRate = 1.08;
-                    speechPitch = 1.25;
-                    selectedVoice = candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Jenny.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Aria.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Samantha/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Karen/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Zira/i.test(v.name)) ||
-                                    candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-                                    candidateVoices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
-                                    candidateVoices.find(v => v.lang.startsWith('en') && !MALE_FILTER.test(v.name)) || null;
-                }
+                langCode = 'en-US';
+                speechRate = 1.08;
+                speechPitch = 1.25;
+                selectedVoice = candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Jenny.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Aria.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Samantha/i.test(v.name)) ||
+                                candidateVoices.find(v => /Karen/i.test(v.name)) ||
+                                candidateVoices.find(v => /Zira/i.test(v.name)) ||
+                                candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
+                                candidateVoices.find(v => v.lang.startsWith('en') && !MALE_FILTER.test(v.name)) || null;
             }
 
             if (!selectedVoice) {

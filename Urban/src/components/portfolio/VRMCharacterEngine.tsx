@@ -233,6 +233,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     const loader = new GLTFLoader();
     loader.register((parser) => new VRMLoaderPlugin(parser));
     const fbxLoader = new FBXLoader();
+    let pendingWave = false;
 
     const candidateUrls = getAvatarCandidateUrls(currentAvatarFile);
     let isDisposed = false;
@@ -250,6 +251,10 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
             idleActionRef.current.play();
           }
         }, Math.max(2500, duration - 400));
+        pendingWave = false;
+      } else {
+        // Queue wave so it executes the exact moment Waving1.fbx finishes loading
+        pendingWave = true;
       }
     };
 
@@ -295,7 +300,10 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
             waveAction.clampWhenFinished = true;
             waveActionRef.current = waveAction;
             console.log('[VRM Animation] Loaded Waving1.fbx successfully');
-            triggerWave();
+            if (pendingWave || (window as any)._pendingIntroWave) {
+              (window as any)._pendingIntroWave = false;
+              triggerWave();
+            }
           }
         },
         undefined,
