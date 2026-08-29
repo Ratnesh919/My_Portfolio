@@ -86,6 +86,26 @@ export const PORTFOLIO_DATA = {
       ]
     },
     {
+      id: "shopkart",
+      title: "ShopKart",
+      subtitle: "Modern E-Commerce Web Application",
+      tagline: "Responsive online shopping platform with dynamic catalog, cart, and interactive checkout.",
+      desc: "A full-featured Flipkart-inspired Indian e-commerce application featuring 40+ products across 8 categories, Deals of the Day countdown timer, real-time search & multi-factor sorting, persistent wishlist, cart with free delivery progress meter (>₹499), and multi-step Indian checkout.",
+      category: "Full-Stack",
+      tags: ["HTML5", "CSS3", "JavaScript", "LocalStorage", "E-Commerce"],
+      techStack: "HTML5 · CSS3 · JavaScript",
+      accent: "#00C7B7",
+      glowColor: "rgba(0, 199, 183, 0.4)",
+      badge: "E-Commerce Web App",
+      liveUrl: "https://shopkart919.netlify.app",
+      githubUrl: "https://github.com/Ratnesh919/Shop_Kart-",
+      highlights: [
+        "40+ products across 8 categories with Deals of the Day carousel and countdown timer",
+        "Persistent wishlist and shopping cart with Free Delivery Progress Meter",
+        "Multi-step Indian checkout with pincode validation and realistic order receipts"
+      ]
+    },
+    {
       id: "pak-converter",
       title: "PAK Video Converter",
       subtitle: "Android Video Extractor & Converter",

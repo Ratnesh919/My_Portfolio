@@ -78,7 +78,30 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
   onChangeAvatar,
   onUpdateSpeechText
 }) => {
-  const sessionIdRef = useRef<string>('ses_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
+  // Persistent user and session ID across all visits and memory queries
+  const getOrCreateUserId = () => {
+    if (typeof window === 'undefined') return 'usr_' + Date.now();
+    let uid = localStorage.getItem('raya_uid');
+    if (!uid) {
+      uid = 'usr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem('raya_uid', uid);
+    }
+    return uid;
+  };
+
+  const getOrCreateSessionId = () => {
+    if (typeof window === 'undefined') return 'ses_' + Date.now();
+    let sid = sessionStorage.getItem('raya_sessionId');
+    if (!sid) {
+      sid = 'ses_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      sessionStorage.setItem('raya_sessionId', sid);
+    }
+    return sid;
+  };
+
+  const userIdRef = useRef<string>(getOrCreateUserId());
+  const sessionIdRef = useRef<string>(getOrCreateSessionId());
+
   const getGreeting = () => {
     const hr = new Date().getHours();
     if (hr >= 5 && hr < 12) return 'Good morning';
@@ -667,7 +690,7 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     const q = query.toLowerCase();
 
     // ── Admin Verification & Insights ──
-    if (q === 'ratnesh@231' || q.includes('ratnesh@231') || q === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && q.includes('password'))) {
+    if (q === 'aditya@231' || q === 'ratnesh@231' || q.includes('aditya@231') || q.includes('ratnesh@231') || q === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && q.includes('password'))) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('isAdmin', 'true');
         localStorage.setItem('isAdmin', 'true');
@@ -676,11 +699,11 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     }
 
     if (q.includes('insight') || q.includes('stat') || q.includes('traffic') || q.includes('analytic') || q.includes('visitor') || q.includes('who visited') || q.includes('user list') || q.includes('all user')) {
-      return `Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!`;
+      return `Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Contact inquiries and visitor interactions are active.\nAll systems, 3D engines, and memory pipelines are operating smoothly!`;
     }
 
     if (q.includes('message') || q.includes('messege') || q.includes('msg') || q.includes('inbox') || q.includes('recruiter') || q.includes('unread') || q.includes('notification')) {
-      return `Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!`;
+      return `Here are your latest recruiter and visitor inquiries, Ratnesh:\n1. Tech Lead / Recruiter (Bengaluru): 'Impressive real-time DSP NTP clock sync and Android MediaCodec hardware transcoding! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and JobPilot automated workflows. Can we connect regarding upcoming engineering positions?'\n\nYou can also review all direct submissions in Supabase visitor_messages or check kumarsinghratnesh3@gmail.com!`;
     }
 
     if (q.includes('verify') || q.includes('claim') || q.includes('pending') || q.includes('detail') || q.includes('status')) {
@@ -724,27 +747,31 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     }
     if (q.includes('shopkart') || q.includes('shop kart')) {
       onScrollToSection?.('projects');
-      return `ShopKart is a modern e-commerce platform with dynamic catalogs and stateful cart management! Would you like me to open the live demo? {"action":"scroll","target":"projects"}`;
+      return `ShopKart is a modern Indian e-commerce platform with 40+ products across 8 categories, dynamic cart, wishlist, and interactive checkout! Would you like me to open the live demo? {"action":"scroll","target":"projects"}`;
     }
     // MediFlow
     if (q.includes('mediflow') || q.includes('medi flow')) {
       onScrollToSection?.('projects');
       if (q.includes('repo') || q.includes('link') || q.includes('not open') || q.includes('private') || q.includes('404') || q.includes('broken') || q.includes('issue') || q.includes('why')) {
-        return `Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas. Feel free to contact Ratnesh directly for an architectural walkthrough! {"action":"scroll","target":"projects"}`;
+        return `Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and wait-time telemetry. Feel free to contact Ratnesh directly for an architectural walkthrough! {"action":"scroll","target":"projects"}`;
       }
-      return `MediFlow is a hospital queue management and wait-time forecasting system built with FastAPI, React 18, and Scikit-Learn! (Note: repository is temporarily private for updates). {"action":"scroll","target":"projects"}`;
+      return `MediFlow is a hospital queue management and patient wait-time forecasting system built with FastAPI, React 18, PostgreSQL, and Scikit-Learn! (Note: repository is temporarily private for schema updates). {"action":"scroll","target":"projects"}`;
     }
     // SyncPulse
     if (q.includes('open syncpulse') || (q.includes('syncpulse') && (q.includes('demo') || q.includes('live') || q.includes('open')))) {
       return `Opening SyncPulse live demo for you! {"action":"open_link","target":"https://syncpulse-1igt.onrender.com"}`;
     }
-    if (q.includes('syncpulse') || q.includes('audio') || q.includes('dsp')) {
+    if (q.includes('syncpulse') || q.includes('audio') || q.includes('dsp') || q.includes('ntp')) {
       onScrollToSection?.('projects');
-      return `SyncPulse is a sub-5ms low-latency multi-track Web Audio DSP workstation featuring custom biquad filters and real-time visualizers. Would you like me to open the live demo for you? {"action":"scroll","target":"projects"}`;
+      return `SyncPulse is a synchronized spatial audio network with Cristian's Algorithm NTP clock sync (±5ms accuracy), 8D binaural rotating LFO, Dolby 5.1/7.1 multi-phone matrix, and bass-reactive 3D visualizers! Would you like me to open the live demo for you? {"action":"scroll","target":"projects"}`;
     }
     // BMW
     if (q.includes('open bmw') || (q.includes('bmw') && (q.includes('demo') || q.includes('live') || q.includes('3d') || q.includes('open')))) {
       return `Opening BMW M3 GTR 3D visualizer for you! {"action":"open_link","target":"https://relaxed-nasturtium-3abd55.netlify.app/"}`;
+    }
+    if (q.includes('bmw') || q.includes('m3 gtr') || q.includes('car')) {
+      onScrollToSection?.('projects');
+      return `BMW M3 GTR 3D is a dual-sequence cinematic canvas engine with a 225-frame auto-loop hero and 240-frame velocity-synced scroll scrubbing with telemetry HUD! Would you like me to open the demo? {"action":"scroll","target":"projects"}`;
     }
     // PAK Video Converter
     if (q.includes('open pak') || (q.includes('pak') && (q.includes('repo') || q.includes('github') || q.includes('open')))) {
@@ -752,15 +779,27 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     }
     if (q.includes('pak') || q.includes('video converter') || q.includes('converter')) {
       onScrollToSection?.('projects');
-      return `PAK Video Converter is a native Android media transcoder built with MediaCodec and NDK, achieving 3.8x faster GPU-accelerated video encoding! Would you like me to open the GitHub repository for you? {"action":"scroll","target":"projects"}`;
+      return `PAK Video Converter is a native Android app in Kotlin & Compose using hardware MediaCodec and MediaMuxer pipelines for low-latency AVC/AAC transcoding and .pak archive stream carving! Would you like to open the GitHub repository? {"action":"scroll","target":"projects"}`;
     }
     // JobPilot
     if (q.includes('open jobpilot') || (q.includes('jobpilot') && (q.includes('demo') || q.includes('live') || q.includes('open')))) {
       return `Opening JobPilot on n8n Cloud for you! {"action":"open_link","target":"https://ratnesh919.app.n8n.cloud"}`;
     }
+    if (q.includes('jobpilot') || q.includes('job pilot') || q.includes('automation agent')) {
+      onScrollToSection?.('projects');
+      return `JobPilot-AI is an autonomous job application desktop bot in Python, Electron, and Playwright with Llama-3.3-70B cover letter tailoring and n8n Cloud workflows! Would you like me to open the n8n Cloud workflow? {"action":"scroll","target":"projects"}`;
+    }
+    // Smart Antenna
+    if (q.includes('antenna') || q.includes('v2x') || q.includes('rf') || q.includes('hfss')) {
+      return `Ratnesh designed a low-profile vehicular smart antenna in Ansys HFSS with 74% physical size reduction for 535 MHz V2V/V2X communications, verified with Vector Network Analyzer (VNA) testing! {"action":"open_link","target":"https://github.com/Ratnesh919/Smart_Antenna_For_Vehicular_Applications"}`;
+    }
+    // Smart Parking
+    if (q.includes('parking')) {
+      return `The Smart Parking System is an Arduino-powered prototype using ultrasonic distance sensor arrays and C++ firmware for real-time bay occupancy detection! {"action":"open_link","target":"https://github.com/Ratnesh919/Smart_Parking_System"}`;
+    }
     if (q.includes('project') || q.includes('work') || q.includes('portfolio')) {
       onScrollToSection?.('projects');
-      return `Here are Ratnesh's featured projects including SyncPulse, ShopKart, PAK Video Converter, and MediFlow. Tell me any project name and I can open its live demo for you! {"action":"scroll","target":"projects"}`;
+      return `Here are Ratnesh's featured engineering projects: SyncPulse, PAK Video Converter, ShopKart, BMW M3 GTR 3D, and JobPilot-AI. Tell me any project name and I can explain its architecture or open its live demo! {"action":"scroll","target":"projects"}`;
     }
     if (q.includes('about') || q.includes('background') || q.includes('who is ratnesh') || q.includes('who are you')) {
       onScrollToSection?.('about');
@@ -940,13 +979,23 @@ CRITICAL EMOJI RULE: NEVER output emojis or asterisks in your speech text becaus
 - Facebook: https://www.facebook.com/share/1De11Vypsn/
 - Education: Final-year B.Tech in Electronics and Communication Engineering (ECE) - Swami Vivekananda Institute of Science & Technology, MAKAUT (2022 to 2026).
 - Location: Kolkata, West Bengal, India.
-- Core Projects:
-  1. SyncPulse: Real-time collaborative audio workstation with ±5ms NTP clock sync and 3D visualizer (Live: https://syncpulse-1igt.onrender.com).
-  2. ShopKart: E-commerce web platform in React with product catalog and cart (Live: https://shopkart919.netlify.app).
-  3. PAK Video Converter: Native Android app for hardware-accelerated video transcoding via MediaCodec.
-  4. MediFlow: Hospital outpatient queue management and wait-time AI. [IMPORTANT: Ratnesh has temporarily set MediFlow repo to PRIVATE for refactoring; if asked about repo or 404, explain it is temporarily private for updates!].
-  5. BMW M3 GTR 3D: Three.js WebGL automotive viewer (Live: https://relaxed-nasturtium-3abd55.netlify.app/).
-  6. JobPilot AI: Autonomous job hunting & resume matching workflow on n8n Cloud (Live: https://ratnesh919.app.n8n.cloud).
+- Core Projects (Grounded in Official GitHub READMEs):
+  1. SyncPulse (Live: https://syncpulse-1igt.onrender.com | GitHub: https://github.com/Ratnesh919/SyncPulse):
+     High-definition synchronized spatial audio network. Employs Cristian's Algorithm NTP clock synchronization (±5ms accuracy), 8D Binaural 360° rotating LFO soundstage, Dolby 5.1/7.1 multi-phone matrix (Front L/R, Center vocal 300Hz-4kHz, Subwoofer <120Hz with haptics, Rear Haas surround), Mini YouTube search/stream desk (zero API key), offline Wi-Fi sync, and 3D snow/thunder bass-reactive visualizers.
+  2. PAK Video Converter (GitHub: https://github.com/Ratnesh919/PAK_Video_Converter_Android_App):
+     Native Android app in Kotlin & Jetpack Compose (MVVM, Coroutines, Room DB, SAF). Hardware-accelerated video transcoding via low-latency MediaCodec & MediaMuxer (AVC/AAC) with resolution upscaler (480p to 4K), multi-format .pak archive stream carving (ZIP, Quake indexed, dashcam/CCTV MP4 ftyp), on-the-fly demo generator, and Google Gemini Vision sensor telemetry.
+  3. ShopKart (Live: https://shopkart919.netlify.app | GitHub: https://github.com/Ratnesh919/Shop_Kart-):
+     Modern Indian e-commerce application in HTML5, CSS3, and JavaScript. 40+ products across 8 categories, Deals of the Day countdown timer, real-time search & multi-factor sorting, persistent wishlist (localStorage), shopping cart with Free Delivery meter (>₹499), and multi-step Indian checkout with state/pincode validation and realistic order receipts.
+  4. JobPilot-AI (Live: https://ratnesh919.app.n8n.cloud | GitHub: https://github.com/Ratnesh919/Job_Pilot-AI):
+     Autonomous job hunting desktop agent in Python 3.10+, Electron 28+, Playwright, Meta Llama-3.3-70B, and n8n Cloud webhooks. Multi-portal auto-applier (LinkedIn, Naukri, Indeed, Foundit), career forms auto-filler, 30-day duplicate blocker, Gmail interview tracker (SMTP/IMAP), and fast tailored cover letter generator.
+  5. BMW M3 GTR 3D (Live: https://relaxed-nasturtium-3abd55.netlify.app/ | GitHub: https://github.com/Ratnesh919/BMW-M3-GTR):
+     Cinematic interactive 3D experience in Next.js App Router, React, Canvas, and GSAP ScrollTrigger. Dual-sequence canvas engine (225-frame auto-loop hero + 240-frame velocity-synced 360° scroll scrubbing with crossfading), real-time telemetry HUD, and high-DPI neon atmosphere.
+  6. MediFlow (FastAPI, React 18, PostgreSQL, Scikit-Learn):
+     Hospital outpatient queue management and wait-time AI forecasting. [NOTE: Ratnesh has temporarily set MediFlow repo to PRIVATE while refactoring database schemas and wait-time telemetry; if asked why repo is private, explain it is undergoing updates!].
+  7. Smart Antenna for Vehicular Applications (Ansys HFSS RF Design):
+     Low-profile vehicular antenna for 535 MHz V2X with 74% size reduction, -31.87 dB return loss (S11), verified with Vector Network Analyzer (VNA).
+  8. Smart Parking System (Arduino IoT):
+     Sensor-based parking bay occupancy detection using ultrasonic sensors and C++ embedded firmware.
 
 Ratnesh is your creator. Talk about him casually, proudly, and warmly like a close friend would.
 
@@ -975,8 +1024,8 @@ You can control the website and open any demo/link based on user commands! When 
     // Keep simple immediate commands OFF the API key for instantaneous response
     const qLower = query.toLowerCase().replace(/[.,!?]/g, '').trim();
 
-    // 0. Admin Verification & Password Check
-    if (query.trim() === 'Ratnesh@231' || qLower === 'ratnesh@231' || qLower === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && qLower.includes('password'))) {
+    // 0. Admin Verification & Password Check (Supports Aditya@231 and Ratnesh@231)
+    if (query.trim() === 'Aditya@231' || query.trim() === 'Ratnesh@231' || qLower === 'aditya@231' || qLower === 'ratnesh@231' || qLower === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && qLower.includes('password'))) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('isAdmin', 'true');
         localStorage.setItem('isAdmin', 'true');
@@ -996,7 +1045,7 @@ You can control the website and open any demo/link based on user commands! When 
 
     // 0b. Admin Site Insights & Analytics
     if (qLower.includes('insight') || qLower.includes('stat') || qLower.includes('traffic') || qLower.includes('analytic') || qLower.includes('visitor') || qLower.includes('who visited') || qLower.includes('user list') || qLower.includes('all user')) {
-      const reply = "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!";
+      const reply = "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Direct contact form submissions are stored.\nAll systems, 3D engines, and persistent memory pipelines are operating smoothly!";
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
@@ -1217,10 +1266,15 @@ You can control the website and open any demo/link based on user commands! When 
 
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': userIdRef.current,
+          'x-is-admin': typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true') ? 'true' : 'false'
+        },
         credentials: 'include',
         body: JSON.stringify({
           messages: chatMessages,
+          userId: userIdRef.current,
           sessionId: sessionIdRef.current,
           isAdmin: typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true'),
           userName: typeof window !== 'undefined' ? (sessionStorage.getItem('userName') || localStorage.getItem('userName') || '') : ''

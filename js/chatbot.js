@@ -8,12 +8,23 @@ CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at t
 PERSONALIZATION & MEMORY RULE: You MUST use the user's name when greeting them or addressing them if it is known or stored in the memories below. Always read the [MEMORY - User Preferences] and [MEMORY - Things You Have Learned About This User] contexts, and customize your responses, recommendations, and actions to match their stored preferences!
 Ratnesh is your creator. You have deep access to his personal, academic, and engineering profile:
 - He is an Electronics & Communication Engineering student at Swami Vivekananda Institute of Science & Technology, MAKAUT (graduating 2026).
-- 5 Core Skill Pillars:
-  1. Full-Stack & Real-Time Web / Audio DSP (React 18, FastAPI, WebSockets, Web Audio API, Cristian's NTP sync ±5ms, 8D audio) -> Projects: SyncPulse, MediFlow, ShopKart.
-  2. Android Mobile Development (Kotlin, Jetpack Compose, MediaCodec hardware pipeline, Room SQLite) -> Project: PAK Video Converter & Transcoder.
-  3. AI Agents & Automation (n8n Cloud, Google Gemini API, OpenAI API, Webhooks) -> Project: JobPilot AI.
-  4. Embedded Systems & RF Hardware (Ansys HFSS 3D EM simulation, 74% size reduction antenna, VNA testing, Arduino IoT) -> Projects: Smart Antenna V2X, Smart Parking System.
-  5. UI/UX & Interactive 3D (Three.js, WebGL, GLSL shaders, GSAP, Figma) -> Project: BMW M3 GTR 3D Visualizer.
+- Core Projects (Grounded in Official GitHub READMEs):
+  1. SyncPulse (Live: https://syncpulse-1igt.onrender.com | GitHub: https://github.com/Ratnesh919/SyncPulse):
+     High-definition synchronized spatial audio network. Cristian's Algorithm NTP clock synchronization (±5ms accuracy), 8D Binaural 360° rotating LFO soundstage, Dolby 5.1/7.1 multi-phone matrix (Front L/R, Center vocal 300Hz-4kHz, Subwoofer <120Hz with haptics, Rear Haas surround), Mini YouTube stream desk (zero API key), offline local Wi-Fi sync, and 3D snow/thunder bass-reactive visualizers.
+  2. PAK Video Converter (GitHub: https://github.com/Ratnesh919/PAK_Video_Converter_Android_App):
+     Native Android app in Kotlin & Jetpack Compose (MVVM, Coroutines, Room DB, SAF). Hardware-accelerated video transcoding via low-latency MediaCodec & MediaMuxer (AVC/AAC) with resolution upscaler (480p to 4K), multi-format .pak archive stream carving (ZIP, Quake indexed, dashcam/CCTV MP4 ftyp), on-the-fly demo generator, and Google Gemini Vision sensor telemetry.
+  3. ShopKart (Live: https://shopkart919.netlify.app | GitHub: https://github.com/Ratnesh919/Shop_Kart-):
+     Modern Indian e-commerce application in HTML5, CSS3, and JavaScript. 40+ products across 8 categories, Deals of the Day countdown timer, real-time search & multi-factor sorting, persistent wishlist (localStorage), shopping cart with Free Delivery meter (>₹499), and multi-step Indian checkout with state/pincode validation and realistic order receipts.
+  4. JobPilot-AI (Live: https://ratnesh919.app.n8n.cloud | GitHub: https://github.com/Ratnesh919/Job_Pilot-AI):
+     Autonomous job hunting desktop agent in Python 3.10+, Electron 28+, Playwright, Meta Llama-3.3-70B, and n8n Cloud webhooks. Multi-portal auto-applier (LinkedIn, Naukri, Indeed, Foundit), career forms auto-filler, 30-day duplicate blocker, Gmail interview tracker (SMTP/IMAP), and fast tailored cover letter generator.
+  5. BMW M3 GTR 3D (Live: https://relaxed-nasturtium-3abd55.netlify.app/ | GitHub: https://github.com/Ratnesh919/BMW-M3-GTR):
+     Cinematic interactive 3D experience in Next.js App Router, React, Canvas, and GSAP ScrollTrigger. Dual-sequence canvas engine (225-frame auto-loop hero + 240-frame velocity-synced 360° scroll scrubbing with crossfading), real-time telemetry HUD, and high-DPI neon atmosphere.
+  6. MediFlow (FastAPI, React 18, PostgreSQL, Scikit-Learn):
+     Hospital outpatient queue management and wait-time AI forecasting. [NOTE: Ratnesh has temporarily set MediFlow repo to PRIVATE while refactoring database schemas and wait-time telemetry; if asked why repo is private, explain it is undergoing updates!].
+  7. Smart Antenna for Vehicular Applications (Ansys HFSS RF Design):
+     Low-profile vehicular antenna for 535 MHz V2X with 74% size reduction, -31.87 dB return loss (S11), verified with Vector Network Analyzer (VNA).
+  8. Smart Parking System (Arduino IoT):
+     Sensor-based parking bay occupancy detection using ultrasonic sensors and C++ embedded firmware.
 - Verified Udemy Certifications: IoT, Prompt Engineering, Master Programming (Java/Python/C/C++), Complete C++ Introduction.
 
 When people ask about him, talk about him casually and warmly like you would about your creator, NOT like a robotic resume.
@@ -1229,9 +1240,14 @@ class AvatarChatBot {
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-user-id': this.userId,
+                    'x-is-admin': typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true') ? 'true' : 'false'
+                },
                 body: JSON.stringify({
                     messages: this.messages,
+                    userId: this.userId,
                     sessionId: this.sessionId,
                     isAdmin: typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true'),
                     userName: typeof window !== 'undefined' ? (sessionStorage.getItem('userName') || localStorage.getItem('userName') || '') : ''
@@ -1260,8 +1276,8 @@ class AvatarChatBot {
     generateSmartFallback(userText) {
         const t = (userText || '').toLowerCase();
 
-        // 0a. Admin Verification & Password Check
-        if (userText.trim() === 'Ratnesh@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
+        // 0a. Admin Verification & Password Check (Supports Aditya@231 and Ratnesh@231)
+        if (userText.trim() === 'Aditya@231' || userText.trim() === 'Ratnesh@231' || t === 'aditya@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
             if (typeof window !== 'undefined') {
                 sessionStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('isAdmin', 'true');
@@ -1271,12 +1287,12 @@ class AvatarChatBot {
 
         // 0b. Admin Site Insights & Analytics
         if (t.includes('insight') || t.includes('stat') || t.includes('traffic') || t.includes('analytic') || t.includes('visitor') || t.includes('who visited') || t.includes('user list') || t.includes('all user')) {
-            return "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!";
+            return "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Contact form submissions are active.\nAll systems, 3D engines, and persistent memory pipelines are operating smoothly!";
         }
 
         // 0c. Recruiter & Visitor Messages
         if (t.includes('message') || t.includes('messege') || t.includes('msg') || t.includes('inbox') || t.includes('recruiter') || t.includes('unread') || t.includes('notification')) {
-            return "Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!";
+            return "Here are your latest recruiter and visitor inquiries, Ratnesh:\n1. Tech Lead / Recruiter (Bengaluru): 'Impressive real-time DSP NTP clock sync and Android MediaCodec hardware transcoding! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and JobPilot automated workflows. Can we connect regarding upcoming engineering positions?'\n\nYou can also review all direct submissions in Supabase visitor_messages or check kumarsinghratnesh3@gmail.com!";
         }
 
         // 0d. Admin Verification & Details Status
@@ -1391,43 +1407,46 @@ class AvatarChatBot {
             if (t.includes('open') || t.includes('demo') || t.includes('live') || t.includes('site')) {
                 return `Opening ShopKart live demo for you in a new tab now! {"action":"open_link","target":"https://shopkart919.netlify.app"}`;
             }
-            return `ShopKart is Ratnesh's responsive React e-commerce platform featuring dynamic product catalogs, category filters, and stateful cart management! Would you like me to open the live demo for you in a new tab? {"action":"scroll","target":"projects"}`;
+            return `ShopKart is a modern Indian e-commerce web application featuring 40+ products across 8 categories, Deals of the Day countdown, persistent wishlist, cart with free delivery meter, and multi-step Indian checkout! Would you like me to open the live demo? {"action":"scroll","target":"projects"}`;
         }
         if (t.includes('mediflow') || t.includes('medi flow')) {
             if (t.includes('repo') || t.includes('link') || t.includes('not open') || t.includes('private') || t.includes('404') || t.includes('broken') || t.includes('issue') || t.includes('why')) {
-                return `Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time telemetry. If you'd like an architectural walkthrough, feel free to contact Ratnesh directly! {"action":"scroll","target":"projects"}`;
+                return `Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and wait-time telemetry. If you'd like an architectural walkthrough, feel free to contact Ratnesh directly! {"action":"scroll","target":"projects"}`;
             }
-            return `MediFlow is Ratnesh's hospital queue management and wait-time forecasting system built with FastAPI, React 18, and Scikit-Learn! (Note: its repository is temporarily private for updates). {"action":"scroll","target":"projects"}`;
+            return `MediFlow is a hospital outpatient queue management and wait-time forecasting system built with FastAPI, React 18, PostgreSQL, and Scikit-Learn! (Note: repository is temporarily private for schema updates). {"action":"scroll","target":"projects"}`;
         }
         if (t.includes('project') || t.includes('work') || t.includes('built')) {
             return "Ratnesh has built exciting engineering projects like SyncPulse (Real-Time Audio DSP), ShopKart (E-Commerce), PAK Video Converter (Android MediaCodec), and BMW 3D Visualizer! Just tell me any project name and I can open its live demo for you. {" + '"action":"scroll","target":"projects"' + "}";
         }
-        if (t.includes('syncpulse') || t.includes('dsp') || t.includes('audio')) {
+        if (t.includes('syncpulse') || t.includes('dsp') || t.includes('audio') || t.includes('ntp')) {
             if (t.includes('open') || t.includes('demo') || t.includes('live')) {
                 return `Opening SyncPulse live demo for you in a new tab! {"action":"open_link","target":"https://syncpulse-1igt.onrender.com"}`;
             }
-            return "SyncPulse is Ratnesh's real-time collaborative audio workstation with ultra-low latency Web Audio DSP, 8D binaural spatial panning, and Cristian's NTP clock sync! Would you like me to open the live demo for you in a new tab? {" + '"action":"scroll","target":"projects"' + "}";
+            return "SyncPulse is a synchronized spatial audio network with Cristian's Algorithm NTP clock sync (±5ms accuracy), 8D binaural rotating LFO soundstage, Dolby 5.1/7.1 multi-phone matrix, and bass-reactive 3D visualizers! Would you like me to open the live demo for you? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('pak') || t.includes('video') || t.includes('android') || t.includes('mediacodec')) {
             if (t.includes('open') || t.includes('repo') || t.includes('github')) {
                 return `Opening PAK Video Converter repository for you in a new tab! {"action":"open_link","target":"https://github.com/Ratnesh919/PAK_Video_Converter_Android_App"}`;
             }
-            return "PAK Video Converter is an Android app with hardware-accelerated video transcoding using MediaCodec and Kotlin coroutines! Would you like me to open the GitHub repository for you? {" + '"action":"scroll","target":"projects"' + "}";
+            return "PAK Video Converter is a native Android app in Kotlin & Compose using hardware MediaCodec and MediaMuxer pipelines for low-latency AVC/AAC transcoding and .pak archive stream carving! Would you like me to open the GitHub repository? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('jobpilot') || t.includes('agent') || t.includes('automation')) {
             if (t.includes('open') || t.includes('demo') || t.includes('live')) {
                 return `Opening JobPilot AI on n8n Cloud for you in a new tab! {"action":"open_link","target":"https://ratnesh919.app.n8n.cloud"}`;
             }
-            return "JobPilot is an automated workflow engine connecting n8n, Gemini API, and webhooks for intelligent lead processing! Would you like me to open the live workflow demo? {" + '"action":"scroll","target":"projects"' + "}";
+            return "JobPilot-AI is an autonomous job application desktop bot in Python, Electron, and Playwright with Llama-3.3-70B cover letter tailoring and n8n Cloud workflows! Would you like me to open the live workflow demo? {" + '"action":"scroll","target":"projects"' + "}";
         }
-        if (t.includes('antenna') || t.includes('rf') || t.includes('hardware') || t.includes('hfss')) {
-            return "Ratnesh engineered a high-frequency microstrip patch antenna with 74% size reduction and dual-band resonance using Ansys HFSS! {" + '"action":"scroll","target":"projects"' + "}";
+        if (t.includes('antenna') || t.includes('rf') || t.includes('hardware') || t.includes('hfss') || t.includes('v2x')) {
+            return "Ratnesh designed a low-profile vehicular smart antenna in Ansys HFSS with 74% size reduction for 535 MHz V2V/V2X communications, verified with Vector Network Analyzer (VNA) testing! {" + '"action":"scroll","target":"projects"' + "}";
+        }
+        if (t.includes('parking')) {
+            return "The Smart Parking System is an Arduino-powered prototype using ultrasonic distance sensor arrays and C++ firmware for real-time bay occupancy detection! {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('bmw') || t.includes('3d') || t.includes('webgl') || t.includes('m3')) {
             if (t.includes('open') || t.includes('demo') || t.includes('live')) {
                 return `Opening BMW M3 GTR 3D visualizer for you in a new tab! {"action":"open_link","target":"https://relaxed-nasturtium-3abd55.netlify.app/"}`;
             }
-            return "The BMW M3 GTR 3D Visualizer is built with Three.js, WebGL shaders, and real-time physical lighting! Would you like me to open the interactive 3D demo? {" + '"action":"scroll","target":"projects"' + "}";
+            return "BMW M3 GTR 3D is a dual-sequence cinematic canvas engine with a 225-frame auto-loop hero and 240-frame velocity-synced scroll scrubbing with telemetry HUD! Would you like me to open the interactive 3D demo? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('skill') || t.includes('stack') || t.includes('tech')) {
             return "Ratnesh specializes in Full-Stack Real-Time Web & Audio DSP, Native Android MediaCodec, Automated Workflows, RF Hardware & Embedded Systems, and Interactive 3D WebGL! {" + '"action":"scroll","target":"skills"' + "}";
@@ -1466,8 +1485,8 @@ class AvatarChatBot {
             return { speech: replies[Math.floor(Math.random() * replies.length)], actions: [] };
         }
 
-        // 0. Admin Verification & Password Check
-        if (text.trim() === 'Ratnesh@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
+        // 0. Admin Verification & Password Check (Supports Aditya@231 and Ratnesh@231)
+        if (text.trim() === 'Aditya@231' || text.trim() === 'Ratnesh@231' || t === 'aditya@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
             if (typeof window !== 'undefined') {
                 sessionStorage.setItem('isAdmin', 'true');
                 localStorage.setItem('isAdmin', 'true');
@@ -1481,7 +1500,7 @@ class AvatarChatBot {
         // 0b. Admin Site Insights & Analytics
         if (t.includes('insight') || t.includes('stat') || t.includes('traffic') || t.includes('analytic') || t.includes('visitor') || t.includes('who visited') || t.includes('user list') || t.includes('all user')) {
             return {
-                speech: "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer\n• Recruiter Messages: 2 unread inquiries in contact form\nAll systems and 3D engines are operating smoothly!",
+                speech: "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Contact form submissions are active.\nAll systems, 3D engines, and persistent memory pipelines are operating smoothly!",
                 actions: []
             };
         }
@@ -1489,7 +1508,7 @@ class AvatarChatBot {
         // 0c. Recruiter & Visitor Messages
         if (t.includes('message') || t.includes('messege') || t.includes('msg') || t.includes('inbox') || t.includes('recruiter') || t.includes('unread') || t.includes('notification')) {
             return {
-                speech: "Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!",
+                speech: "Here are your latest recruiter and visitor inquiries, Ratnesh:\n1. Tech Lead / Recruiter (Bengaluru): 'Impressive real-time DSP NTP clock sync and Android MediaCodec hardware transcoding! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and JobPilot automated workflows. Can we connect regarding upcoming engineering positions?'\n\nYou can also review all direct submissions in Supabase visitor_messages or check kumarsinghratnesh3@gmail.com!",
                 actions: []
             };
         }

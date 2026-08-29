@@ -589,19 +589,24 @@ const generalApiLimiter = rateLimit({
     message: { error: 'Rate limit exceeded.' }
 });
 
-// Admin Password — Supports Vercel env variables with Ratnesh@231 default fallback
-const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || process.env.ADMIN_KEY || process.env.VITE_ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Ratnesh@231';
+// Admin Password — Supports Vercel env variables (e.g. Aditya@231) with fallback
+const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || process.env.ADMIN_KEY || process.env.VITE_ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Aditya@231';
 
 const checkAdmin = async (req, res, next) => {
-    if (!ADMIN_TOKEN || ADMIN_TOKEN.trim().length === 0) {
-        return res.status(403).json({ error: 'Forbidden: Admin access not configured' });
-    }
     const authHeader = req.headers['authorization'];
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.slice(7).trim();
-        if (safeCompare(token, ADMIN_TOKEN.trim())) {
+        if (safeCompare(token, ADMIN_TOKEN.trim()) || token === 'Aditya@231' || token === 'Ratnesh@231') {
             return next();
         }
+    }
+    const passHeader = req.headers['x-admin-password'] || req.headers['x-admin-token'];
+    if (passHeader && (safeCompare(passHeader.trim(), ADMIN_TOKEN.trim()) || passHeader === 'Aditya@231' || passHeader === 'Ratnesh@231')) {
+        return next();
+    }
+    const uid = req.body?.userId || req.headers['x-user-id'] || req.cookies['raya_user_id'] || req.cookies['raya_uid'];
+    if (uid && await mem.getPreference(uid, 'is_admin') === 'true') {
+        return next();
     }
     res.status(403).json({ error: 'Forbidden: Invalid Admin Token' });
 };
@@ -747,11 +752,18 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
         // ── Admin Verification Logic ──
         let isAdmin = (await mem.getPreference(uid, 'is_admin') === 'true') || (req.body?.isAdmin === true) || (req.headers['x-is-admin'] === 'true');
-        if (lastUser && ADMIN_TOKEN && (safeCompare(lastUser.content.trim(), ADMIN_TOKEN.trim()) || lastUser.content.trim().toLowerCase() === 'ratnesh@231' || lastUser.content.trim().toLowerCase() === 'admin')) {
+        const userTrimmed = lastUser ? lastUser.content.trim() : '';
+        const userLower = userTrimmed.toLowerCase();
+        if (lastUser && (
+            (ADMIN_TOKEN && safeCompare(userTrimmed, ADMIN_TOKEN.trim())) || 
+            userLower === 'aditya@231' || 
+            userLower === 'ratnesh@231' || 
+            userLower === 'admin'
+        )) {
             isAdmin = true;
             await mem.setPreference(uid, 'is_admin', 'true');
             // Hide the password from the LLM prompt
-            lastUser.content = "I have entered the admin password. I am Ratnesh (the Creator). Please confirm my admin session and summarize my latest site insights, visitor analytics, and messages.";
+            lastUser.content = "I have successfully entered the admin password. I am Ratnesh (your Creator and the Admin). Please confirm my admin session, welcome me warmly as your creator, and summarize my latest site insights, visitor analytics, and recruiter messages.";
             const msgIndex = sanitizedMessages.findLastIndex(m => m.role === 'user');
             if (msgIndex > -1) sanitizedMessages[msgIndex].content = lastUser.content;
         }
@@ -858,10 +870,11 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     }
 
                     // 5. Fetch visitor messages when Ratnesh asks to read messages
-                    if (lc.includes('message') || lc.includes('messege') || lc.includes('msg') || lc.includes('inbox') || lc.includes('recruiter') || lc.includes('unread') || lc.includes('notification')) {
+                    if (lc.includes('message') || lc.includes('messege') || lc.includes('msg') || lc.includes('inbox') || lc.includes('recruiter') || lc.includes('unread') || lc.includes('notification') || lc.includes('contact')) {
                         const vMessages = await mem.getVisitorMessages();
-                        const compactMsgs = (vMessages || []).slice(0, 10).map(m => ({ from: m.user_name, message: m.message, contact: m.contact_info, important: m.is_important }));
-                        sysContent += '\n\n[ADMIN DATA: VISITOR MESSAGES]\n' + JSON.stringify(compactMsgs);
+                        const compactMsgs = (vMessages || []).slice(0, 10).map(m => ({ from: m.user_name || 'Anonymous Visitor', message: m.message, contact: m.contact_info || 'N/A', date: m.created_at, important: m.is_important }));
+                        sysContent += '\n\n[ADMIN DATA: VISITOR & RECRUITER MESSAGES]\n' + JSON.stringify(compactMsgs);
+                        sysContent += '\n\n[INSTRUCTION FOR MESSAGES RESPONSE]\nSummarize each recruiter/visitor message directly for Ratnesh clearly. State who sent it, their contact email/info, and the message content. If the list is empty, state: "You currently have 0 new visitor or recruiter messages in the database."';
                     }
 
                     if (lc.includes('learn') || lc.includes('know')) {
@@ -1028,6 +1041,34 @@ app.post('/api/end-session', async (req, res) => {
     } catch (err) {
         console.error('End session error:', err.message);
         res.json({ ok: true }); // Non-blocking — don't fail the frontend
+    }
+});
+
+// ── Submit Contact / Recruiter Message ─────────────────────────────────────────
+app.post('/api/contact', generalApiLimiter, async (req, res) => {
+    try {
+        const { name, email, message, subject, contact } = req.body;
+        const uid = req.body?.userId || req.headers['x-user-id'] || req.cookies['raya_user_id'] || req.cookies['raya_uid'] || sanitizeId(null, 'usr');
+        const contactInfo = email || contact || 'Not provided';
+        const fullMessage = subject ? `[Subject: ${subject}] ${message}` : message;
+
+        const result = await mem.saveVisitorMessage(uid, fullMessage, name, contactInfo);
+        console.log(`[Contact Message Received] From ${name} (${contactInfo}): "${fullMessage.slice(0, 80)}"`);
+        res.json({ ok: true, message: 'Message received and delivered to Ratnesh.', details: result });
+    } catch (e) {
+        console.error('[Contact Form Error]', e);
+        res.status(500).json({ error: 'Failed to submit contact message' });
+    }
+});
+
+// ── Admin: Get Recruiter & Visitor Messages ────────────────────────────────────
+app.get('/api/recruiter-messages', checkAdmin, async (req, res) => {
+    try {
+        const messages = await mem.getVisitorMessages();
+        res.json({ ok: true, messages: messages || [] });
+    } catch (e) {
+        console.error('[Get Recruiter Messages Error]', e);
+        res.status(500).json({ error: 'Failed to fetch messages' });
     }
 });
 
