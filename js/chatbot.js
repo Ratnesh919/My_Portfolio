@@ -1147,9 +1147,10 @@ class AvatarChatBot {
             this.showUserBubble(text);
             this.showTyping();
             try {
+                const storedToken = (typeof window !== 'undefined' && sessionStorage.getItem('adminToken')) || '';
                 const res = await fetch('/api/admin/rule', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer Ratnesh@231' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${storedToken}` },
                     body: JSON.stringify({ rule: text })
                 });
                 const data = await res.json();
@@ -1158,28 +1159,6 @@ class AvatarChatBot {
             } catch(e) {
                 this.hideTyping();
                 this.speakAvatar("Failed to save rule.", false);
-            }
-            return;
-        }
-
-        // Secret Admin Command Entry
-        if (text.trim() === 'Ratnesh@231') {
-            this.isAdminMode = true;
-            this.showUserBubble("Ratnesh@231");
-            this.showTyping();
-            try {
-                const res = await fetch('/api/insights', {
-                    headers: { 'Authorization': 'Bearer Ratnesh@231' }
-                });
-                if (!res.ok) throw new Error('Forbidden');
-                const data = await res.json();
-                this.hideTyping();
-                const insightMsg = `Welcome back Admin! I am now in Admin Rule Mode. Tell me what I should or shouldn't share globally. Say 'clear all' to wipe rules, or 'exit' to leave. Current site visits: ${data.total}.`;
-                this.speakAvatar(insightMsg, false);
-            } catch (err) {
-                this.isAdminMode = false;
-                this.hideTyping();
-                this.speakAvatar("Failed to load insights. Unauthorized.", false);
             }
             return;
         }
