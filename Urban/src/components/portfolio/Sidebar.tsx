@@ -64,15 +64,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Change Avatar Button */}
-        <div className="flex items-center gap-2 mt-1">
+        {/* Quick Action Buttons: Avatar Studio & Raya AI Companion */}
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
           <button
             onClick={onOpenAvatarStudio}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-900/60 to-purple-950/40 border border-purple-500/35 hover:border-purple-400 text-purple-200 text-xs font-mono transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 shadow-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-900/60 to-purple-950/40 border border-purple-500/35 hover:border-purple-400 text-purple-200 text-xs font-mono transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 shadow-md"
             title="Open Avatar Studio & Character Switcher"
           >
             <Layers size={13} className="text-purple-400" />
             <span>Avatar Studio</span>
+          </button>
+          <button
+            onClick={onToggleRaya}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600/70 to-indigo-600/70 border border-purple-400/50 hover:border-purple-300 text-white text-xs font-mono transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.4)]"
+            title="Open Raya AI Chatbot"
+          >
+            <Bot size={13} className="text-purple-200" />
+            <span>Raya AI</span>
           </button>
         </div>
       </div>
