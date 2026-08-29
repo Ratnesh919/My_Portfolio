@@ -616,15 +616,74 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       onScrollToSection?.('skills');
       return `Ratnesh specializes across 5 pillars: Full-Stack Real-Time Web, Android MediaCodec, AI Agent Workflows, Embedded RF Simulation, and Interactive 3D WebGL. {"action":"scroll","target":"skills"}`;
     }
-    if (q.includes('joke') || q.includes('funny') || q.includes('laugh')) {
-      const jokes = [
+
+    // Multi-Language Speaking Inquiries
+    if (q.includes('speak in hindi') || q.includes('speak hindi') || q.includes('talk in hindi') || q.includes('hindi bol') || q.includes('hindi aati') || q.includes('hindi samajh') || q.includes('hindi me baat')) {
+      return `Haan bilkul! Main Hindi mein baat kar sakti hoon. Aap mujhse Ratnesh ke projects, skills ya kisi bhi baare mein Hindi mein pooch sakte hain!`;
+    }
+    if (q.includes('speak in punjabi') || q.includes('speak punjabi') || q.includes('punjabi bol') || q.includes('punjabi aandi') || q.includes('punjabi vich')) {
+      return `Haanji bilkul! Main Punjabi bol sakdi aan. Tussi Ratnesh de baare ch jo marzi puch sakde ho!`;
+    }
+    if (q.includes('speak in bengali') || q.includes('speak bengali') || q.includes('bangla bolte') || q.includes('bangla janish') || q.includes('bangla te')) {
+      return `Haa obosshoi! Ami Bangla bolte pari. Tumi Ratnesh-er projects ba skills niye ja icche jigyesh korte paro!`;
+    }
+    if (q.includes('speak in gujarati') || q.includes('speak gujarati') || q.includes('gujarati bol') || q.includes('gujarati aavde') || q.includes('gujarati ma')) {
+      return `Haan bilkul! Hu Gujarati ma vaat kari saku chu. Tame Ratnesh na projects vishe mane kai pan puchi shako cho!`;
+    }
+
+    // Language-Specific Jokes & Humor
+    if (q.includes('joke') || q.includes('funny') || q.includes('laugh') || q.includes('chutkula') || q.includes('hasao')) {
+      if (q.includes('hindi') || q.includes('chutkula')) {
+        const hindiJokes = [
+          "Ek baar teacher ne Pappu se pucha: Agar ped par 10 chidiya baithi hain aur 1 ko goli maar di jaye to kitni bachengi? Pappu bola: Ek bhi nahi, kyunki goli ki aawaz se baki sab udd jayengi!",
+          "Doctor: Aapka vajan itna kaise badh gaya? Mareez: Doctor sahab, roz raat ko sapne mein dawat khata hoon!",
+          "Pappu: Yaar mere mobile ki screen toot gayi. Dost: Kaise? Pappu: Main pathar par rakh ke hathode se test kar raha tha ki Gorilla Glass kitna strong hai!",
+          "Biwi: Suniye ji, main khoobsurat hoon ya samajhdar? Pati: Tum dono ho, khoobsurat itni ki aankhein na hatein, aur samajhdar itni ki jhooth pakad lo!",
+          "Pappu interview dene gaya. Interviewer: Tell me your biggest strength. Pappu: Main sapne mein bhi hard work karta hoon!"
+        ];
+        return hindiJokes[Math.floor(Math.random() * hindiJokes.length)];
+      }
+
+      if (q.includes('punjabi')) {
+        const punjabiJokes = [
+          "Santa baraf da tukda hath ch phad ke gaur naal dekh reha si. Banta: Ki dekh reha hain? Santa: Main dekh reha aan ke leak kithon ho reha hai!",
+          "Ek vari Santa bank gaya te puchya: Paise kaddan da ki hisab hai? Cashier: Pehla sign karo. Santa: Meri rashi Singh hai, main sign kyu karaan!",
+          "Santa doctor kol gaya: Doctor saab, main jado vi chah peenda meri saji akh ch dard hunda. Doctor: Bhaia, pehla chammach taan cup cho bahar kadh lya kar!",
+          "Banta: Yaar kal main rocket te baith ke chand te gaya si. Santa: Jhooth na bol, kal taan bijli hi band si!"
+        ];
+        return punjabiJokes[Math.floor(Math.random() * punjabiJokes.length)];
+      }
+
+      if (q.includes('bengali') || q.includes('bangla')) {
+        const bengaliJokes = [
+          "Teacher: Bol to Boltu, prithibi gol keno? Boltu: Karon aamader football-er moto! Teacher: Mane? Boltu: Mane sir, jotoi ghurbe abar aager jaigay phire ashbe!",
+          "Doctor: Apnar rog ta khub purono, thanda jal khaoar obhyesh koren. Rogi: Kintu daktar babu, ami to machh dhorar kaj kori, saradin jal-e thaki!",
+          "Gopal: Shuno he, aamake 100 taka dhar debe? Madhob: Keno? Gopal: Kal raat-e shopne dekhechi tumi aamake 100 taka diyecho, setai shotti korte chai!"
+        ];
+        return bengaliJokes[Math.floor(Math.random() * bengaliJokes.length)];
+      }
+
+      if (q.includes('gujarati') || q.includes('gujju')) {
+        const gujaratiJokes = [
+          "Dukanwala: Aa mobile ma badhu che, camera, music, GPS! Grahak: Aa mobile ma paisa bachavani scheme che? Dukanwala: Haan, aane kharidya vagar ghare jaav!",
+          "Pappu: Bapu, mane ek lakh rupiya aapo, hu business sharu karish. Bapu: Pehla ek rupiya no kothalo bhar, pachi lakh ni vaat kar!"
+        ];
+        return gujaratiJokes[Math.floor(Math.random() * gujaratiJokes.length)];
+      }
+
+      const englishJokes = [
         "Why do programmers prefer dark mode? Because light attracts bugs!",
         "Why did the JavaScript developer wear glasses? Because they didn't C#!",
         "There are 10 types of people in the world: those who understand binary, and those who don't!",
-        "Why was the cell phone wearing glasses? It lost its contacts!"
+        "Why was the cell phone wearing glasses? It lost its contacts!",
+        "A SQL query walks into a bar, walks up to two tables and asks: Can I join you?",
+        "How many programmers does it take to change a light bulb? None, that's a hardware problem!",
+        "Why was the robot tired after work? It had a hard drive!",
+        "Why do Python programmers love nature? Because they love to import antigravity!"
       ];
-      return jokes[Math.floor(Math.random() * jokes.length)];
+      return englishJokes[Math.floor(Math.random() * englishJokes.length)];
     }
+
     if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('message')) {
       onScrollToSection?.('contact');
       return `You can reach Ratnesh directly at ${PORTFOLIO_DATA.email} or connect via LinkedIn and Instagram. {"action":"scroll","target":"contact"}`;
