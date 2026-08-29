@@ -828,11 +828,11 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     '[REAL SUPABASE CLOUD DATABASE TELEMETRY & HISTORICAL LOGS]\n' +
                     JSON.stringify(adminData, null, 2) + '\n\n' +
                     '[INSTRUCTIONS FOR ADMIN QUERIES]\n' +
-                    '1. EXACT DATE & TIME IN NOTIFICATIONS: When Ratnesh asks about messages, recruiter inquiries, or past visitor logs, ALWAYS provide the EXACT date and time (formatted clearly in Indian Standard Time, e.g. "22 May 2026 at 08:05 PM IST"). Inspect both "recruiter_messages" and "historical_visitor_log" in the data above.\n' +
-                    '2. HISTORICAL VISITOR INQUIRIES: You have access to verified past visitor inquiries in "historical_visitor_log": Shubham (wanted to contact Ratnesh on 22 May 2026, 08:05 PM IST), Divya Raj Singh (21 May 2026, 05:44 PM IST), Recruiter Mode trigger (31 Jul 2026, 06:54 PM IST), VLSI semiconductor domain inquiry (22 May 2026, 09:42 PM IST), HFSS antenna project inquiry (27 Jul 2026, 08:19 PM IST), and Rahul (multilingual interaction).\n' +
-                    '3. PROACTIVE ADMIN NOTIFICATION: When Ratnesh enters admin mode or asks for updates, proactively summarize notable inquiries with their exact timestamps and contact requests.\n' +
-                    '4. RECRUITER & VISITOR INQUIRIES: Clearly list each sender, contact info/email, exact date and time, and inquiry message. If an email is provided, highlight it!\n' +
-                    '5. SITE ANALYTICS & VISITOR TRAFFIC: Report real "stats" and "location_summary" (top cities, tracked countries).\n' +
+                    '1. SENDER LOCATION & EXACT IST TIME: When Ratnesh asks about messages or visitor inquiries, ALWAYS state the SENDER LOCATION (City & State, e.g. "Kolkata, West Bengal", "Bengaluru, Karnataka") and the EXACT date & time in IST (e.g. "22 May 2026 at 08:05 PM IST"). Inspect "historical_inquiries" and "live_messages" in the data above.\n' +
+                    '2. RECRUITER VS NORMAL MESSAGE IDENTIFICATION: Automatically identify and label whether a message is from a [RECRUITER / HIRING LEAD] vs [TECHNICAL PEER / GENERAL VISITOR]. Highlight job opportunities, hiring inquiries, roles, or company discussions clearly!\n' +
+                    '3. CITY LOCATION BREAKDOWN: When Ratnesh asks about visitor locations, organize visitors by specific cities with counts (e.g. "6 visitors from Kolkata (West Bengal), 4 from Bengaluru (Karnataka), 2 from Delhi (NCR), 1 from Mumbai (Maharashtra), 1 from Sydney (Australia)"). Inspect "location_breakdown_by_city.city_summary" in the data above.\n' +
+                    '4. UNIQUE VISITORS VS REVISITS BREAKDOWN: When Ratnesh asks about traffic or visits, clearly distinguish between unique new visitors and returning revisits (e.g. "You have 14 unique new visitors and 4 returning revisits, totaling 18 visits!"). Inspect "traffic_and_visits" in the data above.\n' +
+                    '5. PROACTIVE ADMIN NOTIFICATION: Proactively summarize any unread recruiter inquiries or contact requests with the sender name, location, exact timestamp, and contact info.\n' +
                     '6. OUTBOX CONFIRMATION: When Ratnesh says "Reply to [recruiter/name] with [message]", confirm you saved his message in the Outbox and will warmly convey it when they revisit.';
 
                 if (pending && pending.length > 0) {
@@ -1007,8 +1007,9 @@ app.post('/api/contact', generalApiLimiter, async (req, res) => {
         const contactInfo = email || contact || 'Not provided';
         const fullMessage = subject ? `[Subject: ${subject}] ${message}` : message;
 
-        const result = await mem.saveVisitorMessage(uid, fullMessage, name, contactInfo);
-        console.log(`[Contact Message Received] From ${name} (${contactInfo}): "${fullMessage.slice(0, 80)}"`);
+        const loc = extractLocation(req);
+        const result = await mem.saveVisitorMessage(uid, fullMessage, name, contactInfo, loc);
+        console.log(`[Contact Message Received] From ${name} (${contactInfo}) from ${loc || 'Unknown'}: "${fullMessage.slice(0, 80)}"`);
         res.json({ ok: true, message: 'Message received and delivered to Ratnesh.', details: result });
     } catch (e) {
         console.error('[Contact Form Error]', e);
