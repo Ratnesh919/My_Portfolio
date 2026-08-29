@@ -1390,7 +1390,7 @@ class AvatarChatBot {
             return "The BMW M3 GTR 3D Visualizer is built with Three.js, WebGL shaders, and real-time physical lighting! Would you like me to open the interactive 3D demo? {" + '"action":"scroll","target":"projects"' + "}";
         }
         if (t.includes('skill') || t.includes('stack') || t.includes('tech')) {
-            return "Ratnesh specializes in 5 core pillars: Real-Time Web & Audio DSP, Native Android MediaCodec, AI & Automation, RF Hardware & Embedded Systems, and Interactive 3D WebGL! {" + '"action":"scroll","target":"skills"' + "}";
+            return "Ratnesh specializes in Full-Stack Real-Time Web & Audio DSP, Native Android MediaCodec, Automated Workflows, RF Hardware & Embedded Systems, and Interactive 3D WebGL! {" + '"action":"scroll","target":"skills"' + "}";
         }
         if (t.includes('education') || t.includes('college') || t.includes('degree') || t.includes('university') || t.includes('timeline')) {
             return "Ratnesh is graduating in 2026 with a B.Tech in Electronics & Communication Engineering from MAKAUT (SVIST)! {" + '"action":"scroll","target":"experience"' + "}";
@@ -1457,7 +1457,7 @@ class AvatarChatBot {
             return { speech: "Here are Ratnesh's core projects: SyncPulse, ShopKart, PAK Video Converter, MediFlow, and BMW 3D Visualizer! Which one would you like to explore?", actions: [() => this.executeScroll('projects')] };
         }
         if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(t)) {
-            return { speech: "Ratnesh specializes in 5 core pillars: Real-Time Web Audio DSP, Android MediaCodec, Automated Workflows, RF Hardware Simulation, and 3D WebGL!", actions: [() => this.executeScroll('skills')] };
+            return { speech: "Ratnesh specializes in Full-Stack Real-Time Web Audio DSP, Android MediaCodec, Automated Workflows, RF Hardware Simulation, and 3D WebGL!", actions: [() => this.executeScroll('skills')] };
         }
         if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(t)) {
             return {

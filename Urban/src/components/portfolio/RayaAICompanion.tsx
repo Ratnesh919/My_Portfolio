@@ -729,7 +729,7 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     }
     if (q.includes('skills') || q.includes('stack') || q.includes('tech')) {
       onScrollToSection?.('skills');
-      return `Ratnesh specializes across 5 pillars: Full-Stack Real-Time Web, Android MediaCodec, Automated Workflows, Embedded RF Simulation, and Interactive 3D WebGL. {"action":"scroll","target":"skills"}`;
+      return `Ratnesh specializes in Full-Stack Real-Time Web, Android MediaCodec, Automated Workflows, Embedded RF Simulation, and Interactive 3D WebGL. {"action":"scroll","target":"skills"}`;
     }
 
     // Multi-Language Speaking Inquiries
@@ -1033,7 +1033,7 @@ You can control the website and open any demo/link based on user commands! When 
 
     if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower)) {
       onScrollToSection?.('skills');
-      const reply = "Ratnesh specializes in 5 core pillars: Real-Time Web Audio DSP, Android MediaCodec, AI Agent Workflows, RF Hardware Simulation, and 3D WebGL!";
+      const reply = "Ratnesh specializes in Full-Stack Real-Time Web Audio DSP, Android MediaCodec, Automated Workflows, RF Hardware Simulation, and 3D WebGL!";
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
