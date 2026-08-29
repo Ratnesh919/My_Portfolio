@@ -209,7 +209,12 @@ function getNvidiaApiKeys() {
         process.env.NV_API_KEY,
         process.env.NVIDIA_KEY,
         process.env.NVIDIA_NIM_API_KEY,
-        process.env.NVIDIA_NIM_KEY
+        process.env.NVIDIA_NIM_KEY,
+        process.env.NVIDIA_API_KEY_1,
+        process.env.NVIDIA_API_KEY_2,
+        process.env.NVIDIA_API_KEY_3,
+        process.env.VITE_NVIDIA_API_KEY,
+        process.env.NEXT_PUBLIC_NVIDIA_API_KEY
     ];
     const keys = [];
     for (const src of rawSources) {
@@ -237,10 +242,14 @@ function getOpenRouterKeys() {
 // ── NVIDIA NIM Provider (PRIMARY) ──────────────────────────────────────────
 async function callNvidiaDirect(nvidiaKey, payload) {
     const models = [
-        'meta/llama-3.1-8b-instruct',
         'meta/llama-3.3-70b-instruct',
+        'meta/llama-3.1-8b-instruct',
+        'meta/llama-3.1-70b-instruct',
+        'nvidia/llama-3.1-nemotron-70b-instruct',
+        'mistralai/mistral-large-2-instruct',
         'mistralai/mistral-7b-instruct-v0.3',
-        'nvidia/llama-3.1-nemotron-70b-instruct'
+        'deepseek-ai/deepseek-r1',
+        'qwen/qwen2.5-72b-instruct'
     ];
     let lastErr = null;
     for (const model of models) {
@@ -258,7 +267,7 @@ async function callNvidiaDirect(nvidiaKey, payload) {
                         Authorization: `Bearer ${nvidiaKey}`,
                         'Content-Type': 'application/json'
                     },
-                    timeout: 12000
+                    timeout: 15000
                 }
             );
             if (res.data?.choices?.[0]?.message?.content) {
@@ -913,9 +922,9 @@ You have direct control to execute actions on the portfolio website! ALWAYS appe
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
 
-        // Call the LLM through the Circuit Breaker (low-latency versatile model)
+        // Call the LLM through the Circuit Breaker (Primary: NVIDIA NIM -> Groq -> Gemini -> OpenAI)
         const response = await groqBreaker.fire({
-            model: 'llama-3.3-70b-versatile',
+            model: 'meta/llama-3.3-70b-instruct',
             messages: enrichedMessages,
             temperature: 0.7,
             max_tokens: 140
