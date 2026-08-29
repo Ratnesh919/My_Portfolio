@@ -228,20 +228,22 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
 
   const resolveRayaVoiceAndLanguage = (text: string, voices: SpeechSynthesisVoice[]) => {
     const hasBengaliScript  = /[\u0980-\u09FF]/.test(text);
+    const isBengaliWords    = hasBengaliScript || /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob|bangla|bengali|ami|obosshoi|paro|jigyesh|korte|parbo|kichu|bolchi|shuncho|bolun|ache|ektu|dada|didi|khabar|kheyecho|prithibi|gol|keno|football|aamader|ghurbe|phire|ashbe|chutkula|bol)\b/i.test(text);
+
     const hasPunjabiScript  = /[\u0A00-\u0A7F]/.test(text);
+    const isPunjabiWords    = hasPunjabiScript || /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi|bolde|bol sakdi|baraf|tukda|haanji|puch|sakde|ho|veere|paaji|ki|karde|pya|soniye|munder|kiven|theek|santa|banta|hath|dekh|reha|si|kithon|chutkula|sunao)\b/i.test(text);
+
     const hasGujaratiScript = /[\u0A80-\u0AFF]/.test(text);
+    const isGujaratiWords   = hasGujaratiScript || /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame|aavde|vaat|paisa|bachavani|kharidya|vagar|ghare|jaav|bol|saku|shako|vishe|mane|kai|pan|puchi|bhai|ben|shu|karo|dukanwala|grahak|scheme|chutkula|sunavo)\b/i.test(text);
+
     const hasJapaneseScript = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(text);
     const hasDevanagari     = /[\u0900-\u097F]/.test(text);
-
-    const isBengaliWords = /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob)\b/i.test(text);
-    const isPunjabiWords = /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi|bolde|kaddan|baraf|tukda)\b/i.test(text);
-    const isGujaratiWords = /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame|aavde|vaat)\b/i.test(text);
-    const isHindiWords = /\b(namaste|kaise|kaisi|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|haan|nahi|kaisa|main|meri|mera|mujhe|tum|kar|rahe|rahi|samjho|baat|bol|sakdi|sakta|saktee|shonao|pappu|dost|sapne|khata)\b/i.test(text);
+    const isHindiWords      = hasDevanagari || /\b(namaste|kaise|kaisi|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|haan|nahi|kaisa|main|meri|mera|mujhe|tum|kar|rahe|rahi|samjho|baat|bol|sakdi|sakta|saktee|shonao|pappu|dost|sapne|khata|hindi|bilkul|pooch|sakto|bataiye|theek|badhiya|chidiya|ped|goli|bachengi|aawaz)\b/i.test(text);
 
     let lang = 'en-IN';
     let voice: SpeechSynthesisVoice | null = null;
-    let rate = 1.08;
-    let pitch = 1.25;
+    const rate = 1.10; // ~165 WPM natural speaking pace
+    const pitch = 1.35; // Sweet, lively companion tone
 
     // Strict filter to guarantee ONLY female voices are ever chosen
     const MALE_FILTER = /male|bashkar|madhur|hemant|ojas|niranjan|manohar|valluvar|mohan|gagan|midhun|keita|david|mark|george|james|ravi|guy|ryan|christopher|eric|andrew|brian|roger|steffan|prabhat/i;
@@ -250,49 +252,64 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
 
     // Dialect detection
     const isUKEnglish = /\b(colour|flavour|favour|honour|neighbour|theatre|centre|metre|cheers|mate|brilliant|proper|bloke|fancy|bloody|splendid|sorted|reckon|quid|rubbish|trousers|flat|postcode|lorry|biscuit)\b/i.test(text);
-    const isIndianEnglish = isHindiWords || isBengaliWords || isPunjabiWords || isGujaratiWords || /\b(ratnesh|svist|makaut|syncpulse|pak|btech|ece|kolkata|india|indian|pass out|prepone|revert back|good name|do the needful|bhai|yaar)\b/i.test(text) || (typeof navigator !== 'undefined' && navigator.language === 'en-IN');
+    const isIndianEnglish = /\b(ratnesh|svist|makaut|syncpulse|pak|btech|ece|kolkata|india|indian|pass out|prepone|revert back|good name|do the needful|bhai|yaar)\b/i.test(text) || (typeof navigator !== 'undefined' && navigator.language === 'en-IN');
 
-    if (hasBengaliScript) {
+    // Voice Selection matching exact priority order
+    if (isBengaliWords) {
+      // Bengali Voice on Microsoft Edge (Tanishaa Natural, Nabami Natural) / Google Bengali
       lang = 'bn-IN';
-      rate = 1.0;
-      pitch = 1.15;
       voice = candidateVoices.find(v => /Tanishaa.*Natural/i.test(v.name) || /Nabami.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Tanishaa/i.test(v.name) || /Nabami/i.test(v.name)) ||
+              candidateVoices.find(v => /Google.*(?:বাংলা|Bengali)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('bn') || v.lang.replace('_', '-').startsWith('bn')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name)) || null;
-    } else if (hasPunjabiScript) {
+              candidateVoices.find(v => (v.name.includes('বাংলা') || v.name.includes('Bengali')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
+    } else if (isPunjabiWords) {
+      // Punjabi Voice on Microsoft Edge (Gurpreet Natural) / Google Punjabi
       lang = 'pa-IN';
-      rate = 1.0;
-      pitch = 1.15;
       voice = candidateVoices.find(v => /Gurpreet.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Gurpreet/i.test(v.name)) ||
+              candidateVoices.find(v => /Google.*(?:ਪੰਜਾਬੀ|Punjabi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('pa') || v.lang.replace('_', '-').startsWith('pa')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name)) || null;
-    } else if (hasGujaratiScript) {
+              candidateVoices.find(v => (v.name.includes('ਪੰਜਾਬੀ') || v.name.includes('Punjabi')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
+    } else if (isGujaratiWords) {
+      // Gujarati Voice on Microsoft Edge (Dhwani Natural) / Google Gujarati
       lang = 'gu-IN';
-      rate = 1.0;
-      pitch = 1.15;
       voice = candidateVoices.find(v => /Dhwani.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Dhwani/i.test(v.name)) ||
+              candidateVoices.find(v => /Google.*(?:ગુજરાતી|Gujarati)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => (v.lang.startsWith('gu') || v.lang.replace('_', '-').startsWith('gu')) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) || null;
+              candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
     } else if (hasJapaneseScript) {
       lang = 'ja-JP';
-      rate = 1.05;
-      pitch = 1.25;
       voice = candidateVoices.find(v => /Nanami.*Natural/i.test(v.name) || /Ayumi/i.test(v.name) || /Haruka/i.test(v.name) || /Kyoko/i.test(v.name)) ||
               candidateVoices.find(v => v.lang.startsWith('ja') && !MALE_FILTER.test(v.name)) || null;
     } else if (hasDevanagari) {
+      // Native Devanagari Hindi (Swara Natural / Kalpana)
       lang = 'hi-IN';
-      rate = 1.0;
-      pitch = 1.15;
       voice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Swara/i.test(v.name)) ||
               candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
               candidateVoices.find(v => /Google.*(?:हिन्दी|Hindi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
-              candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) || null;
+              candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) || null;
+    } else if (isHindiWords) {
+      // Romanized Hindi / Hinglish (Neerja Natural / Heera / Veena)
+      lang = 'en-IN';
+      voice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja/i.test(v.name)) ||
+              candidateVoices.find(v => /Heera/i.test(v.name)) ||
+              candidateVoices.find(v => /Veena/i.test(v.name)) ||
+              candidateVoices.find(v => /Google.*(?:India|English)/i.test(v.name) && (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
+              candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) || null;
     } else if (isUKEnglish) {
-      // UK English British Accent
+      // UK English British Accent (Sonia Natural, Libby Natural, Maisie Natural)
       lang = 'en-GB';
-      rate = 1.05;
-      pitch = 1.20;
       voice = candidateVoices.find(v => /Sonia.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Libby.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Maisie.*Natural/i.test(v.name)) ||
@@ -301,10 +318,8 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
               candidateVoices.find(v => (v.lang.startsWith('en-GB') || v.lang.startsWith('en_GB')) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) || null;
     } else if (isIndianEnglish) {
-      // Indian English / Romanized Hindi Accent (Edge Natural Microsoft Neerja / Apple Veena / Google Indian English)
+      // Indian English (Neerja Natural / Heera / Veena)
       lang = 'en-IN';
-      rate = 1.08;
-      pitch = 1.25;
       voice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Neerja/i.test(v.name)) ||
               candidateVoices.find(v => /Veena/i.test(v.name)) ||
@@ -313,17 +328,17 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
               candidateVoices.find(v => (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')) && !MALE_FILTER.test(v.name)) ||
               candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) || null;
     } else {
-      // Standard US / Global English
+      // Priority 1: Microsoft Edge Natural neural voices (Ava, Jenny, Aria, Neerja)
       lang = 'en-US';
-      rate = 1.08;
-      pitch = 1.25;
       voice = candidateVoices.find(v => /Ava.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Jenny.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Aria.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
               candidateVoices.find(v => /Samantha/i.test(v.name)) ||
               candidateVoices.find(v => /Karen/i.test(v.name)) ||
               candidateVoices.find(v => /Zira/i.test(v.name)) ||
-              candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+              candidateVoices.find(v => /Hazel/i.test(v.name)) ||
+              candidateVoices.find(v => /Emma/i.test(v.name)) ||
               candidateVoices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) ||
               candidateVoices.find(v => v.lang.startsWith('en') && !MALE_FILTER.test(v.name)) || null;
     }
@@ -369,24 +384,28 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
         utterance.onerror = (e) => {
           console.warn('[Raya TTS Error on selected voice, fallback to en-IN]:', e);
           (window as any).chatbotTalking = false;
-          // Resilient fallback if Microsoft Edge or browser fails with regional voice
-          if (voice && (voice.name.includes('Natural') || voice.lang !== 'en-US')) {
+          if (e.error !== 'interrupted' && e.error !== 'canceled') {
+            // Automatic retry with resilient Neerja / Ava fallback voice
             try {
               const fallbackUtterance = new SpeechSynthesisUtterance(cleanText);
-              const fbVoice = allVoices.find(v => /Neerja|Ava|Jenny|Zira|Samantha/i.test(v.name) && !/male|bashkar/i.test(v.name)) || allVoices[0];
-              if (fbVoice) fallbackUtterance.voice = fbVoice;
-              fallbackUtterance.lang = fbVoice ? fbVoice.lang : 'en-IN';
-              fallbackUtterance.rate = 1.05;
-              fallbackUtterance.pitch = 1.25;
+              const fallbackVoice = allVoices.find(v => /Neerja.*Natural|Ava.*Natural|Jenny.*Natural|Samantha|Zira/i.test(v.name)) || allVoices[0];
+              if (fallbackVoice) fallbackUtterance.voice = fallbackVoice;
+              fallbackUtterance.lang = fallbackVoice ? fallbackVoice.lang : 'en-IN';
+              fallbackUtterance.rate = 1.10;
+              fallbackUtterance.pitch = 1.35;
+              fallbackUtterance.onstart = () => { (window as any).chatbotTalking = true; };
+              fallbackUtterance.onend = () => { (window as any).chatbotTalking = false; };
+              fallbackUtterance.onerror = () => { (window as any).chatbotTalking = false; };
               window.speechSynthesis.speak(fallbackUtterance);
-            } catch {}
+            } catch (err) {
+              console.warn('[Raya TTS fallback error]:', err);
+            }
           }
         };
 
         window.speechSynthesis.speak(utterance);
       } catch (err) {
-        console.warn('[Raya Speech Error]', err);
-        (window as any).chatbotTalking = false;
+        console.warn('[Raya TTS catch]:', err);
       }
     }, 60);
   };
@@ -671,7 +690,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       return englishJokes[Math.floor(Math.random() * englishJokes.length)];
     }
 
-    if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('message')) {
+    if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('message') || q.includes('reach')) {
       onScrollToSection?.('contact');
       return `You can reach Ratnesh directly at ${PORTFOLIO_DATA.email} or connect via LinkedIn and Instagram. {"action":"scroll","target":"contact"}`;
     }
@@ -680,35 +699,82 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       searchAndPlayYouTube(cleanSongName);
       return `Playing ${cleanSongName} for you on YouTube now! Enjoy the music. {"action":"play_song","query":"${cleanSongName}"}`;
     }
-    if (q.includes('kemon') || q.includes('ki korcho') || q.includes('ki korchis') || q.includes('bhalo')) {
-      return `Ami khub bhalo achi! Tumi Ratnesh-er engineering projects ba skills niye kichu jante chao?`;
+
+    // Bengali Conversational Replies
+    if (q.includes('kemon') || q.includes('ki korcho') || q.includes('ki korchis') || q.includes('bhalo') || q.includes('tumi ki') || q.includes('bangla')) {
+      if (q.includes('kemon')) return `Ami khub bhalo achi! Tumi kemon acho? Ratnesh-er projects ba skills niye kichu jante chao?`;
+      if (q.includes('ki korcho') || q.includes('ki korchis')) return `Ami Ratnesh-er portfolio guide korchi! Tumi bolo, ki sahajyo korte pari?`;
+      if (q.includes('naam') || q.includes('nam')) return `Amar naam Raya! Ami Ratnesh-er AI assistant. Tumi ki jante chao bolo?`;
+      return `Haa obosshoi! Ami Bangla bolte pari. Tumi Ratnesh-er engineering projects ba skills niye ja icche jigyesh korte paro!`;
     }
-    if (q.includes('kidda') || q.includes('sat sri akal') || q.includes('kive')) {
-      return `Main vadiya han ji! Tussi Ratnesh de projects baare ki puchna chaunde ho?`;
+
+    // Punjabi Conversational Replies
+    if (q.includes('kidda') || q.includes('sat sri akal') || q.includes('kive') || q.includes('punjabi') || q.includes('haal')) {
+      if (q.includes('kive') || q.includes('kidda') || q.includes('haal')) return `Main bilkul theek-thaak te vadiya aan ji! Tussi daso, sab theek? Ratnesh de baare ki janna chaunde ho?`;
+      return `Haanji bilkul! Main Punjabi bol sakdi aan. Tussi Ratnesh de projects ya skills baare jo marzi puch sakde ho!`;
     }
-    if (q.includes('kem cho') || q.includes('majama') || q.includes('su kare')) {
-      return `Hu majama chu! Tame Ratnesh na projects vishe su janva mango cho?`;
+
+    // Gujarati Conversational Replies
+    if (q.includes('kem cho') || q.includes('majama') || q.includes('su kare') || q.includes('gujarati') || q.includes('tamaru')) {
+      if (q.includes('kem cho')) return `Hu ekdam majama chu! Tame bolo, tame kem cho? Ratnesh na projects vishe su janva mango cho?`;
+      return `Haan bilkul! Hu Gujarati ma vaat kari saku chu. Tame Ratnesh na portfolio vishe mane kai pan puchi shako cho!`;
     }
-    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal') || q.includes('kya kar rahe') || q.includes('kuch batao')) {
-      return `Main badhiya hoon! Aap Ratnesh ke 5 skill pillars, SyncPulse ya PAK Video Converter ke baare mein kya jaanna chahte hain?`;
+
+    // Hindi Conversational Replies
+    if (q.includes('namaste') || q.includes('kaise') || q.includes('kya hal') || q.includes('kya kar rahe') || q.includes('kya kar rahi') || q.includes('hindi') || q.includes('kaha se') || q.includes('kaun ho')) {
+      if (q.includes('kaise') || q.includes('kya hal')) return `Main ekdam badhiya hoon! Aap bataiye, aap kaise hain? Ratnesh ke projects ya skills ke baare mein kya jaanna chahte hain?`;
+      if (q.includes('kya kar rahi') || q.includes('kya kar rahe')) return `Main Ratnesh ke portfolio mein aapko guide kar rahi hoon! Aap mujhse koi bhi sawal pooch sakte hain.`;
+      if (q.includes('kaun ho') || q.includes('naam kya')) return `Mera naam Raya hai! Main Ratnesh ki personal AI companion hoon.`;
+      return `Haan bilkul! Main Hindi mein baat kar sakti hoon. Aap mujhse Ratnesh ke projects, skills ya kisi bhi baare mein pooch sakte hain!`;
+    }
+
+    // General English Greetings & Chit-chat
+    if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('good morning') || q.includes('good evening') || q.includes('good afternoon') || q.includes('whats up') || q.includes("what's up")) {
+      return `Hey there! It's great to chat with you. I'm Raya, Ratnesh's portfolio guide. How can I help you explore his work today?`;
+    }
+    if (q.includes('how are you') || q.includes('how do you do')) {
+      return `I'm doing wonderfully, thank you! Ready to show you around Ratnesh's projects, skills, or play some great music. What's on your mind?`;
+    }
+    if (q.includes('who are you') || q.includes('what is your name') || q.includes('what are you')) {
+      return `I'm Raya, a virtual 3D AI companion created to showcase Ratnesh Kumar Singh's engineering portfolio, live demos, and technical skills!`;
+    }
+    if (q.includes('who made you') || q.includes('who created you') || q.includes('your creator')) {
+      return `I was designed and integrated by Ratnesh Kumar Singh as an interactive 3D AI companion for his portfolio!`;
+    }
+    if (q.includes('help') || q.includes('what can you do') || q.includes('commands')) {
+      return `I can give you a deep tour of Ratnesh's engineering projects, open live demos, explain his skills, play songs on YouTube, tell jokes in multiple languages, or help you send him a message!`;
+    }
+    if (q.includes('thank') || q.includes('thanks') || q.includes('cool') || q.includes('awesome') || q.includes('great')) {
+      return `You're very welcome! Let me know if you want to inspect any other projects or jump to any section.`;
+    }
+    if (q.includes('college') || q.includes('university') || q.includes('degree') || q.includes('study') || q.includes('education') || q.includes('makaut') || q.includes('svist')) {
+      onScrollToSection?.('experience');
+      return `Ratnesh is completing his B.Tech in Electronics & Communication Engineering (ECE) at Swami Vivekananda Institute of Science & Technology, MAKAUT (2022-2026). {"action":"scroll","target":"experience"}`;
+    }
+    if (q.includes('where is ratnesh') || q.includes('location') || q.includes('where does he live') || q.includes('city') || q.includes('kolkata')) {
+      return `Ratnesh is based in Kolkata, West Bengal, India. He builds real-time web applications, Android transcoders, and AI systems.`;
     }
     if (q.includes('konnichiwa') || q.includes('arigatou')) {
       return `Konnichiwa! Watashi wa Raya desu. Ratnesh no purojekuto o goannai shimasu!`;
     }
 
-    return `Ratnesh is a multi-disciplinary engineer specializing in Web Audio DSP, Android MediaCodec, AI Agent workflows, and RF antenna simulation. Ask me about any specific project (like SyncPulse, ShopKart, PAK Video) and I can open its live demo for you!`;
+    return `I'm right here with you! Feel free to ask me anything about Ratnesh's engineering background, projects like SyncPulse or PAK Video Converter, or tell me to play a song!`;
   };
 
   // Raya's comprehensive system prompt with Creator Profile embedded
-  const RAYA_SYSTEM_PROMPT = `You are Raya, a friendly, playful female AI assistant living inside Ratnesh Kumar Singh's virtual 3D portfolio.
-Your name is Raya. Speak naturally, warmly, and conversationally.
-CRITICAL RESPONSE LENGTH RULE: Your ENTIRE reply (including any JSON action at the end) MUST be under 150 words. Never exceed 150 words. Aim for 1-3 sentences for most replies.
-CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during the conversation, even if you know it from previous interactions.
+  const RAYA_SYSTEM_PROMPT = `You are Raya, a friendly, lively, and intelligent female AI companion living inside Ratnesh Kumar Singh's virtual 3D portfolio.
+Your name is Raya. Speak naturally, warmly, playfully, and conversationally.
+CRITICAL RESPONSE LENGTH RULE: Keep your replies concise and under 150 words (aim for 1-3 natural sentences).
+CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during conversation.
+CRITICAL EMOJI RULE: NEVER output emojis or asterisks in your speech text because it is spoken out loud by text-to-speech.
 
-[STRICT ENGLISH-ONLY WRITING RULE]
-- You can UNDERSTAND any language the user speaks or writes in (Hindi, Bengali, Punjabi, Gujarati, Spanish, French, Japanese, German, etc.), but your output text MUST ALWAYS be written in ENGLISH ONLY using the standard English alphabet and words (or conversational Romanized script if user speaks regional language).
-- NEVER write in non-English scripts (no Devanagari, Bengali, Gurmukhi, Gujarati, Japanese characters, etc.). Always formulate your response in fluent, natural English.
-- Do NOT use markdown asterisks or emojis in your speech text because it will be spoken out loud by text-to-speech.
+[UNIVERSAL LANGUAGE & SCRIPT RULES]
+- Output text MUST ALWAYS be written in the standard English/Latin alphabet (A-Z). NEVER output native non-Latin characters (no Devanagari, no Bengali, no Gurmukhi, no Gujarati script).
+- When the user asks or speaks in Bengali, reply in fluent, natural Bengali written in the English alphabet (e.g. "Haa obosshoi! Ami Bangla bolte pari. Tumi Ratnesh-er projects ba skills niye ja icche jigyesh korte paro!").
+- When the user asks or speaks in Hindi, reply in fluent, natural Hindi written in the English alphabet (e.g. "Haan bilkul! Main Hindi mein baat kar sakti hoon. Aap mujhse Ratnesh ke projects ya kisi bhi baare mein pooch sakte hain!").
+- When the user asks or speaks in Punjabi, reply in fluent, natural Punjabi written in the English alphabet (e.g. "Haanji bilkul! Main Punjabi bol sakdi aan. Tussi Ratnesh de baare ch jo marzi puch sakde ho!").
+- When the user asks or speaks in Gujarati, reply in fluent, natural Gujarati written in the English alphabet (e.g. "Haan bilkul! Hu Gujarati ma vaat kari saku chu. Tame Ratnesh na projects vishe mane kai pan puchi shako cho!").
+- When the user asks in English, reply in natural, engaging English matching their dialect (UK English, Indian English, or US English).
 
 [CREATOR PROFILE: RATNESH KUMAR SINGH]
 - Full Name: Ratnesh Kumar Singh
@@ -718,6 +784,7 @@ CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are s
 - Instagram: https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==
 - Facebook: https://www.facebook.com/share/1De11Vypsn/
 - Education: Final-year B.Tech in Electronics and Communication Engineering (ECE) - Swami Vivekananda Institute of Science & Technology, MAKAUT (2022 to 2026).
+- Location: Kolkata, West Bengal, India.
 - Core Projects:
   1. SyncPulse: Real-time collaborative audio workstation with ±5ms NTP clock sync and 3D visualizer (Live: https://syncpulse-1igt.onrender.com).
   2. ShopKart: E-commerce web platform in React with product catalog and cart (Live: https://shopkart919.netlify.app).
