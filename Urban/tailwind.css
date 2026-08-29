@@ -131,3 +131,21 @@ html {
   0% { transform: scaleX(0); opacity: 1; }
   100% { transform: scaleX(1); opacity: 0; }
 }
+
+/* ═══ Universal GPU Hardware Acceleration for All Devices ═══ */
+canvas, #vrm-canvas, .three-canvas, #master-intro-overlay, #soap-bubble-container, #bubble-screen {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+  will-change: transform, opacity;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.backdrop-blur-xl, .backdrop-blur-2xl, .backdrop-blur-md, .backdrop-blur-sm, #chatbot-panel, .raya-speech-bubble {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform, backdrop-filter;
+}

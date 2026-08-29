@@ -346,6 +346,91 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
     return { voice: voice || candidateVoices[0] || null, lang, rate, pitch };
   };
 
+// Transliteration helper for realistic native speech in Microsoft Edge / Chrome / Safari
+function getSpokenTextForTTS(text: string, lang: string): string {
+  if (!text) return text;
+  
+  if (lang.startsWith('bn')) {
+    if (/[\u0980-\u09FF]/.test(text)) return text;
+    const bnPhrases: [RegExp, string][] = [
+      [/\bhaa\s+obosshoi\b/gi, 'হ্যাঁ অবশ্যই'],
+      [/\bami\s+bangla\s+bolte\s+pari\b/gi, 'আমি বাংলা বলতে পারি'],
+      [/\bami\s+khub\s+bhalo\s+achi\b/gi, 'আমি খুব ভালো আছি'],
+      [/\btumi\s+kemon\s+acho\b/gi, 'তুমি কেমন আছো'],
+      [/\btumi\s+ki\s+korcho\b/gi, 'তুমি কি করছো'],
+      [/\bki\s+korcho\b/gi, 'কি করছো'],
+      [/\bki\s+korchis\b/gi, 'কি করছিস'],
+      [/\bamar\s+naam\s+raya\b/gi, 'আমার নাম রায়া'],
+      [/\bami\s+ratnesh-?er\s+ai\s+assistant\b/gi, 'আমি রত্নেশের এআই অ্যাসিস্ট্যান্ট'],
+      [/\bami\s+ratnesh-?er\s+portfolio\s+guide\s+korchi\b/gi, 'আমি রত্নেশের পোর্টফোলিও গাইড করছি'],
+      [/\btumi\s+bolo\s+ki\s+sahajyo\s+korte\s+pari\b/gi, 'তুমি বলো কি সাহায্য করতে পারি'],
+      [/\bratnesh-?er\s+projects?\s+ba\s+skills?\s+niye\s+ja\s+icche\s+jigyesh\s+korte\s+paro\b/gi, 'রত্নেশের প্রজেক্টস বা স্কিলস নিয়ে যা ইচ্ছে জিজ্ঞেস করতে পারো'],
+      [/\bprithibi\s+gol\s+keno\b/gi, 'পৃথিবী গোল কেন'],
+      [/\bkaron\s+aamader\s+football-?er\s+moto\b/gi, 'কারণ আমাদের ফুটবলের মতো'],
+      [/\bmane\s+sir\s+jotoi\s+ghurbe\s+abar\s+aager\s+jaigay\s+phire\s+ashbe\b/gi, 'মানে স্যার যতই ঘুরবে আবার আগের জায়গায় ফিরে আসবে'],
+      [/\bapnar\s+rog\s+ta\s+khub\s+purono\b/gi, 'আপনার রোগ টা খুব পুরনো'],
+      [/\bthanda\s+jal\s+khaoar\s+obhyesh\s+koren\b/gi, 'ঠান্ডা জল খাওয়ার অভ্যাস করেন'],
+      [/\bkintu\s+daktar\s+babu\s+ami\s+to\s+machh\s+dhorar\s+kaj\s+kori\s+saradin\s+jal-?e\s+thaki\b/gi, 'কিন্তু ডাক্তার বাবু আমি তো মাছ ধরার কাজ করি সারাদিন জলে থাকি'],
+      [/\bshuno\s+he\s+aamake\s+100\s+taka\s+dhar\s+debe\b/gi, 'শুনো হে আমাকে ১০০ টাকা ধার দেবে'],
+      [/\bkal\s+raat-?e\s+shopne\s+dekhechi\s+tumi\s+aamake\s+100\s+taka\s+diyecho\s+setai\s+shotti\s+korte\s+chai\b/gi, 'কাল রাতে স্বপ্নে দেখেছি তুমি আমাকে ১০০ টাকা দিয়েছো সেটাই সত্যি করতে চাই'],
+    ];
+    let converted = text;
+    for (const [re, bn] of bnPhrases) {
+      converted = converted.replace(re, bn);
+    }
+    const bnWords: Record<string, string> = {
+      'ami': 'আমি', 'tumi': 'তুমি', 'apni': 'আপনি', 'bhalo': 'ভালো', 'kemon': 'কেমন', 'acho': 'আছো', 'achi': 'আছি',
+      'naam': 'নাম', 'nam': 'নাম', 'tomar': 'তোমার', 'amar': 'আমার', 'bolte': 'বলতে', 'pari': 'পারি', 'paro': 'পারো',
+      'obosshoi': 'অবশ্যই', 'haan': 'হ্যাঁ', 'haa': 'হ্যাঁ', 'korcho': 'করছো', 'koro': 'করো', 'kichu': 'কিছু',
+      'jante': 'জানতে', 'chao': 'চাও', 'bolo': 'বলো', 'sahajyo': 'সাহায্য', 'korte': 'করতে', 'jigyesh': 'জিজ্ঞেস',
+      'ratnesh': 'রত্নেশ', 'bangla': 'বাংলা', 'bengali': 'বাংলা', 'shonao': 'শোনাও', 'chutkula': 'কৌতুক', 'bol': 'বল',
+      'shuncho': 'শুনছো', 'dada': 'দাদা', 'didi': 'দিদি', 'khabar': 'খাবার', 'kheyecho': 'খেয়েছো', 'shob': 'সব', 'ki': 'কি'
+    };
+    return converted.replace(/\b[a-zA-Z]+\b/g, (w) => bnWords[w.toLowerCase()] || w);
+  }
+
+  if (lang.startsWith('pa')) {
+    if (/[\u0A00-\u0A7F]/.test(text)) return text;
+    const paWords: Record<string, string> = {
+      'haanji': 'ਹਾਂਜੀ', 'bilkul': 'ਬਿਲਕੁਲ', 'main': 'ਮੈਂ', 'punjabi': 'ਪੰਜਾਬੀ', 'bol': 'ਬੋਲ', 'sakdi': 'ਸਕਦੀ',
+      'aan': 'ਆਂ', 'tussi': 'ਤੁਸੀਂ', 'daso': 'ਦੱਸੋ', 'sab': 'ਸਭ', 'theek': 'ਠੀਕ', 'kive': 'ਕਿਵੇਂ', 'ho': 'ਹੋ',
+      'kidda': 'ਕਿੱਦਾਂ', 'changa': 'ਚੰਗਾ', 'veere': 'ਵੀਰੇ', 'paaji': 'ਭਾਜੀ', 'santa': 'ਸੰਤਾ', 'banta': 'ਬੰਤਾ',
+      'baraf': 'ਬਰਫ਼', 'tukda': 'ਟੁਕੜਾ', 'hath': 'ਹੱਥ', 'ch': 'ਚ', 'phad': 'ਫੜ', 'ke': 'ਕੇ', 'gaur': 'ਗ਼ੌਰ',
+      'naal': 'ਨਾਲ', 'dekh': 'ਦੇਖ', 'reha': 'ਰਿਹਾ', 'si': 'ਸੀ', 'ki': 'ਕੀ', 'leak': 'ਲੀਕ', 'kithon': 'ਕਿੱਥੋਂ',
+      'hai': 'ਹੈ', 'paise': 'ਪੈਸੇ', 'kaddan': 'ਕੱਢਣ', 'da': 'ਦਾ', 'hisab': 'ਹਿਸਾਬ', 'pehla': 'ਪਹਿਲਾਂ',
+      'sign': 'ਦਸਤਖਤ', 'meri': 'ਮੇਰੀ', 'rashi': 'ਰਾਸ਼ੀ', 'singh': 'ਸਿੰਘ', 'kyu': 'ਕਿਉਂ', 'karaan': 'ਕਰਾਂ',
+      'ratnesh': 'ਰਤਨੇਸ਼', 'baare': 'ਬਾਰੇ', 'jo': 'ਜੋ', 'marzi': 'ਮਰਜ਼ੀ', 'puch': 'ਪੁੱਛ', 'sakde': 'ਸਕਦੇ', 'ji': 'ਜੀ'
+    };
+    return text.replace(/\b[a-zA-Z]+\b/g, (w) => paWords[w.toLowerCase()] || w);
+  }
+
+  if (lang.startsWith('gu')) {
+    if (/[\u0A80-\u0AFF]/.test(text)) return text;
+    const guWords: Record<string, string> = {
+      'haan': 'હા', 'bilkul': 'બિલકુલ', 'hu': 'હું', 'gujarati': 'ગુજરાતી', 'ma': 'માં', 'vaat': 'વાત',
+      'kari': 'કરી', 'saku': 'શકું', 'chu': 'છું', 'ekdam': 'એકદમ', 'majama': 'મજામાં', 'tame': 'તમે',
+      'bolo': 'બોલો', 'kem': 'કેમ', 'cho': 'છો', 'ratnesh': 'રત્નેશ', 'na': 'ના', 'projects': 'પ્રોજેક્ટ્સ',
+      'vishe': 'વિશે', 'mane': 'મને', 'kai': 'કંઈ', 'pan': 'પણ', 'puchi': 'પૂછી', 'shako': 'શકો',
+      'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ'
+    };
+    return text.replace(/\b[a-zA-Z]+\b/g, (w) => guWords[w.toLowerCase()] || w);
+  }
+
+  if (lang.startsWith('hi')) {
+    if (/[\u0900-\u097F]/.test(text)) return text;
+    const hiWords: Record<string, string> = {
+      'haan': 'हाँ', 'bilkul': 'बिल्कुल', 'main': 'मैं', 'hindi': 'हिंदी', 'mein': 'में', 'baat': 'बात',
+      'kar': 'कर', 'sakti': 'सकती', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे', 'ratnesh': 'रत्नेश',
+      'ke': 'के', 'projects': 'प्रोजेक्ट्स', 'ya': 'या', 'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे',
+      'pooch': 'पूछ', 'sakte': 'सकते', 'hain': 'हैं', 'ekdam': 'एकदम', 'badhiya': 'बढ़िया', 'bataiye': 'बताइए',
+      'kaise': 'कैसे', 'kya': 'क्या', 'rahi': 'रही', 'rahe': 'रहे', 'guide': 'गाइड', 'namaste': 'नमस्ते'
+    };
+    return text.replace(/\b[a-zA-Z]+\b/g, (w) => hiWords[w.toLowerCase()] || w);
+  }
+
+  return text;
+}
+
   const speakRaya = (text: string) => {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
     try {
@@ -365,9 +450,10 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
 
     setTimeout(() => {
       try {
-        const utterance = new SpeechSynthesisUtterance(cleanText);
         const allVoices = window.speechSynthesis.getVoices();
         const { voice, lang, rate, pitch } = resolveRayaVoiceAndLanguage(cleanText, allVoices);
+        const spokenScriptText = getSpokenTextForTTS(cleanText, lang);
+        const utterance = new SpeechSynthesisUtterance(spokenScriptText);
 
         if (voice) utterance.voice = voice;
         utterance.lang = voice ? voice.lang : lang;
@@ -690,9 +776,25 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       return englishJokes[Math.floor(Math.random() * englishJokes.length)];
     }
 
+    // Simple Navigation & Scroll Commands
+    if (q.includes('scroll down') || q === 'scroll' || q.includes('page down') || q.includes('go down') || q.includes('down')) {
+      window.scrollBy({ top: 600, behavior: 'smooth' });
+      return `Scrolling down for you right now! {"action":"scroll_down"}`;
+    }
+    if (q.includes('scroll up') || q.includes('page up') || q.includes('back to top') || q.includes('go to top') || q.includes('scroll to top') || q === 'home' || q === 'top') {
+      onScrollToSection?.('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return `Taking you right back to the top! {"action":"scroll","target":"home"}`;
+    }
+    if (q.includes('leave a message') || q.includes('leave a messege') || q.includes('leave msg') || q.includes('send message')) {
+      onScrollToSection?.('contact');
+      setInput('Hi Ratnesh, ');
+      return `Sure! Type your message right here, and I'll deliver it to Ratnesh. {"action":"scroll","target":"contact"}`;
+    }
+
     if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('message') || q.includes('reach')) {
       onScrollToSection?.('contact');
-      return `You can reach Ratnesh directly at ${PORTFOLIO_DATA.email} or connect via LinkedIn and Instagram. {"action":"scroll","target":"contact"}`;
+      return `Taking you straight to the contact section where you can reach Ratnesh directly at ${PORTFOLIO_DATA.email} or connect via LinkedIn and Instagram. {"action":"scroll","target":"contact"}`;
     }
     if (q.includes('song') || q.includes('music') || q.includes('play')) {
       const cleanSongName = query.replace(/play|song|music|a|the|for|me|on|youtube/gi, '').trim() || 'lofi hip hop';
@@ -804,8 +906,8 @@ You can control the website and open any demo/link based on user commands! When 
 - Change 3D avatar: When asked to change or switch 3D character, say "Opening Avatar Studio for you!" and append: {"action":"change_avatar","target":"<character_name or empty>"}`;
 
   const handleSend = async (textToSend?: string) => {
-    const query = textToSend || input;
-    if (!query.trim() || isLoading) return;
+    const query = (textToSend || input).trim();
+    if (!query || isLoading) return;
 
     const userMsg: Message = {
       id: `usr_${Date.now()}`,
@@ -816,6 +918,152 @@ You can control the website and open any demo/link based on user commands! When 
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+
+    // Keep simple immediate commands OFF the API key for instantaneous response
+    const qLower = query.toLowerCase().replace(/[.,!?]/g, '').trim();
+
+    // 1. Scroll down
+    if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(qLower)) {
+      window.scrollBy({ top: 600, behavior: 'smooth' });
+      const reply = "Scrolling down for you right now!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 2. Scroll up / Home
+    if (/^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(qLower)) {
+      onScrollToSection?.('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const reply = "Taking you right back to the top!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 3. Navigation to sections
+    if (/^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(qLower)) {
+      onScrollToSection?.('contact');
+      const reply = "Taking you straight to the contact section where you can reach Ratnesh!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    if (/^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(qLower)) {
+      onScrollToSection?.('projects');
+      const reply = "Here are Ratnesh's core projects: SyncPulse, ShopKart, PAK Video Converter, MediFlow, and BMW 3D Visualizer! Which one would you like to explore?";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower)) {
+      onScrollToSection?.('skills');
+      const reply = "Ratnesh specializes in 5 core pillars: Real-Time Web Audio DSP, Android MediaCodec, AI Agent Workflows, RF Hardware Simulation, and 3D WebGL!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 4. Play song / music
+    if (/^play a song|^play music|^play song|^play lofi|^play\s+/.test(qLower)) {
+      const cleanSongName = query.replace(/play|song|music|a|the|for|me|on|youtube/gi, '').trim() || 'lofi hip hop';
+      searchAndPlayYouTube(cleanSongName);
+      const reply = `Playing ${cleanSongName} for you on YouTube now! Enjoy the music.`;
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 5. Leave a message
+    if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(qLower)) {
+      onScrollToSection?.('contact');
+      setInput('Hi Ratnesh, ');
+      const reply = "Sure! Type your message right here, and I'll deliver it to Ratnesh.";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
+    // 6. Direct Demo / Repo Openers
+    if (/^open shopkart|^open syncpulse|^open pak|^open bmw|^open jobpilot|^open linkedin|^open github|^open instagram|^open facebook/.test(qLower)) {
+      let url = '';
+      if (qLower.includes('shopkart')) url = 'https://shopkart919.netlify.app';
+      else if (qLower.includes('syncpulse')) url = 'https://syncpulse-1igt.onrender.com';
+      else if (qLower.includes('pak')) url = 'https://github.com/Ratnesh919/PAK_Video_Converter_Android_App';
+      else if (qLower.includes('bmw')) url = 'https://relaxed-nasturtium-3abd55.netlify.app/';
+      else if (qLower.includes('jobpilot')) url = 'https://ratnesh919.app.n8n.cloud';
+      else if (qLower.includes('linkedin')) url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b';
+      else if (qLower.includes('github')) url = 'https://github.com/Ratnesh919';
+      else if (qLower.includes('instagram')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
+      else if (qLower.includes('facebook')) url = 'https://www.facebook.com/share/1De11Vypsn/';
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        const reply = "Opening that link for you in a new tab now!";
+        const rayaMsg: Message = {
+          id: `raya_${Date.now()}`,
+          sender: 'raya',
+          text: reply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, rayaMsg]);
+        onUpdateSpeechText?.(reply);
+        speakRaya(reply);
+        return;
+      }
+    }
+
+    // For all other queries (custom conversation, jokes in languages, inquiries about creator, AI questions), process through LLM API key!
     setIsLoading(true);
 
     try {

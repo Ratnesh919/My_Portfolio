@@ -1198,7 +1198,21 @@ class AvatarChatBot {
         this.messages.push({ role: 'user', content: text });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
-        // Route all user queries and built-in commands directly to LLM API key
+        // Keep simple commands off the API key for instantaneous execution
+        const localCmd = this._tryLocalCommand(text);
+        if (localCmd) {
+            this.showTyping();
+            setTimeout(() => {
+                this.hideTyping();
+                this.processAIResponse(localCmd.speech, text, true);
+                if (localCmd.actions) {
+                    localCmd.actions.forEach(fn => { try { fn(); } catch(e) { console.warn(e); } });
+                }
+            }, 200);
+            return;
+        }
+
+        // Route complex and open-ended queries to LLM API key
         this.showTyping();
 
         // -- Safety timeout: if no reply in 30s, reset and prompt user to retry
@@ -1412,76 +1426,79 @@ class AvatarChatBot {
             return { speech: replies[Math.floor(Math.random() * replies.length)], actions: [] };
         }
 
-
-
-        // If it looks like a question or an explanation request, let the LLM handle it
-        const infoWords = ['what', 'why', 'explain', 'tell', 'describe', 'details', 'who is', 'what is', 'tell me about'];
-        if (infoWords.some(w => t.includes(w))) {
-            return null; // Let Groq handle informational queries
+        // 1. Immediate Simple Navigation & Scroll Commands (Kept off the API key for zero-lag instant response)
+        if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(t)) {
+            return { speech: 'Scrolling down for you right now!', actions: [() => this.executeScroll('down')] };
+        }
+        if (/^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(t)) {
+            return { speech: 'Taking you right back to the top!', actions: [() => this.executeScroll('home')] };
+        }
+        if (/^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(t)) {
+            return { speech: 'Taking you straight to the contact section where you can reach Ratnesh!', actions: [() => this.executeScroll('contact')] };
+        }
+        if (/^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(t)) {
+            return { speech: "Here are Ratnesh's core projects: SyncPulse, ShopKart, PAK Video Converter, MediFlow, and BMW 3D Visualizer! Which one would you like to explore?", actions: [() => this.executeScroll('projects')] };
+        }
+        if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(t)) {
+            return { speech: "Ratnesh specializes in 5 core pillars: Real-Time Web Audio DSP, Android MediaCodec, AI Agent Workflows, RF Hardware Simulation, and 3D WebGL!", actions: [() => this.executeScroll('skills')] };
+        }
+        if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(t)) {
+            return {
+                speech: "Sure! Type your message right here, and I'll deliver it to Ratnesh.",
+                actions: [() => {
+                    this.executeScroll('contact');
+                    if (this.textInput) {
+                        this.textInput.value = 'Hi Ratnesh, ';
+                        this.textInput.focus();
+                    }
+                }]
+            };
         }
 
-        // THEMES
-        const THEMES = [
-            { keys: ['immersive','3d','three d','3d model','1st','first','1','one','theme 1','theme one','first theme'],      target: 'immersive',  reply: 'Opening the Immersive theme!' },
-            { keys: ['cosmic','alien','cute alien','2nd','second','2','two','theme 2','theme two','second theme'],             target: 'cosmic',     reply: 'Switching to Cosmic theme!' },
-            { keys: ['urban','graffiti','grafitti','street','3rd','third','3','three','theme 3','theme three','third theme'],  target: 'urban',      reply: 'Loading the Urban theme!' },
-            { keys: ['essential','minimalist','minimal','4th','fourth','4','four','theme 4','theme four','fourth theme'],      target: 'essential',  reply: 'Essential mode, activated!' },
-            { keys: ['lumen','light theme','5th','fifth','5','five','theme 5','theme five','fifth theme','last','last theme','lst','lst theme'], target: 'lumen', reply: 'Switching to Lumen theme!' },
-        ];
-
-        let matchedTheme = null;
-        for (const theme of THEMES) {
-            if (theme.keys.some(k => {
-                if (/^\d+$/.test(k) || ['one','two','three','four','five'].includes(k)) {
-                    return new RegExp('\\b' + k + '\\b').test(t);
-                }
-                return t.includes(k);
-            })) { matchedTheme = theme; break; }
-        }
-
-        // Music command detection
-        let matchedMusicQuery = null;
-        const musicKeywords = ['play', 'put on', 'listen to', 'play me'];
-        for (const kw of musicKeywords) {
-            if (t.includes(kw)) {
-                const idx = t.indexOf(kw);
-                let query = t.slice(idx + kw.length).trim();
-                // Strip theme words from the music query
-                query = query.replace(/(?:and|then|also)?\s*(?:open|load|switch|go to|show|select|choose)?\s*(?:immersive|cosmic|urban|essential|lumen|theme|\d|one|two|three|four|five)+/gi, '').trim();
-                if (query.length > 1) {
-                    matchedMusicQuery = query;
-                    break;
-                }
+        // 2. Direct Link / Demo Openers
+        if (/^open (shopkart|syncpulse|pak|bmw|jobpilot|linkedin|github|instagram|facebook)/.test(t)) {
+            let url = '';
+            if (t.includes('shopkart')) url = 'https://shopkart919.netlify.app';
+            else if (t.includes('syncpulse')) url = 'https://syncpulse-1igt.onrender.com';
+            else if (t.includes('pak')) url = 'https://github.com/Ratnesh919/PAK_Video_Converter_Android_App';
+            else if (t.includes('bmw')) url = 'https://relaxed-nasturtium-3abd55.netlify.app/';
+            else if (t.includes('jobpilot')) url = 'https://ratnesh919.app.n8n.cloud';
+            else if (t.includes('linkedin')) url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b';
+            else if (t.includes('github')) url = 'https://github.com/Ratnesh919';
+            else if (t.includes('instagram')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
+            else if (t.includes('facebook')) url = 'https://www.facebook.com/share/1De11Vypsn/';
+            if (url) {
+                return {
+                    speech: "Opening that link for you in a new tab now!",
+                    actions: [() => window.open(url, '_blank')]
+                };
             }
         }
 
-        // 1. Dual-command theme + music
-        if (matchedTheme && matchedMusicQuery) {
-            const actions = [
-                () => this.executeNavigation(matchedTheme.target),
-                () => this.searchAndPlay(matchedMusicQuery)
-            ];
-            const speech = `${matchedTheme.reply} And playing ${matchedMusicQuery} for you!`;
-            return { speech, actions };
+        // 3. Music Command Detection
+        let matchedMusicQuery = null;
+        const musicKeywords = ['play', 'put on', 'listen to', 'play me'];
+        for (const kw of musicKeywords) {
+            if (t.startsWith(kw) || t.includes('play a song') || t.includes('play music')) {
+                const idx = t.indexOf(kw);
+                let query = t.slice(idx + kw.length).trim();
+                query = query.replace(/(?:and|then|also)?\s*(?:open|load|switch|go to|show|select|choose)?\s*(?:immersive|cosmic|urban|essential|lumen|theme|\d|one|two|three|four|five)+/gi, '').trim();
+                matchedMusicQuery = query || 'lofi hip hop';
+                break;
+            }
         }
 
-        // 2. Standalone theme command
-        const iframeContainer = document.getElementById('iframe-container');
-        const isThemeSelectionScreen = !iframeContainer || iframeContainer.style.opacity === '0' || iframeContainer.style.opacity === '';
-        const hasThemeTrigger = /open|go to|navigate|switch|load|show|select|choose|theme/.test(t);
-        if (matchedTheme && (isThemeSelectionScreen || hasThemeTrigger)) {
-            return { speech: matchedTheme.reply, actions: [() => this.executeNavigation(matchedTheme.target)] };
-        }
-        if (/change theme|switch theme|new theme|different theme/.test(t)) {
-            return { speech: 'Taking you to the theme selector! Which one would you like?', actions: [() => {
-                const btn = document.getElementById('change-theme-btn');
-                if (btn) btn.click();
-            }] };
-        }
-
-        // 3. Standalone music command
         if (matchedMusicQuery) {
-            return { speech: `Searching for ${matchedMusicQuery} on YouTube!`, actions: [() => this.searchAndPlay(matchedMusicQuery)] };
+            return {
+                speech: `Playing ${matchedMusicQuery} for you on YouTube now!`,
+                actions: [() => this.searchAndPlay(matchedMusicQuery)]
+            };
+        }
+
+        // If it looks like a complex question or conversational query, let the LLM API handle it
+        const infoWords = ['what', 'why', 'explain', 'describe', 'details', 'who is', 'what is', 'kemon', 'kaise', 'kidda', 'kem cho', 'joke', 'chutkula'];
+        if (infoWords.some(w => t.includes(w))) {
+            return null; // Route to LLM API Key
         }
 
         // AVATAR SWITCH
@@ -2157,7 +2174,49 @@ class AvatarChatBot {
                 selectedVoice = this.femaleVoice || candidateVoices[0];
             }
 
-            const utterance = new SpeechSynthesisUtterance(cleanText);
+            // Transliterate Romanized speech text into native script for authentic Edge Natural TTS synthesis
+            const getNativeScriptForTTS = (textStr, lang) => {
+                if (!textStr) return textStr;
+                if (lang.startsWith('bn')) {
+                    if (/[\u0980-\u09FF]/.test(textStr)) return textStr;
+                    const bnPhrases = [
+                        [/\bhaa\s+obosshoi\b/gi, 'হ্যাঁ অবশ্যই'],
+                        [/\bami\s+bangla\s+bolte\s+pari\b/gi, 'আমি বাংলা বলতে পারি'],
+                        [/\bami\s+khub\s+bhalo\s+achi\b/gi, 'আমি খুব ভালো আছি'],
+                        [/\btumi\s+kemon\s+acho\b/gi, 'তুমি কেমন আছো'],
+                        [/\btumi\s+ki\s+korcho\b/gi, 'তুমি কি করছো'],
+                        [/\bki\s+korcho\b/gi, 'কি করছো'],
+                        [/\bki\s+korchis\b/gi, 'কি করছিস'],
+                        [/\bamar\s+naam\s+raya\b/gi, 'আমার নাম রায়া'],
+                        [/\bami\s+ratnesh-?er\s+portfolio\s+guide\s+korchi\b/gi, 'আমি রত্নেশের পোর্টফোলিও গাইড করছি'],
+                        [/\btumi\s+bolo\s+ki\s+sahajyo\s+korte\s+pari\b/gi, 'তুমি বলো কি সাহায্য করতে পারি'],
+                        [/\bratnesh-?er\s+projects?\s+ba\s+skills?\s+niye\s+ja\s+icche\s+jigyesh\s+korte\s+paro\b/gi, 'রত্নেশের প্রজেক্টস বা স্কিলস নিয়ে যা ইচ্ছে জিজ্ঞেস করতে পারো']
+                    ];
+                    let res = textStr;
+                    for (const [re, val] of bnPhrases) res = res.replace(re, val);
+                    const bnDict = { 'ami': 'আমি', 'tumi': 'তুমি', 'bhalo': 'ভালো', 'kemon': 'কেমন', 'acho': 'আছো', 'achi': 'আছি', 'naam': 'নাম', 'nam': 'নাম', 'tomar': 'তোমার', 'amar': 'আমার', 'bolte': 'বলতে', 'pari': 'পারি', 'paro': 'পারো', 'obosshoi': 'অবশ্যই', 'haan': 'হ্যাঁ', 'haa': 'হ্যাঁ', 'korcho': 'করছো', 'koro': 'করো', 'kichu': 'কিছু', 'jante': 'জানতে', 'chao': 'চাও', 'bolo': 'বলো', 'sahajyo': 'সাহায্য', 'korte': 'করতে', 'jigyesh': 'জিজ্ঞেস', 'ratnesh': 'রত্নেশ', 'bangla': 'বাংলা', 'bengali': 'বাংলা', 'shonao': 'শোনাও', 'chutkula': 'কৌতুক', 'bol': 'বল', 'shuncho': 'শুনছো', 'dada': 'দাদা', 'didi': 'দিদি', 'khabar': 'খাবার', 'kheyecho': 'খেয়েছো', 'shob': 'সব', 'ki': 'কি' };
+                    return res.replace(/\b[a-zA-Z]+\b/g, w => bnDict[w.toLowerCase()] || w);
+                }
+                if (lang.startsWith('pa')) {
+                    if (/[\u0A00-\u0A7F]/.test(textStr)) return textStr;
+                    const paDict = { 'haanji': 'ਹਾਂਜੀ', 'bilkul': 'ਬਿਲਕੁਲ', 'main': 'ਮੈਂ', 'punjabi': 'ਪੰਜਾਬੀ', 'bol': 'ਬੋਲ', 'sakdi': 'ਸਕਦੀ', 'aan': 'ਆਂ', 'tussi': 'ਤੁਸੀਂ', 'daso': 'ਦੱਸੋ', 'sab': 'ਸਭ', 'theek': 'ਠੀਕ', 'kive': 'ਕਿਵੇਂ', 'ho': 'ਹੋ', 'kidda': 'ਕਿੱਦਾਂ', 'changa': 'ਚੰਗਾ', 'veere': 'ਵੀਰੇ', 'paaji': 'ਭਾਜੀ', 'santa': 'ਸੰਤਾ', 'banta': 'ਬੰਤਾ', 'baraf': 'ਬਰਫ਼', 'tukda': 'ਟੁਕੜਾ', 'hath': 'ਹੱਥ', 'ch': 'ਚ', 'phad': 'ਫੜ', 'ke': 'ਕੇ', 'gaur': 'ਗ਼ੌਰ', 'naal': 'ਨਾਲ', 'dekh': 'ਦੇਖ', 'reha': 'ਰਿਹਾ', 'si': 'ਸੀ', 'ki': 'ਕੀ', 'leak': 'ਲੀਕ', 'kithon': 'ਕਿੱਥੋਂ', 'hai': 'ਹੈ', 'paise': 'ਪੈਸੇ', 'kaddan': 'ਕੱਢਣ', 'da': 'ਦਾ', 'hisab': 'ਹਿਸਾਬ', 'pehla': 'ਪਹਿਲਾਂ', 'sign': 'ਦਸਤਖਤ', 'meri': 'ਮੇਰੀ', 'rashi': 'ਰਾਸ਼ੀ', 'singh': 'ਸਿੰਘ', 'kyu': 'ਕਿਉਂ', 'karaan': 'ਕਰਾਂ', 'ratnesh': 'ਰਤਨੇਸ਼', 'baare': 'ਬਾਰੇ', 'jo': 'ਜੋ', 'marzi': 'ਮਰਜ਼ੀ', 'puch': 'ਪੁੱਛ', 'sakde': 'ਸਕਦੇ', 'ji': 'ਜੀ' };
+                    return textStr.replace(/\b[a-zA-Z]+\b/g, w => paDict[w.toLowerCase()] || w);
+                }
+                if (lang.startsWith('gu')) {
+                    if (/[\u0A80-\u0AFF]/.test(textStr)) return textStr;
+                    const guDict = { 'haan': 'હા', 'bilkul': 'બિલકੁલ', 'hu': 'હું', 'gujarati': 'ગુજરાતી', 'ma': 'માં', 'vaat': 'વાત', 'kari': 'કરી', 'saku': 'શકું', 'chu': 'છું', 'ekdam': 'એકદમ', 'majama': 'મજામાં', 'tame': 'તમે', 'bolo': 'બોલો', 'kem': 'કેમ', 'cho': 'છો', 'ratnesh': 'રત્નેશ', 'na': 'ના', 'projects': 'પ્રોજેક્ટ્સ', 'vishe': 'વિશે', 'mane': 'મને', 'kai': 'કંઈ', 'pan': 'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
+                    return textStr.replace(/\b[a-zA-Z]+\b/g, w => guDict[w.toLowerCase()] || w);
+                }
+                if (lang.startsWith('hi')) {
+                    if (/[\u0900-\u097F]/.test(textStr)) return textStr;
+                    const hiDict = { 'haan': 'हाँ', 'bilkul': 'बिल्कुल', 'main': 'मैं', 'hindi': 'हिंदी', 'mein': 'में', 'baat': 'बात', 'kar': 'कर', 'sakti': 'सकती', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे', 'ratnesh': 'रत्नेश', 'ke': 'के', 'projects': 'प्रोजेक्ट्स', 'ya': 'या', 'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे', 'pooch': 'पूछ', 'sakte': 'सकते', 'hain': 'हैं', 'ekdam': 'एकदम', 'badhiya': 'बढ़िया', 'bataiye': 'बताइए', 'kaise': 'कैसे', 'kya': 'क्या', 'rahi': 'रही', 'rahe': 'रहे', 'guide': 'गाइड', 'namaste': 'नमस्ते' };
+                    return textStr.replace(/\b[a-zA-Z]+\b/g, w => hiDict[w.toLowerCase()] || w);
+                }
+                return textStr;
+            };
+
+            const spokenScriptText = getNativeScriptForTTS(cleanText, langCode);
+            const utterance = new SpeechSynthesisUtterance(spokenScriptText);
 
             utterance.voice = selectedVoice;
             utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
