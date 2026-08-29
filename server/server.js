@@ -811,77 +811,21 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                 sysContent += "\n\n[CRITICAL OVERRIDE]\nIf ANY information in the MEMORY above contradicts the [CREATOR/RATNESH FACTS] (for example, about Ratnesh's college, skills, or background), you MUST completely ignore the MEMORY and strictly use the [CREATOR/RATNESH FACTS]. Ratnesh goes to Swami Vivekananda Institute of Science & Technology, NOT Delhi Technological University.";
             }
 
-            // Inject Pending Facts if Admin Mode is active
+            // Inject Real Database Telemetry & Historical Context if Admin Mode is active
             if (isAdmin) {
                 const pending = await mem.getPendingLearnings();
-                sysContent += '\n\n[ADMIN MODE ACTIVE]\nThe user you are talking to is RATNESH (The Creator). You must treat him with respect and assist him. As the admin, he is allowed to ask you for system data. If he asks about users or learnings, summarize the provided [ADMIN DATA] for him in a readable way.';
+                const adminData = await mem.getAdminHistoricalContext();
                 
-                // Dynamic Admin Queries
-                if (lastUser) {
-                    const lc = lastUser.content.toLowerCase();
-                    let cachedUsers = null;
-
-                    const getUsersOnce = async () => {
-                        if (!cachedUsers) cachedUsers = await mem.getAllUsers();
-                        return cachedUsers || [];
-                    };
-                    
-                    // 1. Fetch site statistics for insights/stats queries
-                    if (lc.includes('insight') || lc.includes('stat') || lc.includes('visit') || lc.includes('traffic') || lc.includes('analytics')) {
-                        const stats = await mem.getSiteStats();
-                        sysContent += '\n\n[ADMIN DATA: SITE INSIGHTS & STATS]\n' + JSON.stringify(stats);
-                    }
-
-                    // 2. Fetch list of users
-                    if (lc.includes('users') || lc.includes('visitors') || lc.includes('all user') || lc.includes('user list') || lc.includes('visitor list')) {
-                        const users = await getUsersOnce();
-                        const compactUsers = users.slice(0, 10).map(u => ({ name: u.name, location: u.location, id: u.cookie_id }));
-                        sysContent += '\n\n[ADMIN DATA: RECENT USERS/VISITORS]\n' + JSON.stringify(compactUsers);
-                    }
-
-                    // 3. Fetch specific user details by name or cookie_id
-                    const usrMatch = lc.match(/(usr_[a-z0-9_]+)/i);
-                    let matchedUser = null;
-                    if (usrMatch) {
-                        matchedUser = { cookie_id: usrMatch[1], name: usrMatch[1] };
-                    } else {
-                        const users = await getUsersOnce();
-                        for (const u of users) {
-                            if (u.name && u.name !== '(anonymous)' && u.name.length > 2) {
-                                const nameRegex = new RegExp('\\b' + u.name.toLowerCase() + '\\b', 'i');
-                                if (nameRegex.test(lc)) {
-                                    matchedUser = u;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (matchedUser) {
-                        const profile = await mem.getUserProfile(matchedUser.cookie_id);
-                        sysContent += `\n\n[ADMIN DATA: PROFILE FOR USER ${matchedUser.name}]\n` + JSON.stringify(profile);
-                    }
-
-                    // 4. Fetch location & worldwide reach statistics for location/country queries
-                    if (lc.includes('location') || lc.includes('country') || lc.includes('where is') || lc.includes('city') || lc.includes('reach') || lc.includes('geographic') || lc.includes('map') || lc.includes('from where') || lc.includes('globally')) {
-                        const locStats = await mem.getLocationStats();
-                        sysContent += '\n\n[ADMIN DATA: VISITOR GEOGRAPHIC LOCATIONS]\n' + JSON.stringify(locStats);
-                        sysContent += '\n\n[INSTRUCTION FOR LOCATION RESPONSE]\nWhen Ratnesh asks about visitor locations or cities, check top_cities and recent_visitors from [ADMIN DATA] and explicitly state the specific Cities and Countries (e.g. Kolkata, WB, India).';
-                    }
-
-                    // 5. Fetch visitor messages when Ratnesh asks to read messages
-                    if (lc.includes('message') || lc.includes('messege') || lc.includes('msg') || lc.includes('inbox') || lc.includes('recruiter') || lc.includes('unread') || lc.includes('notification') || lc.includes('contact')) {
-                        const vMessages = await mem.getVisitorMessages();
-                        const compactMsgs = (vMessages || []).slice(0, 10).map(m => ({ from: m.user_name || 'Anonymous Visitor', message: m.message, contact: m.contact_info || 'N/A', date: m.created_at, important: m.is_important }));
-                        sysContent += '\n\n[ADMIN DATA: VISITOR & RECRUITER MESSAGES]\n' + JSON.stringify(compactMsgs);
-                        sysContent += '\n\n[INSTRUCTION FOR MESSAGES RESPONSE]\nSummarize each recruiter/visitor message directly for Ratnesh clearly. State who sent it, their contact email/info, and the message content. If the list is empty, state: "You currently have 0 new visitor or recruiter messages in the database."';
-                    }
-
-                    if (lc.includes('learn') || lc.includes('know')) {
-                        const allLearnings = await mem.getAllVerifiedLearnings();
-                        sysContent += '\n\n[ADMIN DATA: ALL VERIFIED LEARNINGS]\n' + JSON.stringify((allLearnings || []).slice(0, 15));
-                    }
-                }
+                sysContent += '\n\n[ADMIN MODE ACTIVE: AUTHENTICATED CREATOR & ADMIN (RATNESH)]\n' +
+                    'The user you are communicating with is RATNESH KUMAR SINGH (Your Creator, Developer, and the Portfolio Admin).\n' +
+                    'You must treat him with warmth, high respect, and complete transparency. Give him full access to real Supabase database insights, recruiter messages, visitor locations, and past conversation logs.\n\n' +
+                    '[REAL SUPABASE CLOUD DATABASE TELEMETRY & HISTORICAL LOGS]\n' +
+                    JSON.stringify(adminData, null, 2) + '\n\n' +
+                    '[INSTRUCTIONS FOR ADMIN QUERIES]\n' +
+                    '1. RECRUITER & VISITOR MESSAGES: When Ratnesh asks about messages, recruiter inquiries, contact submissions, or whether anyone left an email/phone, inspect "recruiter_messages" in the data above. Clearly list each sender, their contact info/email, and their message. If "contact_info" has an email, explicitly say so! If the list is empty, state that there are currently 0 new recruiter submissions in the database.\n' +
+                    '2. PAST CONVERSATIONS & USER MEMORY: When Ratnesh asks about what past users or visitors asked, spoke about, or discussed, inspect "recent_conversations" and "known_users" in the data above and provide a clear, concise breakdown of past visitor interactions.\n' +
+                    '3. SITE ANALYTICS & VISITOR TRAFFIC: When Ratnesh asks for stats, insights, or visitor reach, report the real "stats" and "location_summary" (top cities, tracked countries).\n' +
+                    '4. ACTION CONFIRMATION: When Ratnesh enters the admin password, greet him warmly as creator and confirm that Admin Mode is active with live database access.';
 
                 if (pending && pending.length > 0) {
                     sysContent += '\n\n[ACTION REQUIRED]\nHere are unverified claims made by OTHER visitors:\n';

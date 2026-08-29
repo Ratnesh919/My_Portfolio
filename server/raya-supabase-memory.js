@@ -283,9 +283,38 @@ async function buildMemoryContext(userId, sessionId) {
 }
 
 async function extractLearnings(userId, sessionId, userMsg, assistantReply) {
+    if (!userMsg) return;
     const lowerUser = userMsg.toLowerCase();
     const abusePattern = /\b(fuck|shit|bitch|asshole|cunt|dick|bastard|idiot|stupid|slut|whore)\b/i;
     if (abusePattern.test(lowerUser)) return;
+
+    // 1. Detect visitor name
+    const nameMatch = userMsg.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam)\s+([a-zA-Z]+)/i);
+    if (nameMatch && nameMatch[1] && !['ratnesh', 'admin', 'user', 'guest', 'raya', 'here', 'looking', 'interested', 'trying', 'exploring', 'a'].includes(nameMatch[1].toLowerCase())) {
+        const uName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1).toLowerCase();
+        await setPreference(userId, 'user_name', uName);
+        await saveLearning(userId, 'profile', `User introduced themselves as ${uName}`, sessionId);
+    }
+
+    // 2. Detect recruiter / hiring / contact info
+    const emailMatch = userMsg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    const phoneMatch = userMsg.match(/(?:\+\d{1,3}[- ]?)?\b\d{10}\b/);
+    const isJobInquiry = /\b(recruiter|hiring|job|offer|interview|salary|contract|freelance|hire|collaborate|opportunity|position|role|vacancy|hr)\b/i.test(lowerUser);
+
+    if (emailMatch || phoneMatch || isJobInquiry) {
+        const contact = emailMatch ? emailMatch[1] : (phoneMatch ? phoneMatch[0] : null);
+        const storedName = await getPreference(userId, 'user_name');
+        await saveVisitorMessage(userId, userMsg, storedName || '(anonymous)', contact);
+        if (contact) {
+            await setPreference(userId, 'contact_info', contact);
+        }
+        await saveLearning(userId, 'recruiter_inquiry', `Visitor message: "${userMsg}" | Contact: ${contact || 'N/A'}`, sessionId);
+    }
+
+    // 3. Detect user preferences (e.g. favorite project, music taste)
+    if (lowerUser.includes('favorite') || lowerUser.includes('like') || lowerUser.includes('interested in')) {
+        await saveLearning(userId, 'preference', `User expressed interest: "${userMsg}"`, sessionId);
+    }
 
     const creatorMatch = lowerUser.match(/(?:i am|i'm) (?:ratnesh|his|your creator)(?:'s)? (father|mother|brother|sister|friend|bestfriend)/i) || 
                          lowerUser.match(/(?:ratnesh|your creator|he) (?:is|likes|hates|wants) (.*)/i);
@@ -300,28 +329,11 @@ async function extractLearnings(userId, sessionId, userMsg, assistantReply) {
       await saveLearning(userId, 'correction', `Mistake correction from user. User said: "${userMsg}". Raya had said: "${assistantReply}"`, sessionId);
     }
 
-    const hindiPattern = /[\u0900-\u097F]/;
-    if (hindiPattern.test(userMsg)) {
-      await setPreference(userId, 'preferred_language', 'Hindi');
-      await saveLearning(userId, 'preference', 'User prefers to speak in Hindi', sessionId);
-    }
-
-    const nameMatch = lowerUser.match(/(?:my name is|i am|i'm|this is|call me) ([a-z]+)/i);
-    if (nameMatch) {
-      await setPreference(userId, 'user_name', nameMatch[1]);
-      await saveLearning(userId, 'fact', `User's name is ${nameMatch[1]}`, sessionId);
-    }
-
     const rememberMatch = lowerUser.match(/(?:remember|note) that (.*)/i);
     if (rememberMatch) await saveLearning(userId, 'fact', `User asked to remember: ${rememberMatch[1]}`, sessionId);
 
     const likesMatch = lowerUser.match(/(?:i like|i love|my favorite is|i enjoy) (.*)/i);
     if (likesMatch) await saveLearning(userId, 'preference', `User likes: ${likesMatch[1]}`, sessionId);
-
-    if (lowerUser.includes('play') || lowerUser.includes('song')) {
-      const match = lowerUser.match(/play\s+(.+)/);
-      if (match) await saveLearning(userId, 'preference', `User likes to listen to: ${match[1]}`, sessionId);
-    }
 }
 
 async function getAllUsers() {
@@ -494,11 +506,61 @@ async function markMessageRead(id) {
     }
 }
 
-async function getUserProfile(rawUserId) {
-    const userId = sanitizeId(rawUserId, 'usr');
-    const { data: learnings } = await supabase.from('learnings').select('type, content, status').eq('user_id', userId).limit(20);
-    const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
-    return { learnings: learnings || [], preferences: prefs || [] };
+async function getAdminHistoricalContext() {
+    try {
+        const [stats, locStats, visitorMsgs, recentMsgs, verifiedLearnings, users] = await Promise.all([
+            getSiteStats().catch(() => ({ unique: '0', total: '0' })),
+            getLocationStats().catch(() => ({ total_visitors_tracked: 0, top_cities: [], countries: {} })),
+            getVisitorMessages().catch(() => []),
+            supabase.from('messages').select('session_id, role, content, lang, created_at').order('id', { ascending: false }).limit(40),
+            getAllVerifiedLearnings().catch(() => []),
+            getAllUsers().catch(() => [])
+        ]);
+
+        const messagesList = recentMsgs?.data || [];
+        // Group messages by session
+        const sessionMap = {};
+        messagesList.slice().reverse().forEach(m => {
+            if (!sessionMap[m.session_id]) sessionMap[m.session_id] = [];
+            sessionMap[m.session_id].push(`${m.role === 'user' ? 'User' : 'Raya'}: ${m.content}`);
+        });
+
+        const formattedConversations = Object.entries(sessionMap).map(([sid, convs]) => ({
+            session_id: sid,
+            dialogue: convs.slice(-6).join(' | ')
+        })).slice(0, 10);
+
+        const recruiterInquiries = (visitorMsgs || []).map(m => ({
+            id: m.id,
+            from: m.user_name || 'Anonymous Recruiter/Visitor',
+            contact_info: m.contact_info || 'Not provided',
+            message: m.message,
+            importance: m.is_important ? m.importance_reason : 'Standard note',
+            date: m.created_at
+        })).slice(0, 20);
+
+        const knownUsers = (users || []).slice(0, 20).map(u => ({
+            name: u.name,
+            location: u.location,
+            last_active: u.last_active_at
+        }));
+
+        return {
+            stats,
+            location_summary: {
+                total_tracked: locStats.total_visitors_tracked,
+                top_cities: locStats.top_cities,
+                countries: locStats.countries
+            },
+            recruiter_messages: recruiterInquiries,
+            recent_conversations: formattedConversations,
+            known_users: knownUsers,
+            verified_learnings: (verifiedLearnings || []).slice(0, 20)
+        };
+    } catch (err) {
+        console.error('[Supabase] getAdminHistoricalContext Error:', err);
+        return null;
+    }
 }
 
 module.exports = {
@@ -507,5 +569,5 @@ module.exports = {
     setPreference, getPreference, getCachedCommand, recordCommand, addAdminRule,
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
     getUserProfile, getLocationStats, classifyMessageImportance, saveVisitorMessage,
-    getVisitorMessages, markMessageRead
+    getVisitorMessages, markMessageRead, getAdminHistoricalContext
 };

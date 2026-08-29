@@ -1184,6 +1184,17 @@ class AvatarChatBot {
             return;
         }
 
+        // Check if user entered Admin Password / Token
+        const trimmed = text.trim();
+        const lowerTrimmed = trimmed.toLowerCase();
+        if (trimmed === 'Aditya@231' || trimmed === 'Ratnesh@231' || lowerTrimmed === 'aditya@231' || lowerTrimmed === 'ratnesh@231' || lowerTrimmed === 'admin') {
+            this.isAdminMode = true;
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('isAdmin', 'true');
+                localStorage.setItem('isAdmin', 'true');
+            }
+        }
+
         this.awaitingChoice = false;
         this.pendingResults = null;
         this.hideChoices();
@@ -1210,21 +1221,18 @@ class AvatarChatBot {
         this.messages.push({ role: 'user', content: text });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
 
-        // Keep simple commands off the API key for instantaneous execution
-        const localCmd = this._tryLocalCommand(text);
-        if (localCmd) {
+        // Only pure wake words without a command return an instant listening ack
+        const pureWakeCmd = this._tryLocalCommand(text);
+        if (pureWakeCmd) {
             this.showTyping();
             setTimeout(() => {
                 this.hideTyping();
-                this.processAIResponse(localCmd.speech, text, true);
-                if (localCmd.actions) {
-                    localCmd.actions.forEach(fn => { try { fn(); } catch(e) { console.warn(e); } });
-                }
-            }, 200);
+                this.processAIResponse(pureWakeCmd.speech, text, true);
+            }, 150);
             return;
         }
 
-        // Route complex and open-ended queries to LLM API key
+        // All actual commands, questions, and inquiries route through the unified LLM API Key (Primary Brain)
         this.showTyping();
 
         // -- Safety timeout: if no reply in 30s, reset and prompt user to retry
@@ -1471,230 +1479,18 @@ class AvatarChatBot {
         return "I'm right here with you! Feel free to ask me anything about Ratnesh's engineering background, projects like SyncPulse or PAK Video Converter, or tell me to play a song!";
     }
 
-    // LOCAL COMMAND MATCHER
-    // Returns { speech, actions: [fn, ...] } for multi-action support, or null.
-    // Legacy callers that used { speech, action } still work because the call site
-    // now normalises both shapes.
+    // LOCAL COMMAND MATCHER — Only catches pure wake words; all actual commands & questions route to LLM API
     _tryLocalCommand(text) {
-        // Strip punctuation and convert to lower case for strict matching
         const t = text.toLowerCase().replace(/[.,!?]/g, '').trim();
 
-        // WAKE WORD ONLY Check
+        // PURE WAKE WORD ONLY Check
         const wakeWords = ['raya', 'hey raya', 'hi raya', 'listen raya', 'hello raya'];
         if (wakeWords.includes(t)) {
             const replies = ["Yes?", "Yep!", "What?", "Yes! How can I help you?", "I'm listening!", "Yes, what can I help you with?"];
             return { speech: replies[Math.floor(Math.random() * replies.length)], actions: [] };
         }
 
-        // 0. Admin Verification & Password Check (Supports Aditya@231 and Ratnesh@231)
-        if (text.trim() === 'Aditya@231' || text.trim() === 'Ratnesh@231' || t === 'aditya@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
-            if (typeof window !== 'undefined') {
-                sessionStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('isAdmin', 'true');
-            }
-            return {
-                speech: "Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?",
-                actions: []
-            };
-        }
-
-        // 0b. Admin Site Insights & Analytics
-        if (t.includes('insight') || t.includes('stat') || t.includes('traffic') || t.includes('analytic') || t.includes('visitor') || t.includes('who visited') || t.includes('user list') || t.includes('all user')) {
-            return {
-                speech: "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Contact form submissions are active.\nAll systems, 3D engines, and persistent memory pipelines are operating smoothly!",
-                actions: []
-            };
-        }
-
-        // 0c. Recruiter & Visitor Messages
-        if (t.includes('message') || t.includes('messege') || t.includes('msg') || t.includes('inbox') || t.includes('recruiter') || t.includes('unread') || t.includes('notification')) {
-            return {
-                speech: "Here are your latest recruiter and visitor inquiries, Ratnesh:\n1. Tech Lead / Recruiter (Bengaluru): 'Impressive real-time DSP NTP clock sync and Android MediaCodec hardware transcoding! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and JobPilot automated workflows. Can we connect regarding upcoming engineering positions?'\n\nYou can also review all direct submissions in Supabase visitor_messages or check kumarsinghratnesh3@gmail.com!",
-                actions: []
-            };
-        }
-
-        // 0d. Admin Verification & Details Status
-        if (t.includes('verify') || t.includes('claim') || t.includes('pending') || t.includes('detail') || t.includes('status')) {
-            return {
-                speech: "All visitor telemetry and portfolio systems are verified and operating smoothly. There are no pending unverified claims at this time.",
-                actions: []
-            };
-        }
-
-        // 0e. User Introductions & Names
-        const nameIntroMatch = t.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
-        if (nameIntroMatch && nameIntroMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameIntroMatch[1].toLowerCase())) {
-            const uName = nameIntroMatch[1].charAt(0).toUpperCase() + nameIntroMatch[1].slice(1);
-            if (typeof window !== 'undefined') {
-                sessionStorage.setItem('userName', uName);
-                localStorage.setItem('userName', uName);
-            }
-            return {
-                speech: `It's wonderful to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`,
-                actions: []
-            };
-        }
-
-        // 1. Immediate Simple Navigation & Scroll Commands (Kept off the API key for zero-lag instant response)
-        if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(t)) {
-            return { speech: 'Scrolling down for you right now!', actions: [() => this.executeScroll('down')] };
-        }
-        if (/^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(t)) {
-            return { speech: 'Taking you right back to the top!', actions: [() => this.executeScroll('home')] };
-        }
-        if (/^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(t)) {
-            return { speech: 'Taking you straight to the contact section where you can reach Ratnesh!', actions: [() => this.executeScroll('contact')] };
-        }
-        if (/^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(t)) {
-            return { speech: "Here are Ratnesh's core projects: SyncPulse, ShopKart, PAK Video Converter, MediFlow, and BMW 3D Visualizer! Which one would you like to explore?", actions: [() => this.executeScroll('projects')] };
-        }
-        if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(t)) {
-            return { speech: "Ratnesh specializes in Full-Stack Real-Time Web Audio DSP, Android MediaCodec, Automated Workflows, RF Hardware Simulation, and 3D WebGL!", actions: [() => this.executeScroll('skills')] };
-        }
-        if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(t)) {
-            return {
-                speech: "Sure! Type your message right here, and I'll deliver it to Ratnesh.",
-                actions: [() => {
-                    this.executeScroll('contact');
-                    if (this.textInput) {
-                        this.textInput.value = 'Hi Ratnesh, ';
-                        this.textInput.focus();
-                    }
-                }]
-            };
-        }
-
-        // 2. Direct Link / Demo Openers
-        if (/^open (shopkart|syncpulse|pak|bmw|jobpilot|linkedin|github|instagram|facebook)/.test(t)) {
-            let url = '';
-            if (t.includes('shopkart')) url = 'https://shopkart919.netlify.app';
-            else if (t.includes('syncpulse')) url = 'https://syncpulse-1igt.onrender.com';
-            else if (t.includes('pak')) url = 'https://github.com/Ratnesh919/PAK_Video_Converter_Android_App';
-            else if (t.includes('bmw')) url = 'https://relaxed-nasturtium-3abd55.netlify.app/';
-            else if (t.includes('jobpilot')) url = 'https://ratnesh919.app.n8n.cloud';
-            else if (t.includes('linkedin')) url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b';
-            else if (t.includes('github')) url = 'https://github.com/Ratnesh919';
-            else if (t.includes('instagram')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
-            else if (t.includes('facebook')) url = 'https://www.facebook.com/share/1De11Vypsn/';
-            if (url) {
-                return {
-                    speech: "Opening that link for you in a new tab now!",
-                    actions: [() => window.open(url, '_blank')]
-                };
-            }
-        }
-
-        // 3. Music Command Detection
-        let matchedMusicQuery = null;
-        const musicKeywords = ['play', 'put on', 'listen to', 'play me'];
-        for (const kw of musicKeywords) {
-            if (t.startsWith(kw) || t.includes('play a song') || t.includes('play music')) {
-                const idx = t.indexOf(kw);
-                let query = t.slice(idx + kw.length).trim();
-                query = query.replace(/(?:and|then|also)?\s*(?:open|load|switch|go to|show|select|choose)?\s*(?:immersive|cosmic|urban|essential|lumen|theme|\d|one|two|three|four|five)+/gi, '').trim();
-                matchedMusicQuery = query || 'lofi hip hop';
-                break;
-            }
-        }
-
-        if (matchedMusicQuery) {
-            return {
-                speech: `Playing ${matchedMusicQuery} for you on YouTube now!`,
-                actions: [() => this.searchAndPlay(matchedMusicQuery)]
-            };
-        }
-
-        // If it looks like a complex question or conversational query, let the LLM API handle it
-        const infoWords = ['what', 'why', 'explain', 'describe', 'details', 'who is', 'what is', 'kemon', 'kaise', 'kidda', 'kem cho', 'joke', 'chutkula'];
-        if (infoWords.some(w => t.includes(w))) {
-            return null; // Route to LLM API Key
-        }
-
-        // AVATAR SWITCH
-        const AVATAR_NAMES = ['changli','camellya','carlotta','chixia','jinshi','pinkshi',
-                              'roccia','rover','sanhua','shorekeeper','verina','yangyang','yinlin'];
-        if (/change|switch|swap|show|use|load|model|avatar|character|vrm/.test(t)) {
-            const matched = AVATAR_NAMES.find(name => t.includes(name));
-            if (matched) return { speech: `Switching to ${matched} right away!`, actions: [() => this.executeChangeAvatar(matched)] };
-            if (/change avatar|switch avatar|change model|switch model|change character|new avatar|different avatar|random avatar|another avatar/.test(t))
-                return { speech: 'Switching to a random avatar!', actions: [() => this.executeChangeAvatar('')] };
-        }
-
-        // SCROLL SECTIONS
-        const SECTIONS = [
-            { keys: ['home','top','beginning','start'],                           target: 'home' },
-            { keys: ['about','about me','who are you','who is ratnesh'],          target: 'about' },
-            { keys: ['education','college','university','degree','study'],         target: 'education' },
-            { keys: ['skill','skills','tech','technology','stack'],                target: 'skills' },
-            { keys: ['project','projects','work','portfolio'],                     target: 'projects' },
-            { keys: ['contact','email','instagram','linkedin','github','social'],  target: 'contact' },
-        ];
-        if (/\b(scroll to|go to|take me to|navigate to)\b/.test(t)) {
-            for (const sec of SECTIONS) {
-                if (sec.keys.some(k => t.includes(k)))
-                    return { speech: `Taking you to the ${sec.target} section!`, actions: [() => this.executeScroll(sec.target)] };
-            }
-        }
-        if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bgo down\b/.test(t)) return { speech: 'Scrolling down!', actions: [() => this.executeScroll('down')] };
-        if (/^scroll up$|^go up$|^page up$|^back to top$|\bscroll up\b|\bgo up\b|\bback to top\b/.test(t)) return { speech: 'Scrolling back up!', actions: [() => this.executeScroll('up')] };
-
-        // STOP MUSIC
-        if (/stop music|pause music|quiet|shut up|turn off music|stop playing/.test(t))
-            return { speech: 'Stopping the music.', actions: [() => { document.getElementById('raya-yt-wrapper')?.remove(); }] };
-
-        // SIZE CONTROL
-        if (/size|bigger|larger|grow|taller|smaller|shrink|tiny|huge|normal size|reset size|default size/.test(t)) {
-            if (/\b(bigger|larger|grow|taller|increase size)\b|make.*big|make.*large/.test(t))
-                return { speech: 'Making the avatar bigger!',           actions: [() => this.adjustAvatarSize(1.20)] };
-            if (/\b(smaller|shrink|tiny|decrease size)\b|make.*small|make.*tiny/.test(t))
-                return { speech: 'Making the avatar smaller!',          actions: [() => this.adjustAvatarSize(0.80)] };
-            if (/\b(normal|reset|default|original)\b/.test(t))
-                return { speech: 'Resetting avatar to default size!',   actions: [() => this.setAvatarSize(0.95)] };
-        }
-
-        // RANDOM JOKES (Never repetitive!)
-        const hasSpecificLang = /\b(bengali|bangla|hindi|hinglish|punjabi|gujarati|spanish|french|german|japanese|chinese|russian|marathi|tamil|telugu|arabic|korean|italian|portuguese)\b/i.test(t);
-        if (!hasSpecificLang && /\b(tell me a joke|tell a joke|another joke|say a joke|funny joke|make me laugh|joke|jokes)\b/i.test(t)) {
-            const JOKES = [
-                "Why do programmers prefer dark mode? Because light attracts bugs!",
-                "There are 10 types of people in the world: those who understand binary, and those who don't!",
-                "Why was the JavaScript developer sad? Because he didn't Know how to 'null' his feelings!",
-                "How many programmers does it take to change a lightbulb? None, that's a hardware problem!",
-                "Why do Java developers wear glasses? Because they don't C#!",
-                "An SQL query walks into a bar, walks up to two tables and asks: 'Can I join you?'",
-                "Why did the web developer leave the restaurant? Because of the table layout!",
-                "A user interface is like a joke. If you have to explain it, it's not that good!",
-                "Why did the developer go broke? Because he used up all his cache!",
-                "What's a database administrator's favorite song? 'Drop it like it's hot!'",
-                "Why was the computer cold? It left its Windows open!",
-                "Why did the function cross the road? To return to the main program!",
-                "What is an AI's favorite snack? Microchips and dip!",
-                "Why did the CSS code go to therapy? It had too many alignment issues!",
-                "Why don't programmers like nature? It has too many bugs and no stack trace!",
-                "Why did the robot go on a diet? It had too many bytes!",
-                "What do you call a programmer from Finland? Nerdic!",
-                "How does a computer get drunk? It takes screenshots!",
-                "Why did the AI break up with the server? There was zero connection!",
-                "Why was the Git commit so confident? Because it had a great push!",
-                "Why did the developer keep getting lost? Because his code kept throwing unhandled exceptions!",
-                "What's a pirate's favorite programming language? You'd think it's R, but his true love is the C!",
-                "Why did the smartphone get glasses? It lost its contacts!",
-                "How do you tell HTML from HTML5? Try it out in Internet Explorer. If it works, it's HTML. If it doesn't, it's HTML5!"
-            ];
-            if (!this._usedJokeIndices) this._usedJokeIndices = [];
-            let available = JOKES.map((_, i) => i).filter(i => !this._usedJokeIndices.includes(i));
-            if (available.length === 0) {
-                this._usedJokeIndices = [];
-                available = JOKES.map((_, i) => i);
-            }
-            const randomIndex = available[Math.floor(Math.random() * available.length)];
-            this._usedJokeIndices.push(randomIndex);
-            const jokeText = JOKES[randomIndex];
-            return { speech: jokeText, actions: [] };
-        }
-
-        return null; // Let Groq handle it
+        return null; // Route everything else to LLM API Key (Primary Brain)
     }
 
     // -- Avatar Size Helpers ---------------------------------------------------
