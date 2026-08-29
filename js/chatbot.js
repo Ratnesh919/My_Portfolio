@@ -412,10 +412,11 @@ class AvatarChatBot {
         // Bubble
         this.chatBubble = document.createElement('div');
         this.chatBubble.id = 'chatbot-bubble';
-        this.chatBubble.style.opacity = '0';
+        this.chatBubble.style.opacity = '1';
 
         this.bubbleText = document.createElement('div');
         this.bubbleText.id = 'cb-inner-text';
+        this.bubbleText.innerText = "I'm right here with you! Feel free to ask me anything about Ratnesh's engineering background, projects like SyncPulse or PAK Video Converter, or tell me to play a song!";
 
         // Song choice buttons container
         this.choiceContainer = document.createElement('div');

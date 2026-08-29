@@ -9,10 +9,9 @@ import { CertificationsSection } from '@/components/portfolio/CertificationsSect
 import { ContactSection } from '@/components/portfolio/ContactSection';
 import { AvatarStudioModal, AVATAR_CHARACTERS } from '@/components/portfolio/AvatarStudioModal';
 import { IntroLoader } from '@/components/portfolio/IntroLoader';
-import { RayaAICompanion } from '@/components/portfolio/RayaAICompanion';
 import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
-import { Bot, ChevronUp, Layers, MessageSquare, X } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
@@ -214,34 +213,6 @@ export const App: React.FC = () => {
         </button>
       )}
 
-
-      {/* ═══ Floating Chatbot UI Trigger & Companion Toggle (Bottom Right) ═══ */}
-      {!isRayaOpen && (
-        <button
-          onClick={() => setIsRayaOpen(true)}
-          className="fixed bottom-6 right-6 z-40 group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white shadow-[0_10px_30px_rgba(147,51,234,0.5),0_0_20px_rgba(168,85,247,0.4)] border border-purple-400/40 backdrop-blur-xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-in fade-in"
-          title="Chat with Raya (3D AI Companion)"
-        >
-          <div className="relative flex items-center justify-center">
-            <Bot size={20} className="text-white" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-purple-950 animate-ping" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-purple-950" />
-          </div>
-          <span className="text-xs font-bold font-mono tracking-wider">Chat with Raya</span>
-        </button>
-      )}
-
-      {/* ═══ Full Interactive Raya AI Companion & Voice Assistant ═══ */}
-      <RayaAICompanion
-        isOpen={isRayaOpen}
-        onClose={() => setIsRayaOpen(false)}
-        onOpenAvatarStudio={() => setIsAvatarStudioOpen(true)}
-        externalMessage={pendingChatMessage}
-        onClearExternalMessage={() => setPendingChatMessage(null)}
-        onScrollToSection={handleNavigate}
-        onChangeAvatar={handleSelectAvatar}
-        onUpdateSpeechText={(text) => setRayaBubbleText(text)}
-      />
 
       {/* 14-Character 3D Avatar Studio Modal */}
       <AvatarStudioModal
