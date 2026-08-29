@@ -6,8 +6,8 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL || 'https://srwmkciescfhnrrfwssx.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Zi5TQZKyH6X3cUPemPgMlQ_XkFNWxNE';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL;
+const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 let supabase;
 
 if (supabaseUrl && supabaseKey) {
@@ -554,11 +554,16 @@ async function getAdminHistoricalContext() {
             date: m.created_at
         })).slice(0, 20);
 
-        const knownUsers = (users || []).slice(0, 20).map(u => ({
-            name: u.name,
-            location: u.location,
-            last_active: u.last_active_at
-        }));
+        const HISTORICAL_CSV_LOGS = [
+            { name: "Shubham", inquiry: "Expressed interest in Ratnesh and stated he wanted to contact Ratnesh", timestamp_ist: "22 May 2026, 08:05 PM IST" },
+            { name: "Divya Raj Singh", inquiry: "Explored Ratnesh's projects and education sections", timestamp_ist: "21 May 2026, 05:44 PM IST" },
+            { name: "Recruiter (Mode Triggered)", inquiry: "Switched to Recruiter Mode and analyzed portfolio projects", timestamp_ist: "31 Jul 2026, 06:54 PM IST" },
+            { name: "VLSI / Hardware Inquirer", inquiry: "Inquired about VLSI semiconductor domain, discipline, and hardware design", timestamp_ist: "22 May 2026, 09:42 PM IST" },
+            { name: "RF Engineering Inquirer", inquiry: "Asked specifically about Ratnesh's HFSS antenna RF simulation project", timestamp_ist: "27 Jul 2026, 08:19 PM IST" },
+            { name: "Rahul", inquiry: "Multilingual interaction in Bengali and Hindi, explored themes", timestamp_ist: "25 Aug 2026, 10:54 AM IST (also 20 Aug 2026, 08:38 PM IST)" },
+            { name: "Raam", inquiry: "Explored projects and music", timestamp_ist: "30 May 2026, 08:59 AM IST & 27 May 2026, 02:53 PM IST" },
+            { name: "Darshan", inquiry: "Interacted with portfolio themes", timestamp_ist: "07 May 2026, 08:29 PM IST" }
+        ];
 
         return {
             stats,
@@ -570,7 +575,8 @@ async function getAdminHistoricalContext() {
             recruiter_messages: recruiterInquiries,
             recent_conversations: formattedConversations,
             known_users: knownUsers,
-            verified_learnings: (verifiedLearnings || []).slice(0, 20)
+            verified_learnings: (verifiedLearnings || []).slice(0, 20),
+            historical_visitor_log: HISTORICAL_CSV_LOGS
         };
     } catch (err) {
         console.error('[Supabase] getAdminHistoricalContext Error:', err);

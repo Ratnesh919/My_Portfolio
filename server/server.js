@@ -589,19 +589,19 @@ const generalApiLimiter = rateLimit({
     message: { error: 'Rate limit exceeded.' }
 });
 
-// Admin Password — Supports Vercel env variables (e.g. Aditya@231) with fallback
-const ADMIN_TOKEN = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || process.env.ADMIN_KEY || process.env.VITE_ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Aditya@231';
+// Admin Password — Loaded securely from environment variables (e.g. ADMIN_PASSWORD in Vercel/Render)
+const ADMIN_TOKEN = (process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || process.env.ADMIN_KEY || '').trim();
 
 const checkAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.slice(7).trim();
-        if (safeCompare(token, ADMIN_TOKEN.trim()) || token === 'Aditya@231' || token === 'Ratnesh@231') {
+        if (ADMIN_TOKEN && safeCompare(token, ADMIN_TOKEN)) {
             return next();
         }
     }
     const passHeader = req.headers['x-admin-password'] || req.headers['x-admin-token'];
-    if (passHeader && (safeCompare(passHeader.trim(), ADMIN_TOKEN.trim()) || passHeader === 'Aditya@231' || passHeader === 'Ratnesh@231')) {
+    if (passHeader && ADMIN_TOKEN && safeCompare(passHeader.trim(), ADMIN_TOKEN)) {
         return next();
     }
     const uid = req.body?.userId || req.headers['x-user-id'] || req.cookies['raya_user_id'] || req.cookies['raya_uid'];
@@ -752,20 +752,16 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
         // ── Admin Verification Logic ──
         let isAdmin = (await mem.getPreference(uid, 'is_admin') === 'true') || (req.body?.isAdmin === true) || (req.headers['x-is-admin'] === 'true');
-        const userTrimmed = lastUser ? lastUser.content.trim() : '';
-        const userLower = userTrimmed.toLowerCase();
-        if (lastUser && (
-            (ADMIN_TOKEN && safeCompare(userTrimmed, ADMIN_TOKEN.trim())) || 
-            userLower === 'aditya@231' || 
-            userLower === 'ratnesh@231' || 
-            userLower === 'admin'
-        )) {
+        const tokenCandidate = (req.body?.adminTokenCandidate || req.headers['x-admin-token'] || (lastUser ? lastUser.content.trim() : '')).trim();
+        if (ADMIN_TOKEN && safeCompare(tokenCandidate, ADMIN_TOKEN)) {
             isAdmin = true;
             await mem.setPreference(uid, 'is_admin', 'true');
-            // Hide the password from the LLM prompt
-            lastUser.content = "I have successfully entered the admin password. I am Ratnesh (your Creator and the Admin). Please confirm my admin session, welcome me warmly as your creator, and summarize my latest site insights, visitor analytics, and recruiter messages.";
-            const msgIndex = sanitizedMessages.findLastIndex(m => m.role === 'user');
-            if (msgIndex > -1) sanitizedMessages[msgIndex].content = lastUser.content;
+            if (lastUser && safeCompare(lastUser.content.trim(), ADMIN_TOKEN)) {
+                // Hide the raw password from the LLM prompt
+                lastUser.content = "I have successfully entered the admin credentials. I am Ratnesh (your Creator and the Admin). Please confirm my admin session, welcome me warmly as your creator, and summarize my latest site insights, visitor analytics, recruiter messages, and visitor inquiries.";
+                const msgIndex = sanitizedMessages.findLastIndex(m => m.role === 'user');
+                if (msgIndex > -1) sanitizedMessages[msgIndex].content = lastUser.content;
+            }
         }
 
         if (isAdmin && lastUser) {
@@ -832,10 +828,12 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     '[REAL SUPABASE CLOUD DATABASE TELEMETRY & HISTORICAL LOGS]\n' +
                     JSON.stringify(adminData, null, 2) + '\n\n' +
                     '[INSTRUCTIONS FOR ADMIN QUERIES]\n' +
-                    '1. RECRUITER & VISITOR MESSAGES: When Ratnesh asks about messages, recruiter inquiries, contact submissions, or whether anyone left an email/phone, inspect "recruiter_messages" in the data above. Clearly list each sender, their contact info/email, and their message. If "contact_info" has an email, explicitly say so! If the list is empty, state that there are currently 0 new recruiter submissions in the database.\n' +
-                    '2. PAST CONVERSATIONS & USER MEMORY: When Ratnesh asks about what past users or visitors asked, spoke about, or discussed, inspect "recent_conversations" and "known_users" in the data above and provide a clear, concise breakdown of past visitor interactions.\n' +
-                    '3. SITE ANALYTICS & VISITOR TRAFFIC: When Ratnesh asks for stats, insights, or visitor reach, report the real "stats" and "location_summary" (top cities, tracked countries).\n' +
-                    '4. ACTION CONFIRMATION: When Ratnesh enters the admin password, greet him warmly as creator and confirm that Admin Mode is active with live database access.';
+                    '1. EXACT DATE & TIME IN NOTIFICATIONS: When Ratnesh asks about messages, recruiter inquiries, or past visitor logs, ALWAYS provide the EXACT date and time (formatted clearly in Indian Standard Time, e.g. "22 May 2026 at 08:05 PM IST"). Inspect both "recruiter_messages" and "historical_visitor_log" in the data above.\n' +
+                    '2. HISTORICAL VISITOR INQUIRIES: You have access to verified past visitor inquiries in "historical_visitor_log": Shubham (wanted to contact Ratnesh on 22 May 2026, 08:05 PM IST), Divya Raj Singh (21 May 2026, 05:44 PM IST), Recruiter Mode trigger (31 Jul 2026, 06:54 PM IST), VLSI semiconductor domain inquiry (22 May 2026, 09:42 PM IST), HFSS antenna project inquiry (27 Jul 2026, 08:19 PM IST), and Rahul (multilingual interaction).\n' +
+                    '3. PROACTIVE ADMIN NOTIFICATION: When Ratnesh enters admin mode or asks for updates, proactively summarize notable inquiries with their exact timestamps and contact requests.\n' +
+                    '4. RECRUITER & VISITOR INQUIRIES: Clearly list each sender, contact info/email, exact date and time, and inquiry message. If an email is provided, highlight it!\n' +
+                    '5. SITE ANALYTICS & VISITOR TRAFFIC: Report real "stats" and "location_summary" (top cities, tracked countries).\n' +
+                    '6. OUTBOX CONFIRMATION: When Ratnesh says "Reply to [recruiter/name] with [message]", confirm you saved his message in the Outbox and will warmly convey it when they revisit.';
 
                 if (pending && pending.length > 0) {
                     sysContent += '\n\n[ACTION REQUIRED]\nHere are unverified claims made by OTHER visitors:\n';
@@ -906,7 +904,10 @@ You have direct control to execute actions on the portfolio website! ALWAYS appe
         }
 
         // Return immediately to the user, unblocking the HTTP response
-        res.json(response.data);
+        res.json({
+            ...response.data,
+            isAdmin: isAdmin
+        });
 
         // Run database saves asynchronously so the event loop isn't blocked 
         // while holding open the user's socket connection.

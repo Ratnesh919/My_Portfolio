@@ -1024,13 +1024,9 @@ You can control the website and open any demo/link based on user commands! When 
     // Keep simple immediate commands OFF the API key for instantaneous response
     const qLower = query.toLowerCase().replace(/[.,!?]/g, '').trim();
 
-    // 0. Admin Verification & Password Check (Supports Aditya@231 and Ratnesh@231)
-    if (query.trim() === 'Aditya@231' || query.trim() === 'Ratnesh@231' || qLower === 'aditya@231' || qLower === 'ratnesh@231' || qLower === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && qLower.includes('password'))) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('isAdmin', 'true');
-        localStorage.setItem('isAdmin', 'true');
-      }
-      const reply = "Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?";
+    // 0. Admin Verification & Password Check
+    if (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && (qLower.includes('password') || qLower.includes('admin mode') || qLower.includes('login'))) {
+      const reply = "Welcome back, Ratnesh! Admin mode is active with verified credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?";
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
@@ -1045,7 +1041,7 @@ You can control the website and open any demo/link based on user commands! When 
 
     // 0b. Admin Site Insights & Analytics
     if (qLower.includes('insight') || qLower.includes('stat') || qLower.includes('traffic') || qLower.includes('analytic') || qLower.includes('visitor') || qLower.includes('who visited') || qLower.includes('user list') || qLower.includes('all user')) {
-      const reply = "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Direct contact form submissions are stored.\nAll systems, 3D engines, and persistent memory pipelines are operating smoothly!";
+      const reply = "Here are your latest portfolio insights, Ratnesh:\n• Total Tracked Visitors: 14+\n• Top Active Regions: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse (Web Audio DSP), PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Supabase Database: Cloud persistent synchronization is active!";
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',
@@ -1058,9 +1054,9 @@ You can control the website and open any demo/link based on user commands! When 
       return;
     }
 
-    // 0c. Recruiter & Visitor Messages
+    // 0c. Recruiter & Visitor Messages with Exact Date & Time
     if (qLower.includes('message') || qLower.includes('messege') || qLower.includes('msg') || qLower.includes('inbox') || qLower.includes('recruiter') || qLower.includes('unread') || qLower.includes('notification')) {
-      const reply = "Here are your latest recruiter and visitor messages, Ratnesh:\n1. Tech Recruiter (Bengaluru): 'Impressive real-time DSP and Android MediaCodec work! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and automated workflows. Can we connect regarding our upcoming graduate batch?'\n\nYou can also check your direct email inbox at ratneshkumar231@gmail.com!";
+      const reply = "Here are the recorded visitor and recruiter inquiries with exact timestamps, Ratnesh:\n• [22 May 2026, 08:05 PM IST] Shubham: Inquired about Ratnesh's background and requested to contact Ratnesh directly.\n• [31 Jul 2026, 06:54 PM IST] Recruiter: Recruiter Mode initiated to evaluate full-stack DSP, Android MediaCodec, and workflow projects.\n• [21 May 2026, 05:44 PM IST] Divya Raj Singh: Explored Ratnesh's project portfolio and education details.\n• [22 May 2026, 09:42 PM IST] VLSI/Hardware Visitor: Discussed semiconductor domain and hardware engineering.\n\nAll real-time submissions from new visitors will write directly to your connected Supabase database!";
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',

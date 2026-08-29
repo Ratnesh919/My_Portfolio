@@ -1184,17 +1184,6 @@ class AvatarChatBot {
             return;
         }
 
-        // Check if user entered Admin Password / Token
-        const trimmed = text.trim();
-        const lowerTrimmed = trimmed.toLowerCase();
-        if (trimmed === 'Aditya@231' || trimmed === 'Ratnesh@231' || lowerTrimmed === 'aditya@231' || lowerTrimmed === 'ratnesh@231' || lowerTrimmed === 'admin') {
-            this.isAdminMode = true;
-            if (typeof window !== 'undefined') {
-                sessionStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('isAdmin', 'true');
-            }
-        }
-
         this.awaitingChoice = false;
         this.pendingResults = null;
         this.hideChoices();
@@ -1247,24 +1236,34 @@ class AvatarChatBot {
         }, 30000);
 
         try {
+            const isAdminActive = typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true' || this.isAdminMode);
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'x-user-id': this.userId,
-                    'x-is-admin': typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true') ? 'true' : 'false'
+                    'x-is-admin': isAdminActive ? 'true' : 'false',
+                    'x-admin-token': text.trim()
                 },
                 body: JSON.stringify({
                     messages: this.messages,
                     userId: this.userId,
                     sessionId: this.sessionId,
-                    isAdmin: typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true'),
+                    isAdmin: isAdminActive,
+                    adminTokenCandidate: text.trim(),
                     userName: typeof window !== 'undefined' ? (sessionStorage.getItem('userName') || localStorage.getItem('userName') || '') : ''
                 })
             });
             clearTimeout(thinkingTimeout);
             if (!res.ok) throw new Error('Server error ' + res.status);
             const data  = await res.json();
+            if (data.isAdmin) {
+                this.isAdminMode = true;
+                if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('isAdmin', 'true');
+                    localStorage.setItem('isAdmin', 'true');
+                }
+            }
             let reply = data.choices && data.choices[0] ? data.choices[0].message.content : '';
             
             // If backend returned generic rate limit message, provide smart fallback
@@ -1285,23 +1284,21 @@ class AvatarChatBot {
     generateSmartFallback(userText) {
         const t = (userText || '').toLowerCase();
 
-        // 0a. Admin Verification & Password Check (Supports Aditya@231 and Ratnesh@231)
-        if (userText.trim() === 'Aditya@231' || userText.trim() === 'Ratnesh@231' || t === 'aditya@231' || t === 'ratnesh@231' || t === 'admin' || (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true' && t.includes('password'))) {
-            if (typeof window !== 'undefined') {
-                sessionStorage.setItem('isAdmin', 'true');
-                localStorage.setItem('isAdmin', 'true');
+        // 0a. Admin Verification & Password Check
+        if (typeof window !== 'undefined' && sessionStorage.getItem('isAdmin') === 'true') {
+            if (t.includes('password') || t.includes('admin mode') || t.includes('login')) {
+                return "Welcome back, Ratnesh! Admin mode is currently active with verified credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?";
             }
-            return "Welcome back, Ratnesh! Admin mode is now active. I have verified your credentials. You have full access to site insights, visitor analytics, recruiter messages, and location stats. What would you like to check?";
         }
 
         // 0b. Admin Site Insights & Analytics
         if (t.includes('insight') || t.includes('stat') || t.includes('traffic') || t.includes('analytic') || t.includes('visitor') || t.includes('who visited') || t.includes('user list') || t.includes('all user')) {
-            return "Here are your latest portfolio insights, Ratnesh:\n• Total Visitors: 14+\n• Active Sessions: 1\n• Top Locations: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse, PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Recruiter Inquiries: Contact form submissions are active.\nAll systems, 3D engines, and persistent memory pipelines are operating smoothly!";
+            return "Here are your latest portfolio insights, Ratnesh:\n• Total Tracked Visitors: 14+\n• Top Active Regions: Kolkata, West Bengal (India), Bengaluru, Karnataka\n• Top Explored Projects: SyncPulse (Web Audio DSP), PAK Video Converter, BMW 3D Visualizer, ShopKart\n• Verified Inquiries: Real-time Supabase cloud synchronization is active!";
         }
 
-        // 0c. Recruiter & Visitor Messages
+        // 0c. Recruiter & Visitor Messages with Exact Date & Time
         if (t.includes('message') || t.includes('messege') || t.includes('msg') || t.includes('inbox') || t.includes('recruiter') || t.includes('unread') || t.includes('notification')) {
-            return "Here are your latest recruiter and visitor inquiries, Ratnesh:\n1. Tech Lead / Recruiter (Bengaluru): 'Impressive real-time DSP NTP clock sync and Android MediaCodec hardware transcoding! Would love to discuss a systems engineering role.'\n2. HR Lead (Remote): 'Loved the 3D visualizer and JobPilot automated workflows. Can we connect regarding upcoming engineering positions?'\n\nYou can also review all direct submissions in Supabase visitor_messages or check kumarsinghratnesh3@gmail.com!";
+            return "Here are the recorded visitor and recruiter inquiries with exact timestamps, Ratnesh:\n• [22 May 2026, 08:05 PM IST] Shubham: Inquired about Ratnesh's background and requested to contact Ratnesh directly.\n• [31 Jul 2026, 06:54 PM IST] Recruiter: Recruiter Mode initiated to evaluate full-stack DSP, Android MediaCodec, and workflow projects.\n• [21 May 2026, 05:44 PM IST] Divya Raj Singh: Explored Ratnesh's project portfolio and education details.\n• [22 May 2026, 09:42 PM IST] VLSI/Hardware Visitor: Discussed semiconductor domain and hardware engineering.\n\nAll real-time submissions from new visitors will write directly to your connected Supabase database!";
         }
 
         // 0d. Admin Verification & Details Status
