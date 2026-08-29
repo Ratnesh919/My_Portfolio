@@ -773,6 +773,16 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             const rejectMatch = lastUser.content.match(/reject\s+(\d+)/i);
             if (verifyMatch) await mem.verifyLearning(parseInt(verifyMatch[1], 10));
             if (rejectMatch) await mem.rejectLearning(parseInt(rejectMatch[1], 10));
+
+            // Detect admin instructions to leave a message or reply for recruiters/visitors
+            const outboxReplyMatch = lastUser.content.match(/(?:reply to|leave a message for|tell|message for)\s+(?:the\s+)?(recruiter|visitors?|[A-Za-z0-9\s]+?)\s+(?:with|that|saying)?:\s*(.*)/i) ||
+                                     lastUser.content.match(/(?:reply to|tell)\s+(?:the\s+)?(recruiter|visitors?|[A-Za-z0-9\s]+?)\s+(.*)/i);
+            if (outboxReplyMatch && outboxReplyMatch[2] && outboxReplyMatch[2].length > 3) {
+                const target = outboxReplyMatch[1].trim();
+                const msgText = outboxReplyMatch[2].trim();
+                await mem.saveAdminOutboxMessage(target, msgText);
+                console.log(`[Admin Outbox] Saved message for ${target}: "${msgText}"`);
+            }
         }
 
         if (lastUser) {

@@ -6,13 +6,13 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL;
-const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL || 'https://srwmkciescfhnrrfwssx.supabase.co';
+const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Zi5TQZKyH6X3cUPemPgMlQ_XkFNWxNE';
 let supabase;
 
 if (supabaseUrl && supabaseKey) {
     supabase = createClient(supabaseUrl, supabaseKey);
-    console.log('🟢 [Supabase Memory] Cloud database client initialized successfully.');
+    console.log('🟢 [Supabase Memory] Cloud database client connected: ' + supabaseUrl);
 } else {
     console.warn('\n======================================================');
     console.warn('⚠️ WARNING: SUPABASE_URL and SUPABASE_KEY are not set in .env.');
@@ -243,17 +243,19 @@ async function cleanDatabase() {
 
 async function buildMemoryContext(userId, sessionId) {
     // Execute all memory database queries concurrently in parallel for sub-second database context building
-    const [learningsRes, prefsRes, recentRes, adminRulesRes] = await Promise.all([
+    const [learningsRes, prefsRes, recentRes, adminRulesRes, outboxRes] = await Promise.all([
         supabase.from('learnings').select('type, content').eq('user_id', userId).eq('status', 'verified').order('weight', { ascending: false }).order('id', { ascending: false }).limit(10),
         supabase.from('preferences').select('key, value').eq('user_id', userId),
         supabase.from('messages').select('role, content').eq('session_id', sessionId).order('id', { ascending: false }).limit(6),
-        supabase.from('admin_rules').select('rule')
+        supabase.from('admin_rules').select('rule'),
+        supabase.from('learnings').select('content').eq('type', 'admin_outbox').eq('status', 'verified').order('id', { ascending: false }).limit(5)
     ]);
 
     const learnings = learningsRes.data;
     const prefs = prefsRes.data;
     let recent = recentRes.data;
     const adminRules = adminRulesRes.data;
+    const outbox = outboxRes.data;
 
     if (recent) recent.reverse();
 
@@ -262,6 +264,19 @@ async function buildMemoryContext(userId, sessionId) {
     if (adminRules && adminRules.length) {
         ctx += '\n[CORE DIRECTIVES FROM ADMIN (RATNESH)]\n';
         adminRules.forEach(r => { ctx += `WARNING: STRICT RULE YOU MUST FOLLOW: ${r.rule}\n`; });
+    }
+
+    if (outbox && outbox.length) {
+        ctx += '\n[RATNESH OUTBOX - MESSAGES TO CONVEY TO VISITORS/RECRUITERS]\n';
+        outbox.forEach(item => {
+            try {
+                const parsed = JSON.parse(item.content);
+                ctx += `- MESSAGE FROM RATNESH FOR "${parsed.recipient || 'Visitors/Recruiters'}": "${parsed.message}"\n`;
+            } catch(e) {
+                ctx += `- MESSAGE FROM RATNESH: "${item.content}"\n`;
+            }
+        });
+        ctx += 'DIRECTIVE: If the visitor introduces themselves, or is a recruiter, or when greeting them, tell them warmly: "Welcome! You have a personal message from Ratnesh. If you like, I can convey it to you." When they say yes, deliver Ratnesh\'s exact message clearly.\n';
     }
 
     if (prefs && prefs.length) {
@@ -563,11 +578,37 @@ async function getAdminHistoricalContext() {
     }
 }
 
+async function saveAdminOutboxMessage(targetRecipient, messageText) {
+    const payload = {
+        user_id: 'admin_ratnesh',
+        type: 'admin_outbox',
+        content: JSON.stringify({
+            recipient: targetRecipient || 'all_recruiters',
+            message: sanitizeText(messageText, 1500),
+            created_at: new Date()
+        }),
+        status: 'verified',
+        weight: 10
+    };
+    const { data, error } = await supabase.from('learnings').insert(payload);
+    if (error) console.error('[Supabase] saveAdminOutboxMessage Error:', error);
+    return !error;
+}
+
+async function getPendingOutboxMessages() {
+    const { data, error } = await supabase.from('learnings').select('content').eq('type', 'admin_outbox').eq('status', 'verified').order('id', { ascending: false }).limit(5);
+    if (error) return [];
+    return (data || []).map(d => {
+        try { return JSON.parse(d.content); } catch(e) { return { message: d.content }; }
+    });
+}
+
 module.exports = {
     initUser, getSiteStats, startSession, endSession, saveMessage, saveLearning,
     savePendingLearning, getPendingLearnings, verifyLearning, rejectLearning,
     setPreference, getPreference, getCachedCommand, recordCommand, addAdminRule,
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
     getUserProfile, getLocationStats, classifyMessageImportance, saveVisitorMessage,
-    getVisitorMessages, markMessageRead, getAdminHistoricalContext
+    getVisitorMessages, markMessageRead, getAdminHistoricalContext, saveAdminOutboxMessage,
+    getPendingOutboxMessages
 };
