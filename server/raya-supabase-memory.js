@@ -655,7 +655,7 @@ module.exports = {
     savePendingLearning, getPendingLearnings, verifyLearning, rejectLearning,
     setPreference, getPreference, getCachedCommand, recordCommand, addAdminRule,
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
-    getUserProfile, getLocationStats, classifyMessageImportance, saveVisitorMessage,
+    getLocationStats, classifyMessageImportance, saveVisitorMessage,
     getVisitorMessages, markMessageRead, getAdminHistoricalContext, saveAdminOutboxMessage,
     getPendingOutboxMessages
 };
