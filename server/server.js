@@ -242,7 +242,12 @@ function getOpenRouterKeys() {
 }
 
 // ── NVIDIA NIM Provider (PRIMARY) ──────────────────────────────────────────
+// Session-level flag: if NVIDIA returns 404 or 401, skip it for this invocation
+let _nvidiaDisabled = false;
+
 async function callNvidiaDirect(nvidiaKey, payload) {
+    if (_nvidiaDisabled) throw new Error('NVIDIA disabled this session (prior 404/401)');
+
     const models = [
         'meta/llama-3.3-70b-instruct',
         'meta/llama-3.1-70b-instruct',
@@ -274,7 +279,7 @@ async function callNvidiaDirect(nvidiaKey, payload) {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         },
-                        timeout: 12000
+                        timeout: 5000   // 5s max — don't let NVIDIA stall Groq fallback
                     }
                 );
                 if (res.data?.choices?.[0]?.message?.content) {
@@ -282,7 +287,20 @@ async function callNvidiaDirect(nvidiaKey, payload) {
                 }
             } catch (err) {
                 lastErr = err;
-                console.warn(`[NVIDIA NIM Warning] Endpoint '${endpoint}' Model '${model}' failed:`, err.response?.data || err.message);
+                const status = err.response?.status;
+                console.warn(`[NVIDIA NIM Warning] ${endpoint} / ${model} failed (HTTP ${status}):`, err.response?.data || err.message);
+                // 404 = endpoint not found — bail immediately (don't try remaining models)
+                if (status === 404) {
+                    _nvidiaDisabled = true;
+                    console.warn('[NVIDIA NIM] 404 received — disabling NVIDIA for this session, falling back to Groq');
+                    throw err;
+                }
+                // 401/403 = bad key — bail immediately
+                if (status === 401 || status === 403) {
+                    _nvidiaDisabled = true;
+                    console.warn('[NVIDIA NIM] Auth failure — disabling NVIDIA for this session, falling back to Groq');
+                    throw err;
+                }
             }
         }
     }
