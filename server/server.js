@@ -672,6 +672,103 @@ app.get('/api/admin/messages', checkAdmin, async (req, res) => {
     }
 });
 
+app.get('/api/admin/test-providers', checkAdmin, async (req, res) => {
+    const results = {
+        timestamp: new Date().toISOString(),
+        keys_detected: {
+            nvidia: getNvidiaApiKeys().length,
+            groq: getGroqApiKeys().length,
+            gemini: getGeminiApiKeys().length,
+            openai: getOpenAIApiKeys().length,
+            openrouter: getOpenRouterKeys().length
+        },
+        providers: {}
+    };
+
+    const testPayload = {
+        messages: [{ role: 'user', content: 'Ping! Reply with one word: Pong' }],
+        max_tokens: 30
+    };
+
+    // Test NVIDIA
+    const nvidiaKeys = getNvidiaApiKeys();
+    if (nvidiaKeys.length > 0) {
+        try {
+            const start = Date.now();
+            const nvRes = await callNvidiaDirect(nvidiaKeys[0], testPayload);
+            results.providers.nvidia = {
+                status: 'OK',
+                latency_ms: Date.now() - start,
+                reply: nvRes.data?.choices?.[0]?.message?.content
+            };
+        } catch (err) {
+            results.providers.nvidia = {
+                status: 'FAILED',
+                error_status: err.response?.status,
+                error_data: err.response?.data || err.message
+            };
+        }
+    } else {
+        results.providers.nvidia = { status: 'NO_KEY_CONFIGURED' };
+    }
+
+    // Test Groq
+    const groqKeys = getGroqApiKeys();
+    if (groqKeys.length > 0) {
+        try {
+            const start = Date.now();
+            const gRes = await axios.post(
+                'https://api.groq.com/openai/v1/chat/completions',
+                { model: 'qwen/qwen3.8-27b', ...testPayload },
+                {
+                    headers: {
+                        Authorization: `Bearer ${groqKeys[0]}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                }
+            );
+            results.providers.groq = {
+                status: 'OK',
+                latency_ms: Date.now() - start,
+                reply: gRes.data?.choices?.[0]?.message?.content
+            };
+        } catch (err) {
+            results.providers.groq = {
+                status: 'FAILED',
+                error_status: err.response?.status,
+                error_data: err.response?.data || err.message
+            };
+        }
+    } else {
+        results.providers.groq = { status: 'NO_KEY_CONFIGURED' };
+    }
+
+    // Test Gemini
+    const geminiKeys = getGeminiApiKeys();
+    if (geminiKeys.length > 0) {
+        try {
+            const start = Date.now();
+            const gemRes = await callGeminiDirect(geminiKeys[0], testPayload);
+            results.providers.gemini = {
+                status: 'OK',
+                latency_ms: Date.now() - start,
+                reply: gemRes.data?.choices?.[0]?.message?.content
+            };
+        } catch (err) {
+            results.providers.gemini = {
+                status: 'FAILED',
+                error_status: err.response?.status,
+                error_data: err.response?.data || err.message
+            };
+        }
+    } else {
+        results.providers.gemini = { status: 'NO_KEY_CONFIGURED' };
+    }
+
+    res.json(results);
+});
+
 app.post('/api/message', async (req, res) => {
     try {
         const { message, contactInfo, name } = req.body;
