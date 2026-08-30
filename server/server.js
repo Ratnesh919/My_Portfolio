@@ -149,17 +149,22 @@ function decrypt(text) {
 
 const disabledKeys = new Set();
 
+function getEnvValuesMatching(pattern) {
+    const values = [];
+    for (const [k, v] of Object.entries(process.env)) {
+        if (pattern.test(k) && v && typeof v === 'string') {
+            values.push(v);
+        }
+    }
+    return values;
+}
+
 function getGroqApiKeys() {
     const rawSources = [
+        ...getEnvValuesMatching(/^groq.*key/i),
         process.env.GROQ_API_KEYS,
         process.env.GROQ_API_KEY,
-        process.env.GROQ_KEY,
-        process.env.GROQ_API_KEY_1,
-        process.env.GROQ_API_KEY_2,
-        process.env.GROQ_API_KEY_3,
-        process.env.GROQ_API_KEY_4,
-        process.env.GROQ_API_KEY_BACKUP,
-        process.env.GROQ_BACKUP_API_KEY
+        process.env.GROQ_KEY
     ];
     const keys = [];
     for (const src of rawSources) {
@@ -174,11 +179,10 @@ function getGroqApiKeys() {
 
 function getGeminiApiKeys() {
     const rawSources = [
+        ...getEnvValuesMatching(/^(gemini|google.*ai|google.*gemini).*key/i),
         process.env.GEMINI_API_KEY,
         process.env.GOOGLE_GEMINI_API_KEY,
-        process.env.GOOGLE_API_KEY,
-        process.env.GEMINI_KEY,
-        process.env.GOOGLE_AI_API_KEY
+        process.env.GOOGLE_API_KEY
     ];
     const keys = [];
     for (const src of rawSources) {
@@ -191,6 +195,7 @@ function getGeminiApiKeys() {
 
 function getOpenAIApiKeys() {
     const rawSources = [
+        ...getEnvValuesMatching(/^openai.*key/i),
         process.env.OPENAI_API_KEY,
         process.env.OPENAI_KEY
     ];
@@ -205,16 +210,12 @@ function getOpenAIApiKeys() {
 
 function getNvidiaApiKeys() {
     const rawSources = [
+        ...getEnvValuesMatching(/^(nvidia|nv_).*key/i),
+        process.env.Nvidia_API_Key,
         process.env.NVIDIA_API_KEY,
         process.env.NV_API_KEY,
         process.env.NVIDIA_KEY,
-        process.env.NVIDIA_NIM_API_KEY,
-        process.env.NVIDIA_NIM_KEY,
-        process.env.NVIDIA_API_KEY_1,
-        process.env.NVIDIA_API_KEY_2,
-        process.env.NVIDIA_API_KEY_3,
-        process.env.VITE_NVIDIA_API_KEY,
-        process.env.NEXT_PUBLIC_NVIDIA_API_KEY
+        process.env.NVIDIA_NIM_API_KEY
     ];
     const keys = [];
     for (const src of rawSources) {
@@ -227,6 +228,7 @@ function getNvidiaApiKeys() {
 
 function getOpenRouterKeys() {
     const rawSources = [
+        ...getEnvValuesMatching(/^openrouter.*key/i),
         process.env.OPENROUTER_API_KEY,
         process.env.OPENROUTER_KEY
     ];
@@ -438,16 +440,14 @@ async function callGroqWithRetry(payload) {
 
     // 2. FAILOVER 1: Groq Multi-Key & Multi-Model Rotation
     if (groqKeys.length > 0) {
-        const primaryModel = payload.model || 'llama-3.3-70b-versatile';
+        const primaryModel = payload.model || 'qwen/qwen3.8-27b';
         const modelsToTry = [
-            primaryModel,
-            'llama-3.3-70b-versatile',
-            'llama-3.1-8b-instant',
-            'gemma2-9b-it',
-            'mixtral-8x7b-32768',
-            'deepseek-r1-distill-llama-70b',
-            'llama-3.2-3b-preview',
-            'llama-3.2-1b-preview'
+            'qwen/qwen3.8-27b',
+            'openai/gpt-oss-20b',
+            'qwen/qwen3.6-27b',
+            'groq/compound-mini',
+            'groq/compound',
+            'openai/gpt-oss-120b'
         ];
 
         for (const modelCandidate of modelsToTry) {
@@ -892,11 +892,17 @@ You have direct control to execute actions on the portfolio website! ALWAYS appe
             model: 'meta/llama-3.3-70b-instruct',
             messages: enrichedMessages,
             temperature: 0.7,
-            max_tokens: 140
+            max_tokens: 250
         });
 
         let assistantReply = response.data.choices[0]?.message?.content || '';
         
+        // Strip any internal reasoning or thinking tokens if output by newer models
+        assistantReply = assistantReply
+            .replace(/<think>[\s\S]*?<\/think>/gi, '')
+            .replace(/\*\*Reasoning\*\*[\s\S]*?\*\*Answer\*\*/gi, '')
+            .trim();
+
         // Redact any accidental secret or key leakage
         assistantReply = redactSensitiveData(assistantReply);
         if (response.data.choices[0]?.message) {
