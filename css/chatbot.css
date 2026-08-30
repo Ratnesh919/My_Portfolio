@@ -4,15 +4,21 @@
 
 /* ── VRM Fullscreen Canvas (On top of every card) ── */
 #vrm-canvas {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 1000 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    pointer-events: none !important;
+    z-index: 2147483644 !important;
     touch-action: none;
     opacity: 1 !important;
     display: block !important;
+    /* Force GPU composite layer — escapes React stacking context */
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 /* ── 3D Avatar Loading / Switch Overlay ── */

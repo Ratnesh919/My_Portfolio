@@ -157,7 +157,7 @@ export const App: React.FC = () => {
       />
 
       {/* ═══ Right Scrolling Content Container (Offset by lg:ml-72) ═══ */}
-      <div className="lg:ml-72 flex-1 w-full min-h-screen relative z-10 flex flex-col justify-between overflow-y-visible">
+      <div className="lg:ml-72 flex-1 w-full min-h-screen flex flex-col justify-between overflow-y-visible">
         <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 space-y-12">
           {/* 1. Hero Section */}
           <HeroSection
