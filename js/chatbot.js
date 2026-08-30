@@ -1245,9 +1245,9 @@ class AvatarChatBot {
             }
             let reply = data.choices && data.choices[0] ? data.choices[0].message.content : '';
             
-            // If backend returned generic rate limit message, provide smart fallback
-            if (reply.includes('temporarily resting') || reply.includes('rate limits')) {
-                reply = this.generateSmartFallback(text);
+            // If backend returned generic rate limit message, show API error message
+            if (reply.includes('temporarily resting') || reply.includes('rate limits') || reply.includes('All configured LLM')) {
+                reply = this._randomApiError();
             }
             this.hideTyping();
             this.processAIResponse(reply, text, false);
@@ -1255,9 +1255,22 @@ class AvatarChatBot {
             clearTimeout(thinkingTimeout);
             console.warn('[Raya API Error Fallback]:', err);
             this.hideTyping();
-            const fallbackReply = this.generateSmartFallback(text);
+            // Only use smart keyword fallback if the user asked something specific.
+            // For admin password attempts and scroll commands, show the API error clearly.
+            const fallbackReply = this._randomApiError();
             this.processAIResponse(fallbackReply, text, false);
         }
+    }
+
+    _randomApiError() {
+        const msgs = [
+            "Hmm, my brain just hiccupped! The AI server didn't respond in time. Give me a second and try again!",
+            "Oops, looks like my thinking engine is taking a quick nap. Try asking me again in a moment!",
+            "I'm having a tiny brain freeze right now. The AI backend didn't reply in time. Please try once more!",
+            "My AI connection just timed out. It should be back in a few seconds, try again!",
+            "Sorry, the server is being a little slow right now. Send your message again and I'll get right on it!"
+        ];
+        return msgs[Math.floor(Math.random() * msgs.length)];
     }
 
     generateSmartFallback(userText) {

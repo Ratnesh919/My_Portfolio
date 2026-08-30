@@ -544,7 +544,7 @@ groqBreaker.fallback(() => {
         data: {
             choices: [{
                 message: {
-                    content: "My AI brain is temporarily resting due to API rate limits on the free server! Please give me a few moments and try asking again."
+                    content: "AI brain temporarily resting due to API rate limits. Please try again in a few seconds."
                 }
             }]
         }
