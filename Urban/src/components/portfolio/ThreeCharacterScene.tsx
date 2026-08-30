@@ -39,7 +39,7 @@ export const ThreeCharacterScene: React.FC<ThreeCharacterSceneProps> = ({ onInte
     <div
       ref={containerRef}
       className="relative w-full max-w-[480px] h-[380px] sm:h-[440px] md:h-[480px] flex items-center justify-center select-none"
-      style={{ perspective: '1200px' }}
+      style={{ perspective: '1200px', zIndex: 0, position: 'relative' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
       onClick={onInteraction}
