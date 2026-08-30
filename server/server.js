@@ -245,39 +245,45 @@ function getOpenRouterKeys() {
 async function callNvidiaDirect(nvidiaKey, payload) {
     const models = [
         'meta/llama-3.3-70b-instruct',
-        'meta/llama-3.1-8b-instruct',
         'meta/llama-3.1-70b-instruct',
+        'meta/llama-3.1-8b-instruct',
         'nvidia/llama-3.1-nemotron-70b-instruct',
         'mistralai/mistral-large-2-instruct',
-        'mistralai/mistral-7b-instruct-v0.3',
         'deepseek-ai/deepseek-r1',
         'qwen/qwen2.5-72b-instruct'
     ];
+    const endpoints = [
+        'https://integrate.api.nvidia.com/v1/chat/completions',
+        'https://ai.api.nvidia.com/v1/chat/completions'
+    ];
     let lastErr = null;
-    for (const model of models) {
-        try {
-            const res = await axios.post(
-                'https://integrate.api.nvidia.com/v1/chat/completions',
-                {
-                    model,
-                    messages: payload.messages,
-                    temperature: payload.temperature || 0.7,
-                    max_tokens: payload.max_tokens || 140
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${nvidiaKey}`,
-                        'Content-Type': 'application/json'
+    for (const endpoint of endpoints) {
+        for (const model of models) {
+            try {
+                const res = await axios.post(
+                    endpoint,
+                    {
+                        model,
+                        messages: payload.messages,
+                        temperature: payload.temperature || 0.7,
+                        max_tokens: payload.max_tokens || 200
                     },
-                    timeout: 15000
+                    {
+                        headers: {
+                            Authorization: `Bearer ${nvidiaKey.trim()}`,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        timeout: 12000
+                    }
+                );
+                if (res.data?.choices?.[0]?.message?.content) {
+                    return res;
                 }
-            );
-            if (res.data?.choices?.[0]?.message?.content) {
-                return res;
+            } catch (err) {
+                lastErr = err;
+                console.warn(`[NVIDIA NIM Warning] Endpoint '${endpoint}' Model '${model}' failed:`, err.response?.data || err.message);
             }
-        } catch (err) {
-            lastErr = err;
-            console.warn(`[NVIDIA NIM Warning] Model '${model}' failed:`, err.response?.data || err.message);
         }
     }
     throw lastErr || new Error('NVIDIA NIM API failed to generate text');

@@ -2,7 +2,7 @@
    RAYA CHATBOT & VRM COMPANION UI STYLES
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/* ── VRM Fullscreen Canvas (On top of every card) ── */
+/* ── VRM Fullscreen Canvas (On top of every card & chatbot UI) ── */
 #vrm-canvas {
     position: fixed !important;
     top: 0 !important;
@@ -12,7 +12,7 @@
     width: 100vw !important;
     height: 100vh !important;
     pointer-events: none !important;
-    z-index: 2147483644 !important;
+    z-index: 2147483647 !important;
     touch-action: none;
     opacity: 1 !important;
     display: block !important;
@@ -25,7 +25,7 @@
 #vrm-loading {
     position: fixed;
     inset: 0;
-    z-index: 2147483645 !important;
+    z-index: 2147483646 !important;
     display: none;
     align-items: center;
     justify-content: center;
@@ -46,7 +46,7 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    z-index: 2147483646 !important;
+    z-index: 2147483645 !important;
     display: flex !important;
     flex-direction: column;
     align-items: flex-end;
