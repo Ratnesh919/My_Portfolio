@@ -148,6 +148,7 @@ function decrypt(text) {
 }
 
 const disabledKeys = new Set();
+const rateLimitedKeys = new Map(); // key -> cooldown expiry timestamp in ms
 
 function getEnvValuesMatching(pattern) {
     const values = [];
@@ -169,10 +170,22 @@ function getGroqApiKeys() {
     const keys = [];
     for (const src of rawSources) {
         if (!src || typeof src !== 'string') continue;
-        const parts = src.split(',').map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
+        const parts = src.split(/[,\s;]+/).map(k => decrypt(k.trim())).filter(k => k && k.trim().length > 0);
         keys.push(...parts);
     }
     const uniqueKeys = [...new Set(keys)];
+
+    // Purge expired 429 rate limit cooldowns (after 60s Groq per-minute window resets)
+    const now = Date.now();
+    for (const [k, exp] of rateLimitedKeys.entries()) {
+        if (now > exp) rateLimitedKeys.delete(k);
+    }
+
+    // Prioritize active keys that are neither permanently disabled nor temporarily rate-limited
+    const readyKeys = uniqueKeys.filter(k => !disabledKeys.has(k) && !rateLimitedKeys.has(k));
+    if (readyKeys.length > 0) return readyKeys;
+
+    // Fallback: If all keys are in cooldown, return all non-permanently disabled keys
     const activeKeys = uniqueKeys.filter(k => !disabledKeys.has(k));
     return activeKeys.length > 0 ? activeKeys : uniqueKeys;
 }
@@ -502,6 +515,10 @@ async function callGroqWithRetry(payload) {
 
                     if (status === 401 || status === 403) {
                         disabledKeys.add(apiKey);
+                        console.warn(`🚫 [Groq Key #${apiKeyIndex + 1}] Marked permanently invalid (401/403).`);
+                    } else if (status === 429) {
+                        rateLimitedKeys.set(apiKey, Date.now() + 60000);
+                        console.warn(`⏳ [Groq Key #${apiKeyIndex + 1}] Rate limit 429 hit. Key placed on 60s cooldown; rotating immediately to next key.`);
                     }
                     currentKeyIndex = (currentKeyIndex + 1) % groqKeys.length;
                     attempts++;
