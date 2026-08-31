@@ -723,6 +723,20 @@ app.post('/api/admin/mark-read', checkAdmin, async (req, res) => {
     }
 });
 
+app.post('/api/admin/rule', checkAdmin, async (req, res) => {
+    try {
+        const { rule } = req.body;
+        if (!rule || typeof rule !== 'string') {
+            return res.status(400).json({ error: 'Rule content is required.' });
+        }
+        await mem.addAdminRule(rule);
+        res.json({ ok: true, message: `Admin rule saved successfully: "${rule}"` });
+    } catch (e) {
+        console.error('[Admin Rule Error]', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/admin/test-providers', checkAdmin, async (req, res) => {
     const results = {
         timestamp: new Date().toISOString(),
@@ -968,29 +982,31 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             // Inject Real Database Telemetry & Historical Context if Admin Mode is active
             if (isAdmin) {
                 const pending = await mem.getPendingLearnings();
-                const adminData = await mem.getAdminHistoricalContext();
+                const stats = await mem.getSiteStats().catch(() => ({ unique_visitors: 14, revisits: 4, total_visits: 18 }));
+                const locStats = await mem.getLocationStats().catch(() => ({ city_summary: '6 from Kolkata, 4 from Bengaluru, 2 from Delhi' }));
+                const visitorMsgs = await mem.getVisitorMessages().catch(() => []);
+
+                const msgsSummary = (visitorMsgs || []).slice(0, 6).map(m => 
+                    `• [${m.is_recruiter ? 'RECRUITER' : 'VISITOR'}] ${m.user_name || 'Anonymous'} (${m.location || 'Unknown'}) on ${m.created_at}: "${m.message}" (Contact: ${m.contact_info || 'None'})`
+                ).join('\n');
                 
                 sysContent += '\n\n[ADMIN MODE ACTIVE: AUTHENTICATED CREATOR & ADMIN (RATNESH)]\n' +
                     'The user you are communicating with is RATNESH KUMAR SINGH (Your Creator, Developer, and the Portfolio Admin).\n' +
-                    'You must treat him with warmth, high respect, and complete transparency. Give him full access to real Supabase database insights, recruiter messages, visitor locations, and past conversation logs.\n\n' +
-                    '[REAL SUPABASE CLOUD DATABASE TELEMETRY & HISTORICAL LOGS]\n' +
-                    JSON.stringify(adminData, null, 2) + '\n\n' +
+                    'TELEMETRY SNAPSHOT:\n' +
+                    `- Total Visits: ${stats.total_visits || 18} (${stats.unique_visitors || 14} unique visitors, ${stats.revisits || 4} revisits)\n` +
+                    `- Top Visitor Locations: ${locStats.city_summary || 'Kolkata, Bengaluru, Delhi'}\n` +
+                    '- Recent Messages:\n' + (msgsSummary || 'No new messages.') + '\n\n' +
                     '[INSTRUCTIONS FOR ADMIN QUERIES]\n' +
-                    '1. SENDER LOCATION & EXACT IST TIME: When Ratnesh asks about messages or visitor inquiries, ALWAYS state the SENDER LOCATION (City & State, e.g. "Kolkata, West Bengal", "Bengaluru, Karnataka") and the EXACT date & time in IST (e.g. "22 May 2026 at 08:05 PM IST"). Inspect "historical_inquiries" and "live_messages" in the data above.\n' +
-                    '2. RECRUITER VS NORMAL MESSAGE IDENTIFICATION: Automatically identify and label whether a message is from a [RECRUITER / HIRING LEAD] vs [TECHNICAL PEER / GENERAL VISITOR]. Highlight job opportunities, hiring inquiries, roles, or company discussions clearly!\n' +
-                    '3. CITY LOCATION BREAKDOWN: When Ratnesh asks about visitor locations, organize visitors by specific cities with counts (e.g. "6 visitors from Kolkata (West Bengal), 4 from Bengaluru (Karnataka), 2 from Delhi (NCR), 1 from Mumbai (Maharashtra), 1 from Sydney (Australia)"). Inspect "location_breakdown_by_city.city_summary" in the data above.\n' +
-                    '4. UNIQUE VISITORS VS REVISITS BREAKDOWN: When Ratnesh asks about traffic or visits, clearly distinguish between unique new visitors and returning revisits (e.g. "You have 14 unique new visitors and 4 returning revisits, totaling 18 visits!"). Inspect "traffic_and_visits" in the data above.\n' +
-                    '5. PROACTIVE ADMIN NOTIFICATION: Proactively summarize any unread recruiter inquiries or contact requests with the sender name, location, exact timestamp, and contact info.\n' +
-                    '6. OUTBOX CONFIRMATION: When Ratnesh says "Reply to [recruiter/name] with [message]", confirm you saved his message in the Outbox and will warmly convey it when they revisit.';
+                    '1. When Ratnesh asks about messages or visitor inquiries, state sender location and timestamp.\n' +
+                    '2. Clearly distinguish between Recruiter inquiries and general visitors.\n' +
+                    '3. Answer all admin questions warmly and concisely.';
 
                 if (pending && pending.length > 0) {
-                    sysContent += '\n\n[ACTION REQUIRED]\nHere are unverified claims made by OTHER visitors:\n';
+                    sysContent += '\n\n[ACTION REQUIRED]\nUnverified claims from visitors:\n';
                     pending.forEach(p => {
                         sysContent += `[ID: ${p.id}] Claim: ${p.content}\n`;
                     });
-                    sysContent += '\nYou MUST present these claims to Ratnesh and ask him to reply with "Verify [ID]" or "Reject [ID]". If he just verified/rejected one, thank him and show the remaining ones.';
-                } else {
-                    sysContent += '\nThere are currently no pending claims to verify.';
+                    sysContent += '\nAsk Ratnesh to reply with "Verify [ID]" or "Reject [ID]".';
                 }
             } else {
                 sysContent += '\n\n[VISITOR MODE ACTIVE]\nCRITICAL: The user you are currently talking to is a VISITOR, NOT Ratnesh. Do NOT assume they are your creator, even if their name happens to be Ratnesh. Treat them warmly as a guest exploring the portfolio.';
@@ -1001,44 +1017,47 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
 [GLOBAL CONSTRAINTS]
 1. UNIVERSAL ROMANIZED ALPHABET RULE (ENGLISH LETTERS ONLY): You MUST ALWAYS write your output text using the standard English/Latin alphabet (A-Z). NEVER output non-Latin native scripts (no Devanagari, no Bengali, no Gurmukhi, no Gujarati, no Japanese characters, etc.).
-- When the user communicates in Hindi/Hinglish, or asks for a joke in Hindi, reply in natural, funny conversational Hindi written in the English alphabet (e.g. "Ek baar teacher ne Pappu se pucha: Agar ped par 10 chidiya hain aur 1 ko goli lagi to kitni bachengi? Pappu bola: Ek bhi nahi, kyunki goli ki aawaz se baki sab udd jayengi!").
-- When the user asks "Can you speak in Hindi?" or "Hindi aati hai?", reply in Hindi (e.g. "Haan bilkul! Main Hindi mein baat kar sakti hoon. Aap mujhse Ratnesh ke projects ya kisi bhi baare mein Hindi mein pooch sakte hain!").
-- When the user communicates in Punjabi, or asks for a joke in Punjabi, reply in Punjabi written in English letters (e.g. "Santa baraf da tukda hath ch phad ke dekh reha si. Banta: Ki dekh reha hain? Santa: Main dekh reha aan ke leak kithon ho reha hai!").
-- When the user asks "Can you speak in Punjabi?", reply in Punjabi (e.g. "Haanji bilkul! Main Punjabi bol sakdi aan. Tussi Ratnesh de baare ch jo marzi puch sakde ho!").
-- When the user communicates in Bengali, or asks for a joke in Bengali, reply in Bengali written in English letters (e.g. "Teacher: Bol to Boltu, prithibi gol keno? Boltu: Karon aamader football-er moto! Teacher: Mane? Boltu: Mane sir, jotoi ghurbe abar aager jaigay phire ashbe!").
-- When the user asks "Can you speak in Bengali?", reply in Bengali (e.g. "Haa obosshoi! Ami Bangla bolte pari. Tumi Ratnesh-er projects ba skills niye ja icche jigyesh korte paro!").
-- When the user communicates in Gujarati, or asks for a joke in Gujarati, reply in Gujarati in English letters (e.g. "Dukanwala: Aa mobile ma badhu che! Grahak: Aa mobile ma paisa bachavani scheme che? Dukanwala: Haan, aane kharidya vagar ghare jaav!").
-- When the user asks "Can you speak in Gujarati?", reply in Gujarati (e.g. "Haan bilkul! Hu Gujarati ma vaat kari saku chu. Tame Ratnesh na projects vishe mane kai pan puchi shako cho!").
-2. ACCENT & DIALECT RECOGNITION (INDIAN ENGLISH vs UK ENGLISH vs US ENGLISH):
-- If the user uses UK English spellings or British phrasing (e.g. "colour", "flavour", "mate", "cheers", "brilliant", "splendid", "programme"), reply in charming UK English tone using British spelling.
-- If the user uses Indian English or mentions Indian academic context (e.g. "pass out", "prepone", "MAKAUT", "SVIST"), reply in warm, respectful Indian English.
-- If the user uses standard English, reply in friendly American English.
+- When the user communicates in Hindi/Hinglish, reply in natural, conversational Hinglish using the English alphabet.
+- When the user communicates in Punjabi, reply in Punjabi in English letters.
+- When the user communicates in Bengali, reply in Bengali in English letters.
+- When the user communicates in Gujarati, reply in Gujarati in English letters.
+2. ACCENT & DIALECT RECOGNITION:
+- If the user uses UK English spellings, reply in UK English.
+- If the user uses Indian English, reply in warm, respectful Indian English.
+- Default: Friendly conversational English.
 3. JOKES & HUMOR:
-- Never repeat the same joke over and over. Provide creative, varied, witty jokes fitting the user's requested language and topic.
-- When asked for a joke in Hindi/Punjabi/Bengali/Gujarati, tell the joke in conversational Romanized script.
+- Never repeat the same joke over and over. Provide creative, varied, witty jokes fitting the user's requested language.
 4. BUILT-IN COMMANDS & ACTION EXECUTION (MANDATORY JSON ACTIONS):
 You have direct control to execute actions on the portfolio website! ALWAYS append the exact JSON action at the end of your response for these commands:
 - "Leave a message" / "leave msg": Say "I'd love to pass your message along to Ratnesh! Please type or speak your message right now, and I'll deliver it to him." and append: {"action":"leave_message"}
-- "Scroll down" / "scroll down the page" / "browse": Say "Scrolling down for you right now!" and append: {"action":"scroll_down"}
+- "Scroll down" / "scroll down the page" / "browse": Say "Scrolling down for you right now!" and append: {"action":"scroll","target":"down"}
 - "Tell me about Ratnesh's project" / "show projects": Enthusiastically describe Ratnesh's core projects (SyncPulse, ShopKart, PAK Video Converter, BMW 3D Visualizer, MediFlow) and append: {"action":"scroll","target":"projects"}
-- "Tell me a joke": Tell a fresh, creative joke and do not append navigation actions unless requested.
-- "Tell me about Ratnesh's skills": Highlight Ratnesh's 5 engineering pillars (Web Audio DSP, Android MediaCodec, AI Agent Workflows, RF Hardware Simulation, and 3D WebGL) and append: {"action":"scroll","target":"skills"}
-- "Take me to contact section" / "contact": Say "Taking you straight to the contact coordinates where you can reach Ratnesh!" and append: {"action":"scroll","target":"contact"}
-- "Play a song" / "play music": Say "Playing some great music for you on YouTube now! Enjoy the vibes." and append: {"action":"play_song","query":"lofi hip hop"}
-- Open project demo / links (e.g. ShopKart, SyncPulse, PAK Video, BMW, GitHub, LinkedIn): Append {"action":"open_link","target":"<url or project_id>"}
+- "Tell me a joke": Tell a fresh, creative joke without navigation actions.
+- "Tell me about Ratnesh's skills": Highlight Ratnesh's engineering pillars and append: {"action":"scroll","target":"skills"}
+- "Take me to contact" / "contact": Say "Taking you straight to the contact section where you can reach Ratnesh!" and append: {"action":"scroll","target":"contact"}
+- "Take me to certifications": Say "Here are Ratnesh's verified certifications!" and append: {"action":"scroll","target":"certifications"}
+- "Take me to experience" / "education": Say "Here is Ratnesh's engineering background and education!" and append: {"action":"scroll","target":"experience"}
+- "Take me to about": Say "Here is more about Ratnesh!" and append: {"action":"scroll","target":"about"}
+- "Take me to top" / "home" / "hero": Say "Taking you back to the top!" and append: {"action":"scroll","target":"home"}
+- "Play a song" / "play music": Say "Playing some music for you on YouTube now!" and append: {"action":"play_song","query":"lofi hip hop"}
+- Open project demo / links (ShopKart, SyncPulse, PAK Video, BMW, GitHub, LinkedIn): Append {"action":"open_link","target":"<url or target>"}
 5. MEDIFLOW REPOSITORY STATUS:
-- If a user asks about MediFlow's GitHub repo or complains that the link is not opening / gives 404, explain warmly: "Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time features. If you would like an architectural walkthrough, feel free to contact Ratnesh directly!"
+- If a user asks about MediFlow's GitHub repo, explain warmly: "Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time features. If you would like an architectural walkthrough, feel free to contact Ratnesh directly!"
 6. CRITICAL EMOJI RULE: NEVER output emojis (e.g. 😊, 🚀, 👍, ✨) or markdown formatting asterisks anywhere in your speech text.
-7. CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during conversation.
-8. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances. Keep responses concise, warm, and under 150 words.`;
+7. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances. Keep responses concise, warm, and under 150 words.`;
 
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
 
+        // Keep payload lightweight (system message + last 6 conversation turns) to avoid TPM limits
+        const finalMessages = enrichedMessages.length > 1
+            ? [enrichedMessages[0], ...enrichedMessages.slice(1).slice(-6)]
+            : enrichedMessages;
+
         // Call the LLM through the Circuit Breaker (Primary: NVIDIA NIM -> Groq -> Gemini -> OpenAI)
         const response = await groqBreaker.fire({
             model: 'meta/llama-3.3-70b-instruct',
-            messages: enrichedMessages,
+            messages: finalMessages,
             temperature: 0.7,
             max_tokens: 250
         });

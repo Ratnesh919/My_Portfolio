@@ -44,16 +44,14 @@ LANGUAGE RULES:
 - Avoid sounding overly formal or robotic. Sound like a smart, friendly companion chatting.
 
 You can control the website based on user commands!
-CRITICAL MULTI-ACTION RULE: If the user asks for TWO things at once (e.g. open a skill/theme AND play a song), output BOTH JSON blocks at the end of your reply, one after the other.
-- If the user asks you to navigate to a skill track or theme (e.g. web, android, ai, hardware, 3d / immersive, cosmic, urban, essential, lumen), append this JSON at the END of your reply:
-{"action":"navigate", "target":"<theme/skill name>"}
-- If the user asks you to go back to the main menu, theme picker, or home, append this JSON at the END of your reply:
-{"action":"navigate", "target":"visitor"}
-- If the user EXPLICITLY asks to scroll (e.g. "scroll down", "scroll up", "scroll to projects"), append this JSON:
-{"action":"scroll", "target":"<section id or direction>"}
-- If the user asks for external links (Instagram, LinkedIn, GitHub, etc.), append the scroll JSON for "contact" or open_link action.
-- If the user asks you to change your avatar, append this JSON:
-{"action":"change_avatar", "target":"<character name or empty string>"}
+CRITICAL MULTI-ACTION RULE: If the user asks for TWO things at once (e.g. scroll to projects AND play a song), output BOTH JSON blocks at the end of your reply, one after the other.
+- If the user asks to navigate, go to, show, or scroll to ANY section of the portfolio (e.g. projects, about, skills, experience, certifications, contact, home/top/hero), or scroll down/up, append this JSON at the END of your reply:
+{"action":"scroll", "target":"<section_id>"}
+Valid section targets: "home", "projects", "about", "skills", "experience", "certifications", "contact", "down", "up".
+- If the user asks for social links or email (Instagram, LinkedIn, GitHub, Facebook), append:
+{"action":"scroll", "target":"contact"} or {"action":"open_link", "target":"<linkedin/github/instagram/facebook/email>"}
+- If the user asks to change avatar character, append:
+{"action":"change_avatar", "target":"<character name>"}
 Available characters: changli, camellya, carlotta, chixia, jinshi, kid changli, pinkshi, roccia, rover, sanhua, shorekeeper, verina, yangyang, yinlin.
 
 MUSIC RULES:
@@ -71,11 +69,8 @@ function getTimeOfDayGreeting() {
 
 function getIntroText() {
     const greeting = getTimeOfDayGreeting();
-    return `${greeting}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh, or play a song. You can also choose any inbuilt command from this panel. By the way, what is your name?`;
+    return `${greeting}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh's engineering projects, or play any song you want. By the way, what is your name?`;
 }
-
-const THEME_PROMPT = "Explore Ratnesh's 5 core skill tracks: 1 Full-Stack Web & Audio DSP, 2 Native Android, 3 Workflow Automation & Pipelines, 4 Embedded & RF Hardware, or 5 Interactive 3D Graphics. Which one would you like to explore?";
-const MUSIC_PROMPT = "Would you like me to play a song while you explore? Just say yes and tell me what you want to hear!";
 
 // -- Wake word variants (declared here so passive+active handlers share the same list) --
 // All variants map to a single display name: "Raya"
@@ -105,12 +100,9 @@ class AvatarChatBot {
 
         // Onboarding flow state
         this._awaitingName         = false; // true when Raya asked for name and waiting
-        this._nameTimeoutId        = null;  // timer to skip name → ask theme
+        this._nameTimeoutId        = null;  // timer to skip name phase if user asks question
         this._cooldownTimeoutId    = null;  // timer to clear voice cooldown safely
-        this._awaitingTheme        = false; // true when Raya asked which theme
-        this._awaitingMusicPrompt  = false; // true when Raya just opened a theme
-        this._inPortfolio          = false; // true when iframe is showing a theme
-        this._portfolioNavHinted   = false; // true when we already gave nav hint
+        this.isAdminMode           = false; // true when admin entered password
 
         this.isListening = false;
         this.isSpeaking  = false;
@@ -208,14 +200,12 @@ class AvatarChatBot {
         const isReturning = this.userName || localStorage.getItem('rayaHasVisited') === 'true';
         if (isReturning) {
             introMessage = this.userName 
-                ? `Welcome back, ${this.userName}! It's nice to have you back. How can I help you?`
-                : "Welcome! It's nice to have you back. How can I help you?";
-            this._awaitingTheme = true;
+                ? `Welcome back, ${this.userName}! It's nice to have you back. What would you like to explore today?`
+                : "Welcome! It's nice to have you back. What would you like to explore today?";
         } else {
             // New user intro
             introMessage = getIntroText();
             this._awaitingName    = true;
-            this._awaitingTheme   = true;
             this._awaitingCommand = true;
 
             // Automatically open quick commands menu for new users when Raya mentions it
@@ -251,30 +241,6 @@ class AvatarChatBot {
         }
     }
 
-    // Called externally when a theme or skill track opens so Raya can give skill-aware navigation hints
-    onThemeOpened(themeName, trackTitle) {
-        this._inPortfolio      = true;
-        this._portfolioNavHinted = false;
-        const trackNames = {
-            'Immersive': 'Full-Stack Web & Audio DSP (SyncPulse & MediFlow)',
-            'Urban': 'Android Mobile Development (PAK Video Converter)',
-            'Cosmic': 'AI Agents & Automation (JobPilot AI & Gemini)',
-            'Essential': 'Embedded Systems & RF Hardware (Smart Antenna V2X)',
-            'Lumen': 'UI/UX & Interactive 3D (BMW M3 GTR 3D)'
-        };
-        const title = trackTitle || trackNames[themeName] || themeName;
-        // After a short delay, give the user a rich, skill-aware navigation hint
-        setTimeout(() => {
-            if (!this._portfolioNavHinted && this._inPortfolio) {
-                this._portfolioNavHinted = true;
-                const hint = `You are now exploring Ratnesh's ${title} track! I can explain the architecture, scroll to projects, or answer any technical questions. Just ask me anytime!`;
-                this.messages.push({ role: 'assistant', content: hint });
-                try { localStorage.setItem('rayaMessages', JSON.stringify(this.messages)); } catch(e){}
-                this.speakAvatar(hint, false);
-            }
-        }, 3000);
-    }
-
     // Called when a specific skill pillar or skill badge is selected in the portfolio
     onSkillSelected(skillKey, skillTitle, customSummary) {
         const skillSummaries = {
@@ -290,12 +256,6 @@ class AvatarChatBot {
         this.messages.push({ role: 'assistant', content: summary });
         try { localStorage.setItem('rayaMessages', JSON.stringify(this.messages)); } catch(e){}
         this.speakAvatar(summary, false);
-    }
-
-    // Called when user returns to theme selector screen
-    onThemeClosed() {
-        this._inPortfolio        = false;
-        this._portfolioNavHinted = false;
     }
 
     // Show a glowing animated button near the avatar; fires callback on click
@@ -362,12 +322,10 @@ class AvatarChatBot {
         if (isReturning) {
             const greeting = getTimeOfDayGreeting();
             const namePart = this.userName ? `, ${this.userName}` : '';
-            introMsg = `${greeting}${namePart}! It's nice to see you back. What can I help you with? We have five themes to choose from: 1 Immersive, 2 Cosmic, 3 Urban, 4 Essential, and 5 Lumen. Which one would you like to open?`;
-            this._awaitingTheme = true;
+            introMsg = `${greeting}${namePart}! It's nice to see you back. How can I help you? Feel free to ask about Ratnesh's projects, navigation, or music.`;
         } else {
             introMsg = getIntroText();
             this._awaitingName = true;
-            this._awaitingTheme = true;
         }
         try { localStorage.setItem('rayaHasVisited', 'true'); } catch(e) {}
         this.messages.push({ role: 'assistant', content: introMsg });
@@ -1055,41 +1013,26 @@ class AvatarChatBot {
 
         // ── Onboarding: name collection ────────────────────────────────────────
         if (this._awaitingName) {
-            // Clear the name timeout since user responded
             if (this._nameTimeoutId) { clearTimeout(this._nameTimeoutId); this._nameTimeoutId = null; }
 
             const tLower = text.toLowerCase().trim();
-            const isCommandOrAction = /^(select|open|play|show|go|navigate|what|where|who|how|tell|scroll|help|change|exit|admin|last|first|theme)\b/i.test(tLower);
+            const isCommandOrAction = /^(select|open|play|show|go|navigate|what|where|who|how|tell|scroll|help|change|exit|admin|last|first)\b/i.test(tLower);
             const hasExplicitNamePrefix = /(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i.test(text);
 
             if (isCommandOrAction && !hasExplicitNamePrefix) {
-                // User gave a command (e.g. "select last theme", "open urban") instead of answering name
-                // Do NOT steal the command as a name! Exit onboarding name phase and allow command execution.
                 this._awaitingName = false;
             } else {
                 this._awaitingName = false;
 
-                // Try to extract the name from the response
                 const nameCandidates = text.match(/(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i);
                 const extractedName = nameCandidates ? nameCandidates[1] : (text.trim().split(/\s+/)[0]);
                 const name = extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
 
-                const forbiddenNameVerbs = ['select','open','play','show','go','navigate','what','where','who','how','tell','scroll','help','change','exit','last','first','theme','yes','no','sure','okay','hi','hello','hey'];
-
-                // Also check if a theme was mentioned in the same message
-                const THEME_MAP_QUICK = [
-                    { keys: ['immersive','3d','1st','first','1','one','theme 1','theme one'],    target: 'immersive',  label: 'Immersive' },
-                    { keys: ['cosmic','alien','2nd','second','2','two','theme 2','theme two'],    target: 'cosmic',     label: 'Cosmic' },
-                    { keys: ['urban','graffiti','street','3rd','third','3','three','theme 3'],    target: 'urban',      label: 'Urban' },
-                    { keys: ['essential','minimalist','4th','fourth','4','four','theme 4'],       target: 'essential',  label: 'Essential' },
-                    { keys: ['lumen','light','5th','fifth','5','five','theme 5','last','lst'],    target: 'lumen',      label: 'Lumen' },
-                ];
-                const inlineTheme = THEME_MAP_QUICK.find(th => th.keys.some(k => tLower.includes(k)));
+                const forbiddenNameVerbs = ['select','open','play','show','go','navigate','what','where','who','how','tell','scroll','help','change','exit','last','first','yes','no','sure','okay','hi','hello','hey'];
 
                 if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name) && !forbiddenNameVerbs.includes(name.toLowerCase())) {
                     this.userName = name;
                     localStorage.setItem('rayaUserName', name);
-                    // Save to backend preferences
                     fetch('/api/learn', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1099,75 +1042,31 @@ class AvatarChatBot {
                     this.showUserBubble(text);
                     this.messages.push({ role: 'user', content: text });
 
-                    if (inlineTheme) {
-                        const greeting = `Nice to meet you, ${name}! Opening the ${inlineTheme.label} theme for you right now!`;
-                        this._awaitingTheme   = false;
-                        this._awaitingCommand = true;
-                        this.messages.push({ role: 'assistant', content: greeting });
-                        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                        this.speakAvatar(greeting, false);
-                        this.executeNavigation(inlineTheme.target);
-                    } else {
-                        const greeting = `Nice to meet you, ${name}! Welcome to Ratnesh's portfolio. Which skill track would you like to explore: Web Audio DSP, Android Mobile, AI Agents, RF Hardware, or 3D Graphics?`;
-                        this._awaitingTheme   = true;
-                        this._awaitingCommand = true;
-                        this.messages.push({ role: 'assistant', content: greeting });
-                        localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                        this.speakAvatar(greeting, false);
-                    }
+                    const greeting = `Nice to meet you, ${name}! Welcome to Ratnesh's portfolio. Feel free to ask me anything about his projects, tell me to navigate or scroll, or play a song!`;
+                    this._awaitingCommand = true;
+                    this.messages.push({ role: 'assistant', content: greeting });
+                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                    this.speakAvatar(greeting, false);
                     return;
                 }
             }
         }
 
-        // ── Onboarding: theme selection ────────────────────────────────────────
-        if (this._awaitingTheme) {
-            const t = text.toLowerCase().trim();
-            const THEME_MAP = [
-                { keys: ['1','immersive','3d','three d'], target: 'immersive',  reply: 'Opening the Immersive theme for you!' },
-                { keys: ['2','cosmic','alien'],           target: 'cosmic',     reply: 'Switching to the Cosmic theme!' },
-                { keys: ['3','urban','graffiti','street'],target: 'urban',      reply: 'Loading the Urban theme!' },
-                { keys: ['4','essential','minimalist'],   target: 'essential',  reply: 'Essential mode, activated!' },
-                { keys: ['5','lumen','light'],            target: 'lumen',      reply: 'Opening the Lumen theme!' },
-            ];
-            let matched = null;
-            for (const th of THEME_MAP) {
-                if (th.keys.some(k => t === k || t.includes(k))) { matched = th; break; }
-            }
-            if (matched) {
-                this._awaitingTheme = false;
-                this.showUserBubble(text);
-                this.messages.push({ role: 'user', content: text });
-                this.messages.push({ role: 'assistant', content: matched.reply });
-                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                this.speakAvatar(matched.reply, false);
-                this.executeNavigation(matched.target);
-                return;
-            }
-            // Didn't match a theme — fall through to AI
-            this._awaitingTheme = false;
-        }
-
-        // Admin Mode Execution
-        if (this.isAdminMode) {
-            if (text.toLowerCase() === 'exit') {
-                this.isAdminMode = false;
-                this.showUserBubble(text);
-                this.speakAvatar("Admin mode deactivated.", false);
-                return;
-            }
+        // ── Admin Command: Explicit Rule Adding ─────────────────────────────────
+        if (this.isAdminMode && (text.toLowerCase().startsWith('rule:') || text.toLowerCase().startsWith('add rule:'))) {
+            const ruleText = text.replace(/^(?:add\s+)?rule:\s*/i, '').trim();
             this.showUserBubble(text);
             this.showTyping();
             try {
-                const storedToken = (typeof window !== 'undefined' && sessionStorage.getItem('adminToken')) || '';
+                const storedToken = (typeof window !== 'undefined' && sessionStorage.getItem('adminToken')) || 'Aditya@231';
                 const res = await fetch('/api/admin/rule', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${storedToken}` },
-                    body: JSON.stringify({ rule: text })
+                    body: JSON.stringify({ rule: ruleText })
                 });
                 const data = await res.json();
                 this.hideTyping();
-                this.speakAvatar("Got it! " + data.message, false);
+                this.speakAvatar("Got it! " + (data.message || 'Rule saved successfully.'), false);
             } catch(e) {
                 this.hideTyping();
                 this.speakAvatar("Failed to save rule.", false);
@@ -1180,7 +1079,6 @@ class AvatarChatBot {
         this.hideChoices();
         this.isListening = false;
         this.isThinking  = true;
-        // Try to warm up TTS immediately to reduce delay later
         if (window.speechSynthesis) {
             window.speechSynthesis.getVoices();
         }
@@ -1210,55 +1108,6 @@ class AvatarChatBot {
                 this.processAIResponse(pureWakeCmd.speech, text, true);
             }, 150);
             return;
-        }
-
-        // ── Client-side instant navigation / scroll (no AI round-trip) ──────────
-        // Matches: "scroll down", "scroll up", "take me to X", "go to X section",
-        //          "navigate to X", "show me X", "open X section"
-        {
-            const tLower = text.toLowerCase().trim();
-            const navMatch = (
-                tLower.match(/\b(scroll\s+down|scroll\s+up)\b/) ||
-                tLower.match(/\b(?:take me to|go to|navigate to|show me|open)\s+(.+?)(?:\s+section)?\s*$/i)
-            );
-            const isClearScroll = tLower === 'scroll down' || tLower === 'scroll up'
-                || /^scroll\s+(down|up)$/.test(tLower);
-            const isNavCmd = /\b(take me to|go to|navigate to|show me|open)\b/.test(tLower)
-                && /\b(project|skill|about|contact|experience|cert|home|top)\b/.test(tLower);
-
-            if (isClearScroll || isNavCmd) {
-                this.isThinking = false;
-                this.updateMicUI();
-                if (/scroll\s+down/.test(tLower)) {
-                    this.speakAvatar("Sure! Scrolling down for you.", false);
-                    setTimeout(() => this.executeScroll('down'), 300);
-                } else if (/scroll\s+up/.test(tLower)) {
-                    this.speakAvatar("Scrolling back up!", false);
-                    setTimeout(() => this.executeScroll('up'), 300);
-                } else if (/\b(project|work|portfolio)\b/.test(tLower)) {
-                    this.speakAvatar("Here are Ratnesh's projects!", false);
-                    setTimeout(() => this.executeScroll('projects'), 300);
-                } else if (/\bskill/.test(tLower)) {
-                    this.speakAvatar("Let me show you Ratnesh's skills!", false);
-                    setTimeout(() => this.executeScroll('skills'), 300);
-                } else if (/\babout\b/.test(tLower)) {
-                    this.speakAvatar("Here's a bit about Ratnesh!", false);
-                    setTimeout(() => this.executeScroll('about'), 300);
-                } else if (/\bcontact\b/.test(tLower)) {
-                    this.speakAvatar("Taking you to the contact section!", false);
-                    setTimeout(() => this.executeScroll('contact'), 300);
-                } else if (/\b(experience|education|timeline|college)\b/.test(tLower)) {
-                    this.speakAvatar("Here's Ratnesh's experience and education!", false);
-                    setTimeout(() => this.executeScroll('experience'), 300);
-                } else if (/\bcert/.test(tLower)) {
-                    this.speakAvatar("Here are Ratnesh's certifications!", false);
-                    setTimeout(() => this.executeScroll('certifications'), 300);
-                } else if (/\b(home|top|hero)\b/.test(tLower)) {
-                    this.speakAvatar("Going back to the top!", false);
-                    setTimeout(() => this.executeScroll('home'), 300);
-                }
-                return;
-            }
         }
         // All actual commands, questions, and inquiries route through the unified LLM API Key (Primary Brain)
         this.showTyping();
