@@ -696,6 +696,33 @@ app.get('/api/admin/messages', checkAdmin, async (req, res) => {
     }
 });
 
+app.get('/api/admin/unread-count', checkAdmin, async (req, res) => {
+    try {
+        const messages = await mem.getVisitorMessages();
+        const unread = (messages || []).filter(m => m.status === 'unread');
+        res.json({
+            unread_count: unread.length,
+            latest: unread.slice(0, 3)
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/admin/mark-read', checkAdmin, async (req, res) => {
+    try {
+        const { id } = req.body;
+        if (id) {
+            await mem.markMessageRead(id);
+            res.json({ ok: true, message: `Message ${id} marked as read.` });
+        } else {
+            res.status(400).json({ error: 'Message ID required.' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/admin/test-providers', checkAdmin, async (req, res) => {
     const results = {
         timestamp: new Date().toISOString(),

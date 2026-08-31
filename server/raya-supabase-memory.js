@@ -4,6 +4,7 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const adminNotifier = require('./admin-notifier');
 require('dotenv').config();
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL;
@@ -537,6 +538,21 @@ async function saveVisitorMessage(rawUserId, rawMessage, rawUserName = null, raw
     if (error) {
         console.error('[Supabase] saveVisitorMessage Error:', error);
     }
+
+    // ── Dispatch instant real-time admin notification (non-blocking) ─────────
+    adminNotifier.notifyAdminNewMessage({
+        senderName: userName || '(Anonymous Visitor)',
+        contactInfo: contactInfo || 'Not provided',
+        location: location || 'Unknown Location',
+        category: category,
+        isRecruiter: is_recruiter,
+        isImportant: isImportant,
+        importanceReason: reason,
+        message: message,
+        userId: userId,
+        timestamp: new Date().toISOString()
+    }).catch(err => console.warn('[Admin Notifier Background Error]:', err.message));
+
     return data || { is_important: isImportant, importance_reason: reason, category };
 }
 
