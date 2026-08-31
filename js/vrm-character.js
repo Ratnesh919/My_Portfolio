@@ -674,6 +674,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
     window.onBubblePopped = () => {
         if (hasDragged || isDragging) return;
         window._bubbleHasPopped = true;
+        // ── Reveal the VRM canvas now that bubble has been popped ──
+        const cvs = document.getElementById('vrm-canvas');
+        if (cvs) cvs.classList.add('raya-visible');
         if (vrm && window._vrmIsReady) {
             window.playWaveAnimation();
             if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
@@ -687,6 +690,9 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
 
     const hasIntroOverlay = document.getElementById('master-intro-overlay') || document.getElementById('bubble-screen');
     if (!hasIntroOverlay && sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce) {
+        // Returning visitor — show canvas immediately (no bubble screen)
+        const cvs = document.getElementById('vrm-canvas');
+        if (cvs) cvs.classList.add('raya-visible');
         setTimeout(async () => {
             if (hasDragged || isDragging) return;
             window.playWaveAnimation();

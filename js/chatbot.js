@@ -306,7 +306,7 @@ class AvatarChatBot {
 
         const btn = document.createElement('button');
         btn.id = 'raya-tap-btn';
-        btn.innerHTML = `<span style="font-size:1.1rem">🔊</span> Tap to hear Raya`;
+        btn.innerHTML = `Tap to hear Raya`;
         Object.assign(btn.style, {
             position:       'fixed',
             bottom:         '130px',
@@ -480,23 +480,24 @@ class AvatarChatBot {
         this.infoPanel.style.display = 'none'; // hidden by default
         this.infoPanel.innerHTML = `
             <div class="info-panel-header">
-                <span>💡 Quick Options & Commands:</span>
+                <span>Quick Options & Commands:</span>
                 <button class="info-panel-close">&times;</button>
             </div>
             <ul class="info-panel-commands">
-                <li class="suggest-cmd">"📩 Leave a message"</li>
-                <li class="suggest-cmd">"📜 Scroll down"</li>
-                <li class="suggest-cmd">"🚀 Tell me about Ratnesh's project"</li>
-                <li class="suggest-cmd">"😄 Tell me a joke"</li>
-                <li class="suggest-cmd">"⚡ Tell me about Ratnesh's skills"</li>
-                <li class="suggest-cmd">"📞 Take me to contact section"</li>
-                <li class="suggest-cmd">"🎵 Play a song"</li>
+                <li class="suggest-cmd">"Leave a message"</li>
+                <li class="suggest-cmd">"Scroll down"</li>
+                <li class="suggest-cmd">"Take me to projects"</li>
+                <li class="suggest-cmd">"Take me to skills"</li>
+                <li class="suggest-cmd">"Take me to contact section"</li>
+                <li class="suggest-cmd">"Tell me about Ratnesh's projects"</li>
+                <li class="suggest-cmd">"Tell me a joke"</li>
+                <li class="suggest-cmd">"Play a song"</li>
             </ul>
         `;
         panel.appendChild(this.infoPanel);
         panel.appendChild(inputRow);
 
-        // Suggestions Click Handlers — All commands route through LLM API
+        // Suggestions Click Handlers — scroll/navigate executed client-side instantly
         this.infoPanel.querySelectorAll('.suggest-cmd').forEach(item => {
             item.addEventListener('click', (e) => {
                 let cmdText = e.target.textContent.replace(/"/g, '').trim();
@@ -506,9 +507,20 @@ class AvatarChatBot {
                     this.textInput.value = "Hi Ratnesh, ";
                     this.textInput.placeholder = "Type your message for Ratnesh...";
                     this.textInput.focus();
+                } else if (cmdText.toLowerCase().includes('scroll down')) {
+                    this.speakAvatar("Sure! Scrolling down for you.", false);
+                    this.executeScroll('down');
+                } else if (cmdText.toLowerCase().includes('projects')) {
+                    this.speakAvatar("Taking you to the projects section!", false);
+                    this.executeScroll('projects');
+                } else if (cmdText.toLowerCase().includes('skills')) {
+                    this.speakAvatar("Here are Ratnesh's skills!", false);
+                    this.executeScroll('skills');
+                } else if (cmdText.toLowerCase().includes('contact')) {
+                    this.speakAvatar("Taking you to the contact section!", false);
+                    this.executeScroll('contact');
                 } else {
-                    const cleanCmd = cmdText.replace(/^[^\w\s]+/, '').trim();
-                    this.handleUserInput(cleanCmd);
+                    this.handleUserInput(cmdText);
                 }
             });
         });
@@ -558,7 +570,7 @@ class AvatarChatBot {
                 zIndex: '999',
                 boxShadow: '0 2px 8px rgba(255,65,108,0.4)',
             });
-            this._micTooltipEl.textContent = '🎤 Tap to talk — hold for continuous';
+            this._micTooltipEl.textContent = 'Tap to talk — hold for continuous';
             this.micBtn.style.position = 'relative';
             this.micBtn.appendChild(this._micTooltipEl);
 
@@ -577,7 +589,7 @@ class AvatarChatBot {
                 _holdTimer = setTimeout(() => {
                     // HOLD mode: keep mic on while held
                     _isHolding = true;
-                    this._micTooltipEl.textContent = '🔴 Holding — release to stop';
+                    this._micTooltipEl.textContent = 'Holding — release to stop';
                     this._micTooltipEl.style.opacity = '1';
                     if (this.isListening) return;
                     this.userStoppedMic = false;
@@ -593,14 +605,14 @@ class AvatarChatBot {
                 if (_isHolding) {
                     // Release hold — stop mic
                     _isHolding = false;
-                    this._micTooltipEl.textContent = '🎤 Tap to talk — hold for continuous';
+                    this._micTooltipEl.textContent = 'Tap to talk — hold for continuous';
                     setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2000);
                     this.userStoppedMic = true;
                     this.recognition?.stop();
                 } else {
                     // TAP — toggle mic
                     this.handleMicClick();
-                    this._micTooltipEl.textContent = this.isListening ? '🔴 Listening — tap to stop' : '🎤 Tap to talk';
+                    this._micTooltipEl.textContent = this.isListening ? 'Listening — tap to stop' : 'Tap to talk';
                     this._micTooltipEl.style.opacity = '1';
                     setTimeout(() => { this._micTooltipEl.style.opacity = '0'; }, 2500);
                 }
@@ -870,7 +882,7 @@ class AvatarChatBot {
             this.isListening = true;
             this.updateMicUI();
             if (!this._passiveModeActive) {
-                this.showBubble('🎙️ Clear Voice DSP Active • Listening...');
+                this.showBubble('Clear Voice DSP Active • Listening...');
             }
         };
 
@@ -892,7 +904,7 @@ class AvatarChatBot {
             } else if (interim && this._passiveModeActive) {
                 const lowerInt = interim.toLowerCase();
                 const wakeDetected = WAKE_WORD_VARIANTS.some(w => lowerInt.includes(w));
-                if (wakeDetected) this.showBubble('✨ ' + interim);
+                if (wakeDetected) this.showBubble(interim);
             }
 
             if (final) {
@@ -1200,6 +1212,54 @@ class AvatarChatBot {
             return;
         }
 
+        // ── Client-side instant navigation / scroll (no AI round-trip) ──────────
+        // Matches: "scroll down", "scroll up", "take me to X", "go to X section",
+        //          "navigate to X", "show me X", "open X section"
+        {
+            const tLower = text.toLowerCase().trim();
+            const navMatch = (
+                tLower.match(/\b(scroll\s+down|scroll\s+up)\b/) ||
+                tLower.match(/\b(?:take me to|go to|navigate to|show me|open)\s+(.+?)(?:\s+section)?\s*$/i)
+            );
+            const isClearScroll = tLower === 'scroll down' || tLower === 'scroll up'
+                || /^scroll\s+(down|up)$/.test(tLower);
+            const isNavCmd = /\b(take me to|go to|navigate to|show me|open)\b/.test(tLower)
+                && /\b(project|skill|about|contact|experience|cert|home|top)\b/.test(tLower);
+
+            if (isClearScroll || isNavCmd) {
+                this.isThinking = false;
+                this.updateMicUI();
+                if (/scroll\s+down/.test(tLower)) {
+                    this.speakAvatar("Sure! Scrolling down for you.", false);
+                    setTimeout(() => this.executeScroll('down'), 300);
+                } else if (/scroll\s+up/.test(tLower)) {
+                    this.speakAvatar("Scrolling back up!", false);
+                    setTimeout(() => this.executeScroll('up'), 300);
+                } else if (/\b(project|work|portfolio)\b/.test(tLower)) {
+                    this.speakAvatar("Here are Ratnesh's projects!", false);
+                    setTimeout(() => this.executeScroll('projects'), 300);
+                } else if (/\bskill/.test(tLower)) {
+                    this.speakAvatar("Let me show you Ratnesh's skills!", false);
+                    setTimeout(() => this.executeScroll('skills'), 300);
+                } else if (/\babout\b/.test(tLower)) {
+                    this.speakAvatar("Here's a bit about Ratnesh!", false);
+                    setTimeout(() => this.executeScroll('about'), 300);
+                } else if (/\bcontact\b/.test(tLower)) {
+                    this.speakAvatar("Taking you to the contact section!", false);
+                    setTimeout(() => this.executeScroll('contact'), 300);
+                } else if (/\b(experience|education|timeline|college)\b/.test(tLower)) {
+                    this.speakAvatar("Here's Ratnesh's experience and education!", false);
+                    setTimeout(() => this.executeScroll('experience'), 300);
+                } else if (/\bcert/.test(tLower)) {
+                    this.speakAvatar("Here are Ratnesh's certifications!", false);
+                    setTimeout(() => this.executeScroll('certifications'), 300);
+                } else if (/\b(home|top|hero)\b/.test(tLower)) {
+                    this.speakAvatar("Going back to the top!", false);
+                    setTimeout(() => this.executeScroll('home'), 300);
+                }
+                return;
+            }
+        }
         // All actual commands, questions, and inquiries route through the unified LLM API Key (Primary Brain)
         this.showTyping();
 
@@ -1592,17 +1652,32 @@ class AvatarChatBot {
         if (!target) return;
         target = target.toLowerCase().trim();
 
-        if (target === 'up') {
-            window.scrollBy({ top: -650, behavior: 'smooth' });
+        if (target === 'up' || target === 'top') {
+            if (target === 'top') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                const scrollAmount = Math.max(450, window.innerHeight * 0.7);
+                window.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+                document.documentElement.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+            }
             return;
         }
-        if (target === 'down') {
-            window.scrollBy({ top: 650, behavior: 'smooth' });
+        if (target === 'down' || target === 'bottom') {
+            if (target === 'bottom') {
+                const maxScroll = document.documentElement.scrollHeight || document.body.scrollHeight;
+                window.scrollTo({ top: maxScroll, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: maxScroll, behavior: 'smooth' });
+            } else {
+                const scrollAmount = Math.max(450, window.innerHeight * 0.7);
+                window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+                document.documentElement.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+            }
             return;
         }
 
         let secId = 'home';
-        if (target === 'home' || target === 'top' || target === 'hero') secId = 'home';
+        if (target === 'home' || target === 'hero') secId = 'home';
         else if (target.includes('about') || target.includes('bio')) secId = 'about';
         else if (target.includes('project') || target.includes('work') || target.includes('portfolio')) secId = 'projects';
         else if (target.includes('skill') || target.includes('tech') || target.includes('stack')) secId = 'skills';
@@ -1610,11 +1685,15 @@ class AvatarChatBot {
         else if (target.includes('cert') || target.includes('certificate')) secId = 'certifications';
         else if (target.includes('contact') || target.includes('email') || target.includes('social') || target.includes('linkedin') || target.includes('github') || target.includes('instagram')) secId = 'contact';
 
+        // 1. Trigger React's own handleNavigate if exposed
+        if (typeof window.navigateToSection === 'function') {
+            window.navigateToSection(secId);
+        }
+
+        // 2. DOM element scrollIntoView (native smooth scroll to section)
         const elem = document.getElementById(secId);
         if (elem) {
-            const yOffset = -30;
-            const y = elem.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({ top: y, behavior: 'smooth' });
+            elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
@@ -1681,7 +1760,7 @@ class AvatarChatBot {
         if (!query) return;
 
         console.log('[Raya] Searching YouTube for:', query);
-        this.showBubble('🔍 Searching for "' + query + '"…');
+        this.showBubble('Searching for "' + query + '"…');
         
         try {
             const res = await fetch('/api/yt-search', {
@@ -1963,8 +2042,8 @@ class AvatarChatBot {
 
             let langCode = 'en-IN';
             let selectedVoice = null;
-            const speechRate = 1.10; // ~165 WPM natural speaking pace
-            const speechPitch = 1.35; // Sweet, lively companion tone
+            let speechRate = 1.10; // ~165 WPM natural speaking pace
+            let speechPitch = 1.35; // Sweet, lively companion tone
 
             const allVoices = this.synth.getVoices();
             // Strict filter to guarantee ONLY female voices are ever used for Raya

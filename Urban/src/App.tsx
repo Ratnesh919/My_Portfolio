@@ -55,10 +55,13 @@ export const App: React.FC = () => {
     }
   };
 
-  // Expose global character switch
+  // Expose global character switch and navigation
   useEffect(() => {
     (window as any).setVRMCharacter = (filePath: string) => {
       setCurrentAvatarFile(filePath);
+    };
+    (window as any).navigateToSection = (sectionId: string) => {
+      handleNavigate(sectionId);
     };
   }, []);
 

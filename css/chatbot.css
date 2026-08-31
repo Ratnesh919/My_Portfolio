@@ -14,11 +14,16 @@
     pointer-events: none !important;
     z-index: 2147483647 !important;
     touch-action: none;
-    opacity: 1 !important;
+    opacity: 0;
     display: block !important;
+    /* Hidden until bubble is popped — fade in after intro */
+    transition: opacity 0.6s ease;
     /* Force GPU composite layer — escapes React stacking context */
     transform: translateZ(0);
     will-change: transform;
+}
+#vrm-canvas.raya-visible {
+    opacity: 1 !important;
 }
 
 /* ── 3D Avatar Loading / Switch Overlay ── */

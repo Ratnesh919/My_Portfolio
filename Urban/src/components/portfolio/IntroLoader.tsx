@@ -146,8 +146,14 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
           setPhase('done');
           onComplete();
           if ((window as any).activateAvatarAndChatbot) (window as any).activateAvatarAndChatbot();
-          if ((window as any).onBubblePopped) (window as any).onBubblePopped();
+          // Mark gesture & prime TTS in the same event-loop tick as the click
           if ((window as any).chatBot) (window as any).chatBot._userHasGestured = true;
+          try {
+            const primer = new SpeechSynthesisUtterance('');
+            primer.volume = 0;
+            window.speechSynthesis.speak(primer);
+          } catch(e) {}
+          if ((window as any).onBubblePopped) (window as any).onBubblePopped();
         }, 350);
       }, 200);
     };
