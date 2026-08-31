@@ -643,31 +643,51 @@ class AvatarChatBot {
             return;
         }
 
-        const MALE = /male|bashkar|madhur|hemant|ojas|niranjan|manohar|valluvar|mohan|gagan|midhun|keita|david|mark|george|james|ravi|guy|ryan|christopher|eric|andrew|brian|roger|steffan|prabhat|deep|danny/i;
-        const femaleList = voices.filter(v => v && v.name && !MALE.test(v.name));
-        const list = femaleList.length > 0 ? femaleList : voices;
+        // Log all voices for debug
+        console.log('[Raya TTS] Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
 
-        // Priority 1: Edge Online / Natural Neural female voices (Ava, Jenny, Aria, Neerja, Swara, Sonia, etc.)
+        // -- Priority 1: Microsoft Edge neural voices (very natural, available on Edge & Win)
         const edgeNeuralFemale =
-            list.find(v => /(?:Ava|Jenny|Aria|Neerja|Swara|Sonia|Libby|Maisie|Natasha)/i.test(v.name) && (v.name.includes('Natural') || v.name.includes('Online') || v.name.includes('Neural') || v.localService === false)) ||
-            list.find(v => /(?:Ava|Jenny|Aria|Neerja|Swara|Sonia|Libby|Maisie|Natasha)/i.test(v.name)) ||
-            list.find(v => v.name.includes('Natural') && v.lang.startsWith('en')) ||
-            list.find(v => v.name.includes('Online') && v.lang.startsWith('en'));
+            voices.find(v => /Ava.*Natural/i.test(v.name)   && v.lang.startsWith('en')) ||
+            voices.find(v => /Jenny.*Natural/i.test(v.name) && v.lang.startsWith('en')) ||
+            voices.find(v => /Aria.*Natural/i.test(v.name)  && v.lang.startsWith('en')) ||
+            voices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+            voices.find(v => v.name.includes('Ava')   && v.lang.startsWith('en') && v.localService === false) ||
+            voices.find(v => v.name.includes('Jenny') && v.lang.startsWith('en') && v.localService === false) ||
+            voices.find(v => v.name.includes('Aria')  && v.lang.startsWith('en') && v.localService === false);
 
-        // Priority 2: Google Female voices
+        // -- Priority 2: Indian English neural voices (Neerja / Heera) --
+        const neuralIndianFemale =
+            voices.find(v => v.name.includes('Neerja')) ||
+            voices.find(v => v.name.includes('Heera'));
+
+        // -- Priority 3: Google voices — high quality, non-robotic --
         const googleFemale =
-            list.find(v => v.name === 'Google UK English Female') ||
-            list.find(v => v.name === 'Google US English') ||
-            list.find(v => v.name.startsWith('Google') && (v.lang.startsWith('en') || v.name.includes('Female')));
+            voices.find(v => v.name === 'Google UK English Female') ||
+            voices.find(v => v.name === 'Google US English') ||
+            voices.find(v => v.name.startsWith('Google') && v.lang === 'en-IN') ||
+            voices.find(v => v.name.startsWith('Google') && v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
 
-        // Priority 3: Apple Female voices
-        const appleFemale = list.find(v => /(?:Samantha|Karen|Moira|Tessa|Serena)/i.test(v.name));
+        // -- Priority 4: Apple natural voices --
+        const appleFemale =
+            voices.find(v => v.name === 'Samantha') ||
+            voices.find(v => v.name === 'Karen')    ||
+            voices.find(v => v.name === 'Moira')    ||
+            voices.find(v => v.name === 'Tessa');
 
-        // Priority 4: Any English Female voice
-        const anyEnglishFemale = list.find(v => (v.name.toLowerCase().includes('female') || v.name.includes('Zira') || v.name.includes('Hazel') || v.name.includes('Emma')) && v.lang.startsWith('en'));
+        // -- Priority 5: Any English female-sounding voice --
+        const anyEnglishFemale =
+            voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
+            voices.find(v => v.name.includes('Zira'))  ||
+            voices.find(v => v.name.includes('Hazel')) ||
+            voices.find(v => v.name.includes('Emma')  && v.lang.startsWith('en'));
 
-        this.femaleVoice = edgeNeuralFemale || googleFemale || appleFemale || anyEnglishFemale || list[0] || voices[0];
-        console.log('[Raya TTS] Selected female voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
+        // -- Priority 6: Fallback avoiding known male voices --
+        const fallback = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().match(/male|ravi|david|mark|george|james/));
+
+        this.femaleVoice = edgeNeuralFemale || neuralIndianFemale || googleFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
+
+        console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
     }
 
 
@@ -1883,8 +1903,8 @@ class AvatarChatBot {
 
             let langCode = 'en-IN';
             let selectedVoice = null;
-            let speechRate = 1.05; // Natural human cadence
-            let speechPitch = 1.0; // Standard pitch for natural neural voices without distortion
+            const speechRate = 1.10; // ~165 WPM natural speaking pace
+            const speechPitch = 1.35; // Sweet, lively companion tone
 
             const allVoices = this.synth.getVoices();
             // Strict filter to guarantee ONLY female voices are ever used for Raya
@@ -2053,13 +2073,6 @@ class AvatarChatBot {
 
             const spokenScriptText = getNativeScriptForTTS(cleanText, langCode);
             const utterance = new SpeechSynthesisUtterance(spokenScriptText);
-
-            // Microsoft Edge & Mobile Chrome Natural neural voices strictly require pitch 1.0 (they reject modified pitch with synthesis-failed)
-            const isNaturalNeuralVoice = selectedVoice?.name?.includes('Natural') || selectedVoice?.name?.includes('Online') || selectedVoice?.name?.includes('Google') || selectedVoice?.lang?.startsWith('hi') || selectedVoice?.lang?.startsWith('bn') || selectedVoice?.lang?.startsWith('pa') || selectedVoice?.lang?.startsWith('gu');
-            if (isNaturalNeuralVoice) {
-                speechPitch = 1.0;
-                speechRate = 1.0;
-            }
 
             utterance.voice = selectedVoice;
             utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
