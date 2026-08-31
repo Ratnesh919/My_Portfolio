@@ -394,6 +394,48 @@ async function getAllUsers() {
     }));
 }
 
+async function getAllKnownVisitorNames() {
+    try {
+        const [usersWithNames, prefsNames, learningsNames, messageNames] = await Promise.all([
+            getAllUsers().catch(() => []),
+            supabase.from('preferences').select('value').eq('key', 'user_name'),
+            supabase.from('learnings').select('content').ilike('content', "%User's name is%").eq('status', 'verified'),
+            supabase.from('visitor_messages').select('user_name').neq('user_name', null)
+        ]);
+
+        const namesSet = new Set();
+        
+        // 1. From getAllUsers
+        (usersWithNames || []).forEach(u => {
+            if (u.name && u.name !== '(anonymous)' && u.name.length >= 2) namesSet.add(u.name.trim());
+        });
+
+        // 2. From preferences table
+        (prefsNames?.data || []).forEach(p => {
+            if (p.value && p.value.length >= 2 && p.value.toLowerCase() !== 'ratnesh') namesSet.add(p.value.trim());
+        });
+
+        // 3. From learnings table
+        (learningsNames?.data || []).forEach(l => {
+            const m = l.content.match(/User's name is\s+([a-zA-Z\s]+)/i);
+            if (m && m[1] && m[1].trim().toLowerCase() !== 'ratnesh') namesSet.add(m[1].trim());
+        });
+
+        // 4. From visitor_messages table
+        (messageNames?.data || []).forEach(m => {
+            if (m.user_name && m.user_name.trim().length >= 2 && m.user_name.trim().toLowerCase() !== 'ratnesh') namesSet.add(m.user_name.trim());
+        });
+
+        // 5. Seed with verified historical users
+        ["Rahul", "Shubham", "Divya Raj Singh", "Raam", "Darshan"].forEach(n => namesSet.add(n));
+
+        return Array.from(namesSet);
+    } catch(e) {
+        console.error('[getAllKnownVisitorNames Error]', e);
+        return ["Rahul", "Shubham", "Divya Raj Singh", "Raam", "Darshan"];
+    }
+}
+
 async function getLocationStats() {
     const { data: locPrefs } = await supabase
         .from('preferences')
@@ -673,5 +715,5 @@ module.exports = {
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
     getLocationStats, classifyMessageImportance, saveVisitorMessage,
     getVisitorMessages, markMessageRead, getAdminHistoricalContext, saveAdminOutboxMessage,
-    getPendingOutboxMessages
+    getPendingOutboxMessages, getAllKnownVisitorNames
 };

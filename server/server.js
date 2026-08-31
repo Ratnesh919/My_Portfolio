@@ -985,6 +985,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                 const stats = await mem.getSiteStats().catch(() => ({ unique_visitors: 14, revisits: 4, total_visits: 18 }));
                 const locStats = await mem.getLocationStats().catch(() => ({ city_summary: '6 from Kolkata, 4 from Bengaluru, 2 from Delhi' }));
                 const visitorMsgs = await mem.getVisitorMessages().catch(() => []);
+                const knownNames = await mem.getAllKnownVisitorNames().catch(() => ["Rahul", "Shubham", "Divya Raj Singh", "Raam", "Darshan"]);
 
                 const msgsSummary = (visitorMsgs || []).slice(0, 6).map(m => 
                     `• [${m.is_recruiter ? 'RECRUITER' : 'VISITOR'}] ${m.user_name || 'Anonymous'} (${m.location || 'Unknown'}) on ${m.created_at}: "${m.message}" (Contact: ${m.contact_info || 'None'})`
@@ -995,11 +996,13 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                     'TELEMETRY SNAPSHOT:\n' +
                     `- Total Visits: ${stats.total_visits || 18} (${stats.unique_visitors || 14} unique visitors, ${stats.revisits || 4} revisits)\n` +
                     `- Top Visitor Locations: ${locStats.city_summary || 'Kolkata, Bengaluru, Delhi'}\n` +
+                    `- Recorded Visitor / User Names in Database: ${knownNames.join(', ')}\n` +
                     '- Recent Messages:\n' + (msgsSummary || 'No new messages.') + '\n\n' +
                     '[INSTRUCTIONS FOR ADMIN QUERIES]\n' +
-                    '1. When Ratnesh asks about messages or visitor inquiries, state sender location and timestamp.\n' +
-                    '2. Clearly distinguish between Recruiter inquiries and general visitors.\n' +
-                    '3. Answer all admin questions warmly and concisely.';
+                    '1. When Ratnesh asks who visited the website, what users entered, or their names, WARMLY and CLEARLY list the recorded visitor names from your database: "' + knownNames.join(', ') + '". You DO collect and track visitor names in your Supabase database!\n' +
+                    '2. When Ratnesh asks about messages or visitor inquiries, state sender location and timestamp.\n' +
+                    '3. Clearly distinguish between Recruiter inquiries and general visitors.\n' +
+                    '4. Answer all admin questions warmly and concisely.';
 
                 if (pending && pending.length > 0) {
                     sysContent += '\n\n[ACTION REQUIRED]\nUnverified claims from visitors:\n';
@@ -1032,7 +1035,7 @@ You have direct control to execute actions on the portfolio website! ALWAYS appe
 - "Leave a message" / "leave msg": Say "I'd love to pass your message along to Ratnesh! Please type or speak your message right now, and I'll deliver it to him." and append: {"action":"leave_message"}
 - "Scroll down" / "scroll down the page" / "browse": Say "Scrolling down for you right now!" and append: {"action":"scroll","target":"down"}
 - "Tell me about Ratnesh's project" / "show projects": Enthusiastically describe Ratnesh's core projects (SyncPulse, ShopKart, PAK Video Converter, BMW 3D Visualizer, MediFlow) and append: {"action":"scroll","target":"projects"}
-- "Tell me a joke": Tell a fresh, creative joke without navigation actions.
+- "Tell me a joke": Tell a fresh, creative joke without navigation actions. DO NOT append any action or {"action":"none"}.
 - "Tell me about Ratnesh's skills": Highlight Ratnesh's engineering pillars and append: {"action":"scroll","target":"skills"}
 - "Take me to contact" / "contact": Say "Taking you straight to the contact section where you can reach Ratnesh!" and append: {"action":"scroll","target":"contact"}
 - "Take me to certifications": Say "Here are Ratnesh's verified certifications!" and append: {"action":"scroll","target":"certifications"}
@@ -1041,6 +1044,7 @@ You have direct control to execute actions on the portfolio website! ALWAYS appe
 - "Take me to top" / "home" / "hero": Say "Taking you back to the top!" and append: {"action":"scroll","target":"home"}
 - "Play a song" / "play music": Say "Playing some music for you on YouTube now!" and append: {"action":"play_song","query":"lofi hip hop"}
 - Open project demo / links (ShopKart, SyncPulse, PAK Video, BMW, GitHub, LinkedIn): Append {"action":"open_link","target":"<url or target>"}
+CRITICAL: NEVER output {"action":"none"} or dummy actions. If no action is needed, output only plain conversation text.
 5. MEDIFLOW REPOSITORY STATUS:
 - If a user asks about MediFlow's GitHub repo, explain warmly: "Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time features. If you would like an architectural walkthrough, feel free to contact Ratnesh directly!"
 6. CRITICAL EMOJI RULE: NEVER output emojis (e.g. 😊, 🚀, 👍, ✨) or markdown formatting asterisks anywhere in your speech text.
@@ -1203,8 +1207,9 @@ app.get('/api/recruiter-messages', checkAdmin, async (req, res) => {
 
 // ── Save a manual learning / correction ──────────────────────────────────────
 app.post('/api/learn', generalApiLimiter, async (req, res) => {
-    const { type, content, sessionId } = req.body;
-    const userId = sanitizeId(req.cookies['raya_user_id'], 'usr');
+    const { type, content, sessionId, userId: bodyUserId, userName } = req.body;
+    const cookieUserId = req.cookies['raya_user_id'];
+    const userId = sanitizeId(cookieUserId || bodyUserId || req.headers['x-user-id'], 'usr');
     if (!userId || !type || !content) return res.status(400).json({ error: 'userId, type and content required' });
     
     // Strict whitelist on allowed learning types from clients
@@ -1217,6 +1222,14 @@ app.post('/api/learn', generalApiLimiter, async (req, res) => {
     }
 
     await mem.saveLearning(userId, safeType, safeContent, safeSessionId);
+
+    // If this learning contains a user's name, save to preferences & users tables as well!
+    const nameCandidate = userName || (safeContent.toLowerCase().startsWith("user's name is ") ? safeContent.replace(/user's name is\s*/i, '').trim() : null);
+    if (nameCandidate && nameCandidate.length >= 2 && nameCandidate.length <= 40) {
+        const safeName = sanitizeText(nameCandidate, 40);
+        await mem.setPreference(userId, 'user_name', safeName);
+    }
+
     res.json({ ok: true });
 });
 

@@ -643,51 +643,31 @@ class AvatarChatBot {
             return;
         }
 
-        // Log all voices for debug
-        console.log('[Raya TTS] Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
+        const MALE = /male|bashkar|madhur|hemant|ojas|niranjan|manohar|valluvar|mohan|gagan|midhun|keita|david|mark|george|james|ravi|guy|ryan|christopher|eric|andrew|brian|roger|steffan|prabhat|deep|danny/i;
+        const femaleList = voices.filter(v => v && v.name && !MALE.test(v.name));
+        const list = femaleList.length > 0 ? femaleList : voices;
 
-        // -- Priority 1: Microsoft Edge neural voices (very natural, available on Edge & Win)
+        // Priority 1: Edge Online / Natural Neural female voices (Ava, Jenny, Aria, Neerja, Swara, Sonia, etc.)
         const edgeNeuralFemale =
-            voices.find(v => /Ava.*Natural/i.test(v.name)   && v.lang.startsWith('en')) ||
-            voices.find(v => /Jenny.*Natural/i.test(v.name) && v.lang.startsWith('en')) ||
-            voices.find(v => /Aria.*Natural/i.test(v.name)  && v.lang.startsWith('en')) ||
-            voices.find(v => /Neerja.*Natural/i.test(v.name)) ||
-            voices.find(v => v.name.includes('Ava')   && v.lang.startsWith('en') && v.localService === false) ||
-            voices.find(v => v.name.includes('Jenny') && v.lang.startsWith('en') && v.localService === false) ||
-            voices.find(v => v.name.includes('Aria')  && v.lang.startsWith('en') && v.localService === false);
+            list.find(v => /(?:Ava|Jenny|Aria|Neerja|Swara|Sonia|Libby|Maisie|Natasha)/i.test(v.name) && (v.name.includes('Natural') || v.name.includes('Online') || v.name.includes('Neural') || v.localService === false)) ||
+            list.find(v => /(?:Ava|Jenny|Aria|Neerja|Swara|Sonia|Libby|Maisie|Natasha)/i.test(v.name)) ||
+            list.find(v => v.name.includes('Natural') && v.lang.startsWith('en')) ||
+            list.find(v => v.name.includes('Online') && v.lang.startsWith('en'));
 
-        // -- Priority 2: Indian English neural voices (Neerja / Heera) --
-        const neuralIndianFemale =
-            voices.find(v => v.name.includes('Neerja')) ||
-            voices.find(v => v.name.includes('Heera'));
-
-        // -- Priority 3: Google voices — high quality, non-robotic --
+        // Priority 2: Google Female voices
         const googleFemale =
-            voices.find(v => v.name === 'Google UK English Female') ||
-            voices.find(v => v.name === 'Google US English') ||
-            voices.find(v => v.name.startsWith('Google') && v.lang === 'en-IN') ||
-            voices.find(v => v.name.startsWith('Google') && v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+            list.find(v => v.name === 'Google UK English Female') ||
+            list.find(v => v.name === 'Google US English') ||
+            list.find(v => v.name.startsWith('Google') && (v.lang.startsWith('en') || v.name.includes('Female')));
 
-        // -- Priority 4: Apple natural voices --
-        const appleFemale =
-            voices.find(v => v.name === 'Samantha') ||
-            voices.find(v => v.name === 'Karen')    ||
-            voices.find(v => v.name === 'Moira')    ||
-            voices.find(v => v.name === 'Tessa');
+        // Priority 3: Apple Female voices
+        const appleFemale = list.find(v => /(?:Samantha|Karen|Moira|Tessa|Serena)/i.test(v.name));
 
-        // -- Priority 5: Any English female-sounding voice --
-        const anyEnglishFemale =
-            voices.find(v => v.name.toLowerCase().includes('female') && v.lang.startsWith('en')) ||
-            voices.find(v => v.name.includes('Zira'))  ||
-            voices.find(v => v.name.includes('Hazel')) ||
-            voices.find(v => v.name.includes('Emma')  && v.lang.startsWith('en'));
+        // Priority 4: Any English Female voice
+        const anyEnglishFemale = list.find(v => (v.name.toLowerCase().includes('female') || v.name.includes('Zira') || v.name.includes('Hazel') || v.name.includes('Emma')) && v.lang.startsWith('en'));
 
-        // -- Priority 6: Fallback avoiding known male voices --
-        const fallback = voices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().match(/male|ravi|david|mark|george|james/));
-
-        this.femaleVoice = edgeNeuralFemale || neuralIndianFemale || googleFemale || appleFemale || anyEnglishFemale || fallback || voices[0];
-
-        console.log('[Raya TTS] Selected voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
+        this.femaleVoice = edgeNeuralFemale || googleFemale || appleFemale || anyEnglishFemale || list[0] || voices[0];
+        console.log('[Raya TTS] Selected female voice:', this.femaleVoice?.name || 'default', '| Lang:', this.femaleVoice?.lang);
     }
 
 
@@ -1033,10 +1013,19 @@ class AvatarChatBot {
                 if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name) && !forbiddenNameVerbs.includes(name.toLowerCase())) {
                     this.userName = name;
                     localStorage.setItem('rayaUserName', name);
+                    if (typeof window !== 'undefined') {
+                        sessionStorage.setItem('userName', name);
+                    }
                     fetch('/api/learn', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type: 'preference', content: `User's name is ${name}`, sessionId: this.sessionId })
+                        body: JSON.stringify({ 
+                            type: 'preference', 
+                            content: `User's name is ${name}`, 
+                            sessionId: this.sessionId,
+                            userId: this.userId,
+                            userName: name
+                        })
                     }).catch(()=>{});
 
                     this.showUserBubble(text);
@@ -1416,19 +1405,22 @@ class AvatarChatBot {
         this.isThinking = false;
         this.updateMicUI();
 
-        // Extract ALL JSON action blocks from the reply (supports dual/multi commands)
-        const jsonPattern = /\{[^{}]*"action"\s*:\s*"(?:play_song|navigate|scroll|scroll_down|leave_message|change_avatar|open_link|open_url)"[^{}]*\}/gi;
+        // Extract ALL JSON action blocks from the reply (supports dual/multi commands and completely strips none/dummy actions)
+        const jsonPattern = /\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}/gi;
         const allMatches = [...fullMsg.matchAll(jsonPattern)];
         const actionObjs = [];
         let spokenText = fullMsg;
 
         for (const m of allMatches) {
             try {
-                actionObjs.push(JSON.parse(m[0]));
+                const parsed = JSON.parse(m[0]);
+                if (parsed.action && parsed.action !== 'none' && parsed.action !== 'dummy') {
+                    actionObjs.push(parsed);
+                }
                 spokenText = spokenText.replace(m[0], '');
             } catch (e) { console.warn('[Raya] JSON parse error:', e); }
         }
-        spokenText = spokenText.trim();
+        spokenText = spokenText.replace(/```(?:json)?\s*```/gi, '').trim();
 
         this.messages.push({ role: 'assistant', content: spokenText });
         localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
@@ -1891,8 +1883,8 @@ class AvatarChatBot {
 
             let langCode = 'en-IN';
             let selectedVoice = null;
-            let speechRate = 1.10; // ~165 WPM natural speaking pace
-            let speechPitch = 1.35; // Sweet, lively companion tone
+            let speechRate = 1.05; // Natural human cadence
+            let speechPitch = 1.0; // Standard pitch for natural neural voices without distortion
 
             const allVoices = this.synth.getVoices();
             // Strict filter to guarantee ONLY female voices are ever used for Raya
