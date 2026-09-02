@@ -2,98 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ratnesh Kumar Singh | 3D Engineering Portfolio & AI Companion</title>
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <meta name="description" content="3D Engineering Portfolio of Ratnesh Kumar Singh. Electronics & Communication Engineering (MAKAUT '26) specializing in Real-Time Web, Audio DSP, Native Android MediaCodec, and AI Agent Automation." />
-    <meta name="keywords" content="Ratnesh Kumar Singh, Ratnesh Singh, Portfolio, Full-Stack Web, Android Kotlin, MediaCodec, AI Agents, n8n, Gemini API, Three.js, WebGL, Ansys HFSS, RF Antennas, MAKAUT, ECE" />
+    <title>Ratnesh Kumar Singh | Urban 3D Portfolio</title>
+    <meta name="description" content="Explore the bold, urban street art styled 3D portfolio of Ratnesh Kumar Singh. Electronics & Communication Engineer specializing in AI integration and Embedded Systems." />
+    <meta name="keywords" content="Ratnesh Kumar Singh, Ratnesh Singh, Urban Portfolio, Bold UI, Street Art, ECE Engineer, Embedded Systems, AI integration, Three.js, React" />
     <meta name="author" content="Ratnesh Kumar Singh" />
-    
+    <meta name="robots" content="index, follow" />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://my-portfolio-omega-liart-40.vercel.app/" />
-    <meta property="og:title" content="Ratnesh Kumar Singh | 3D Engineering Portfolio" />
-    <meta property="og:description" content="3D dark neomorphic engineering portfolio with interactive 3D character viewport, Liquid Metal buttons, and Raya AI companion." />
-    <meta property="og:image" content="https://my-portfolio-omega-liart-40.vercel.app/favicon.png" />
+    <meta property="og:url" content="https://ratnesh-portfolio.vercel.app/Urban/dist/index.html" />
+    <meta property="og:title" content="Ratnesh Kumar Singh | Urban 3D Portfolio" />
+    <meta property="og:description" content="Step into the Urban street-styled 3D portfolio of Ratnesh Kumar Singh featuring AI implementations and electronic prototypes." />
+    <meta property="og:image" content="https://ratnesh-portfolio.vercel.app/favicon.png" />
 
-    <!-- Fonts -->
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://ratnesh-portfolio.vercel.app/Urban/dist/index.html" />
+    <meta property="twitter:title" content="Ratnesh Kumar Singh | Urban 3D Portfolio" />
+    <meta property="twitter:description" content="Bold and street-art styled 3D interactive portfolio of Ratnesh Kumar Singh." />
+    <meta property="twitter:image" content="https://ratnesh-portfolio.vercel.app/favicon.png" />
+    <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <!-- Three.js & VRM Importmap -->
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/",
-          "@pixiv/three-vrm": "https://unpkg.com/@pixiv/three-vrm@3.4.0/lib/three-vrm.module.js"
-        }
-      }
-    </script>
-
-    <link rel="stylesheet" href="./css/chatbot.css">
-    
-    <script type="module" crossorigin src="/assets/index-i3YZiKPP.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-is0gHPbJ.css">
-  </head>
-  <body class="bg-[#07050d] text-slate-100 selection:bg-purple-600 selection:text-white m-0 p-0 overflow-x-hidden">
-    <div id="root"></div>
-    <!-- ═══ 3D VRM Full-Body Canvas & Vanilla Scripts ═══ -->
-    <canvas id="vrm-canvas"></canvas>
-
-    <!-- ═══ Avatar Switch & Loading Indicator ═══ -->
-    <div id="vrm-loading" class="fixed inset-0 z-[2147483645] flex items-center justify-center bg-black/65 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300" style="display: none;">
-      <div class="flex flex-col items-center gap-3 p-6 rounded-3xl bg-[#120a22]/95 border border-purple-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(168,85,247,0.25)] min-w-[260px] text-center">
-        <div class="w-10 h-10 border-3 border-purple-500/20 border-t-[#ff416c] rounded-full animate-spin"></div>
-        <div class="flex flex-col items-center">
-          <span class="loading-text text-xs sm:text-sm font-bold text-white tracking-wider font-mono uppercase">Switching Avatar...</span>
-          <span id="vrm-loading-pct" class="text-xs text-[#ff416c] font-bold font-mono mt-1">0%</span>
-        </div>
-        <div class="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
-          <div id="vrm-loading-bar" class="h-full bg-gradient-to-r from-[#ff416c] to-[#a855f7] rounded-full transition-all duration-150" style="width: 0%;"></div>
-        </div>
-      </div>
-    </div>
-
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-      window.getAvatarUrl = function(localPath) {
-        if (!localPath) return '';
-        if (localPath.startsWith('http://') || localPath.startsWith('https://')) return localPath;
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:') {
-          return localPath;
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.addEventListener('keydown', function(e) {
+        if (e.key === "F12" || e.keyCode === 123) {
+          e.preventDefault();
+          return false;
         }
-        return `/api/avatar-proxy?file=${encodeURIComponent(localPath)}`;
-      };
-
-      function activateAvatarAndChatbot() {
-        const canvas = document.getElementById('vrm-canvas');
-        if (canvas) {
-          canvas.classList.add('active');
-          canvas.style.display = 'block';
-          canvas.style.opacity = '1';
+        if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
+          e.preventDefault();
+          return false;
         }
-        const panel = document.getElementById('chatbot-panel');
-        if (panel) {
-          panel.classList.add('active');
-          panel.style.opacity = '1';
-          panel.style.pointerEvents = 'auto';
+        if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+          e.preventDefault();
+          return false;
         }
-        if (window.setVRMVisibility) window.setVRMVisibility(true);
-        if (window.chatBot) window.chatBot._userHasGestured = true;
-        if (typeof window.onBubblePopped === 'function') {
-          window.onBubblePopped();
-        } else {
-          if (typeof window.playWaveAnimation === 'function') {
-            window.playWaveAnimation();
-          }
-          if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-            window.chatBot.introduceHerself();
-          }
-        }
-      }
+      });
     </script>
-    <script src="./js/vrm-config.js"></script>
-    <script type="module" src="./js/vrm-character.js"></script>
-    <script src="./js/chatbot.js"></script>
+    <script type="module" crossorigin src="./assets/index-i3YZiKPP.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-is0gHPbJ.css">
+  </head>
+  <body class="noise-overlay">
+    <div id="root"></div>
   </body>
 </html>
