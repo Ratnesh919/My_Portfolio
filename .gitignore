@@ -1,21 +1,22 @@
 node_modules/
 .env
 .env.*
-raya-memory.db
-raya-memory.db-shm
-raya-memory.db-wal
+# Database files & legacy stores
+raya-memory.db*
+database/legacy/
+database/*.sql
 .DS_Store
 Wuwa/
 scratch/
 
-# Sensitive scripts that could reveal infrastructure details
+# Sensitive & internal scripts/docs
+scripts/encrypt-keys.js
 encrypt-keys.js
-raya-memory.js
-raya_mysql_schema.sql
-raya_supabase_schema.sql
-prompt.txt
-# Note: raya-supabase-memory.js is safe to track (uses env vars only, no hardcoded keys)
+docs/creator-profile.txt
 creator-profile.txt
+docs/prompt.txt
+prompt.txt
+
 
 # Test/debug images & temporary files
 media__*.png
