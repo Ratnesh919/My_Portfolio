@@ -1,277 +1,496 @@
 ﻿# Ratnesh Kumar Singh - 3D Interactive AI Portfolio & Raya Companion
-## Master System Documentation, Features, Rules & Architecture Manual
+## Master System Blueprint, Architecture Specification, AI Replication Guide & Bug-Fix Playbook
+
+> **AI REPLICATION DIRECTIVE**: This document contains the complete architectural specification, source code logic, database schema, design rules, and bug-fix playbook for Ratnesh Kumar Singh's Interactive 3D AI Portfolio. Any AI coding assistant given this document can recreate the exact system, features, and behaviors from scratch without omissions.
 
 ---
 
-## 1. Executive Summary & Tech Stack
-
-This project is a high-performance **Interactive 3D AI Portfolio** designed to showcase Ratnesh Kumar Singh's software engineering, embedded systems, and full-stack capabilities. The portfolio features an autonomous **3D VRM AI Companion (Raya)** with real-time speech, bone physics, lip-syncing, multilingual natural dialogue, database memory, and programmatic UI navigation.
+## 1. System Architecture & High-Level Overview
 
 ```
-+-----------------------------------------------------------------------------------+
-|                              CLIENT (Browser / Vercel)                            |
-|  +-------------------------------------+  +------------------------------------+  |
-|  |     3D VRM Avatar Character         |  |       Raya AI Chatbot & Voice      |  |
-|  |  (Three.js, @pixiv/three-vrm, WebGL)|  |   (Web Speech API, Transliteration)|  |
-|  +-------------------------------------+  +------------------------------------+  |
-|                                     |                                             |
-|                                     v                                             |
-|  +-----------------------------------------------------------------------------+  |
-|  |             Portfolio UI & Sections (React, TypeScript, Tailwind CSS)       |  |
-|  |       [home] [projects] [about] [skills] [experience] [certifications]      |  |
-|  +-----------------------------------------------------------------------------+  |
-+-----------------------------------------------------------------------------------+
-                                      |
-                                      v HTTPS API
-+-----------------------------------------------------------------------------------+
-|                        BACKEND GATEWAY (Node.js / Express)                        |
-|  +-----------------------------------------------------------------------------+  |
-|  |                Circuit Breaker & Multi-LLM Provider Hierarchy               |  |
-|  |   1. NVIDIA NIM (Llama-3.3-70B)                                             |  |
-|  |   2. Groq Pool (4 API Keys with 60s 429 Cooldown & 6 Failover Models)       |  |
-|  |   3. Google Gemini 2.0 / 1.5 Flash                                          |  |
-|  |   4. OpenAI (GPT-4o-mini / GPT-3.5)                                          |  |
-|  |   5. OpenRouter Direct                                                      |  |
-|  +-----------------------------------------------------------------------------+  |
-|                   |                                            |                  |
-|                   v                                            v                  |
-|  +----------------------------------+        +---------------------------------+  |
-|  |   Supabase PostgreSQL Memory     |        |   Multi-Channel Admin Alerts    |  |
-|  | (Users, Telemetry, Inquiries,    |        | (Telegram, Discord, Webhooks,   |  |
-|  |  Preferences, Recruiter Intel)   |        |  Resend Email Notifications)    |  |
-|  +----------------------------------+        +---------------------------------+  |
-+-----------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------+
+|                                      CLIENT LAYER (Browser / Vercel)                              |
+|  +--------------------------------------------+  +---------------------------------------------+  |
+|  |       3D VRM Avatar Character Engine       |  |          Raya AI Chatbot & Voice Core       |  |
+|  |  - Three.js WebGL Engine (Alpha: True)     |  |  - Web Speech API (Pitch: 1.35, Rate: 1.10) |  |
+|  |  - @pixiv/three-vrm Runtime (0.0 & 1.0)    |  |  - Real-Time Phonetic Transliteration Engine|  |
+|  |  - Procedural Bones: Breathe, Blink, Wave  |  |  - Floating Input Bar & Live Speech Bubble  |  |
+|  |  - HTML5 Pointer Capture Drag-and-Drop     |  |  - Auto Voice Cooldown & Wake Word Pipeline |  |
+|  |  - Fixed Top Z-Index: 2147483647           |  |  - Dual Action JSON Parser                  |  |
+|  +--------------------------------------------+  +---------------------------------------------+  |
+|                                        \                /                                         |
+|                                         v              v                                          |
+|  +---------------------------------------------------------------------------------------------+  |
+|  |                         Modern Single-Page React Application (Urban UI)                     |  |
+|  |    [1. Home/Hero] [2. Projects] [3. About] [4. Skills] [5. Experience] [6. Certs] [7. Contact] |  |
+|  |    - window.navigateToSection() Interop Bridge                                              |  |
+|  |    - InnerTube YouTube Audio Player Embedded Streamer                                       |  |
+|  +---------------------------------------------------------------------------------------------+  |
++---------------------------------------------------------------------------------------------------+
+                                                  |
+                                                  v HTTPS REST API (/api/*)
++---------------------------------------------------------------------------------------------------+
+|                                 BACKEND GATEWAY (Node.js / Express)                               |
+|  +---------------------------------------------------------------------------------------------+  |
+|  |                           Circuit Breaker & Multi-LLM Gateway                              |  |
+|  |   1. NVIDIA NIM (Primary: meta/llama-3.3-70b-instruct)                                      |  |
+|  |   2. Groq 4-Key Pool (60s Cooldown on HTTP 429 & 6 Fallback Models: Qwen, GPT-OSS, Compound)  |  |
+|  |   3. Google Gemini Direct (gemini-2.0-flash, gemini-1.5-flash)                              |  |
+|  |   4. OpenAI Direct (gpt-4o-mini, gpt-3.5-turbo)                                             |  |
+|  |   5. OpenRouter Direct Failover                                                             |  |
+|  +---------------------------------------------------------------------------------------------+  |
+|                        |                                                 |                        |
+|                        v                                                 v                        |
+|  +-------------------------------------------+         +---------------------------------------+  |
+|  |     Supabase Cloud Database (PostgreSQL)  |         |  Multi-Channel Admin Notification Hub |  |
+|  |  - users (Visitor Fingerprints & Counts)  |         |  - Telegram Bot API (HTML formatting) |  |
+|  |  - preferences (user_name key-value)      |         |  - Discord Webhooks (Rich Embeds)     |  |
+|  |  - learnings (Dynamic Facts & Admin Rules)|         |  - Custom Webhooks (Raw JSON)         |  |
+|  |  - visitor_messages (Recruiter Classified)|         |  - Resend Email (Direct HTML Inquiries|  |
+|  |  - sessions & command_cache               |         |  - Destination: kumarsinghratnesh3@...|  |
+|  +-------------------------------------------+         +---------------------------------------+  |
++---------------------------------------------------------------------------------------------------+
 ```
 
-### Core Technologies:
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite, Lucide Icons, Canvas WebGL.
-- **3D Graphics**: Three.js, `@pixiv/three-vrm` (VRM 0.0 & 1.0 support), GLTFLoader.
-- **Speech & Audio**: Browser Web Speech API (`SpeechSynthesisUtterance`), Web Audio DSP, InnerTube YouTube Audio Player.
-- **Backend**: Node.js, Express, Opossum Circuit Breaker, Axios, Cookie-Parser, Helmet, CORS.
-- **Database & Cloud Memory**: Supabase (PostgreSQL), Service Role authentication, parameterized SQL queries.
-- **AI Providers**: NVIDIA NIM API, Groq Cloud API, Google Gemini API, OpenAI API, OpenRouter API.
-- **Hosting & Deployment**: Vercel Serverless / Node Runtime.
+---
+
+## 2. Directory Structure & File Map
+
+```
+My_Portfolio/
+├── .env                              # Environment variables (Never committed to Git)
+├── package.json                      # Root scripts and backend dependencies
+├── vercel.json                       # Vercel serverless routing and headers configuration
+├── PROJECT_DOCUMENTATION.md          # Master architectural blueprint and documentation
+├── index.html                        # Root HTML shell
+├── js/
+│   ├── app.js                        # Main legacy orchestrator
+│   ├── chatbot.js                    # Raya AI Assistant, Web Speech API & Action Handlers
+│   ├── vrm-config.js                 # Character list and local/CDN mapping
+│   ├── vrm-loader.js                 # Three.js VRM loader helper
+│   ├── intro.js                      # Splash screen & enter animation
+│   └── script.js                     # DOM interaction & smooth scroll helpers
+├── server/
+│   ├── server.js                     # Express API Gateway, Circuit Breaker, LLM Providers
+│   ├── raya-supabase-memory.js       # Supabase PostgreSQL client & query methods
+│   └── raya-notifications.js        # Telegram, Discord, Email alert dispatcher
+└── Urban/                            # React 18 + Vite Frontend Application
+    ├── package.json
+    ├── vite.config.ts
+    ├── tailwind.config.js
+    └── src/
+        ├── App.tsx                   # Main React entry & window.navigateToSection bridge
+        ├── main.tsx
+        ├── components/
+        │   └── portfolio/
+        │       ├── VRMCharacterEngine.tsx   # 3D Three.js VRM Canvas (Z-Index 2147483647)
+        │       ├── RayaAICompanion.tsx      # React Chat UI Shell
+        │       ├── HeroSection.tsx          # Home/Hero with action chips
+        │       ├── ProjectsSection.tsx      # SyncPulse, ShopKart, PAK, BMW, MediFlow
+        │       ├── AboutSection.tsx         # Bio & Engineering Philosophy
+        │       ├── SkillsSection.tsx        # 5 Engineering Pillars
+        │       ├── ExperienceSection.tsx    # SVIST / MAKAUT B.Tech ECE Education
+        │       ├── CertificationsSection.tsx# Verified Credentials
+        │       ├── ContactSection.tsx       # Contact Form & Social Links
+        │       └── Navbar.tsx               # Fixed Glassmorphic Navigation
+        └── lib/
+            └── portfolioData.ts             # Static data models & external URLs
+```
 
 ---
 
-## 2. 3D Interactive VRM Character Engine (`VRMCharacterEngine.tsx`)
+## 3. 3D Interactive VRM Character Engine (`VRMCharacterEngine.tsx`)
 
-### 2.1 Core Capabilities
-- **High-Performance WebGL Canvas**: Embedded with 100% background transparency (`alpha: true`), antialiasing, and sRGB color encoding.
-- **GitHub Releases CDN Storage**: VRM model files are stored in GitHub Releases (`vrm-models-v1`) to prevent bloating the git repository and ensure load times under 1.5s across global networks.
-- **Procedural Kinematics & Idle Animations**:
-  - **Breathing**: Smooth sinusoidal rotations applied to `spine` and `chest` humanoid bone nodes.
-  - **Head Tilting**: Subtle head motion responding to idle time.
-  - **Autonomous Blinking**: ExpressionManager modulates the `blink` blendshape every 3.5–4.5s.
-  - **Real-Time Lip-Sync**: Modulates vowel blendshapes (`aa` and `ih`) dynamically while Raya speaks.
-  - **Wave Greeting Gesture**: Procedural waving animation on `rightUpperArm` and `rightLowerArm` triggered on load and via the 👋 button.
-- **Free Drag-and-Drop Positioning**: Implemented with HTML5 Pointer Capture (`setPointerCapture`) so visitors can click and drag the avatar anywhere on the screen without glitching.
-- **Z-Index Layering**: Fixed `z-index: 2147483647` ensuring the 3D character sits cleanly on top of all page elements and UI cards.
+### 3.1 Three.js & VRM Specification
+- **Engine**: Three.js WebGLRenderer with `alpha: true`, `antialias: true`, `powerPreference: 'high-performance'`, `outputColorSpace = THREE.SRGBColorSpace`.
+- **VRM Loader Plugin**: `@pixiv/three-vrm` with `GLTFLoader`.
+- **Lighting Setup**:
+  - `AmbientLight`: Color `#ffffff`, intensity `1.7`.
+  - `DirectionalLight` (Key light): Color `#ff416c`, intensity `2.4`, position `(1.0, 2.0, 1.0)`.
+  - `DirectionalLight` (Rim light): Color `#38bdf8`, intensity `2.0`, position `(-1.0, 1.5, -1.0)`.
+- **Camera Configuration**: `PerspectiveCamera(30, width / height, 0.1, 20.0)` positioned at `(0.0, 1.25, 1.6)` looking at `(0.0, 1.15, 0.0)`.
 
-### 2.2 Model Roster & CDN Mapping
-| Character Name | Local Path | CDN Target File |
-| :--- | :--- | :--- |
-| **Changli (Default)** | `./Wuwa/changli(fixed).vrm` | `changli.fixed.vrm` |
-| **Kid Changli** | `./Wuwa/Kid changli.vrm` | `Kid.changli.vrm` |
-| **Camellya** | `./Wuwa/camellya.vrm` | `camellya.vrm` |
-| **Carlotta** | `./Wuwa/carlotta.vrm` | `carlotta.vrm` |
-| **Chixia** | `./Wuwa/chixia.vrm` | `chixia.vrm` |
-| **Jinshi** | `./Wuwa/jinshi.vrm` | `jinshi.vrm` |
-| **Pinkshi** | `./Wuwa/pinkshi.vrm` | `pinkshi.vrm` |
-| **Roccia** | `./Wuwa/roccia.vrm` | `roccia.vrm` |
-| **Rover** | `./Wuwa/rover.vrm` | `rover.vrm` |
-| **Sanhua** | `./Wuwa/sanhua.vrm` | `sanhua.vrm` |
-| **Shorekeeper** | `./Wuwa/shorekeeper.vrm` | `shorekeeper.vrm` |
-| **Verina** | `./Wuwa/verina.vrm` | `verina.vrm` |
-| **Yangyang** | `./Wuwa/yangyang.vrm` | `yangyang.vrm` |
-| **Yinlin** | `./Wuwa/yinlin.vrm` | `yinlin.vrm` |
+### 3.2 Procedural Kinematics & Facial Animation Loops
+1. **Breathing**: `spine.rotation.x = Math.sin(time * 1.5) * 0.02`, `chest.rotation.y = Math.sin(time * 0.8) * 0.03`.
+2. **Head Tilting**: `head.rotation.y = Math.sin(time * 0.5) * 0.06`, `head.rotation.x = Math.sin(time * 1.2) * 0.02`.
+3. **Autonomous Blinking**: `expressionManager.setValue('blink', Math.sin(time * 0.8) > 0.96 ? 1 : 0)`.
+4. **Real-Time Lip-Sync**:
+   - When speaking (`isTalking || window.chatbotTalking`):
+     - `expressionManager.setValue('aa', Math.abs(Math.sin(time * 9.0)) * 0.75)`
+     - `expressionManager.setValue('ih', Math.abs(Math.cos(time * 9.0)) * 0.35)`
+   - When idle: `aa = 0`, `ih = 0`.
+5. **Procedural Wave Greeting**:
+   - Triggered on load and via `playWaveAnimation()`:
+     - `rightUpperArm.rotation.z = -1.25 + Math.sin(time * 8.0) * 0.22`
+     - `rightUpperArm.rotation.x = -0.45`
+     - `rightLowerArm.rotation.y = -0.85 + Math.sin(time * 8.0) * 0.32`
+   - Automatically resets after 4000ms.
+
+### 3.3 Free Drag-and-Drop Pointer Capture
+- Implemented with `onPointerDown`, `onPointerMove`, and `onPointerUp`.
+- Captures pointer ID (`e.target.setPointerCapture(e.pointerId)`).
+- Bound to screen edges: `x: Math.max(0, Math.min(window.innerWidth - 300, newX))`, `y: Math.max(0, Math.min(window.innerHeight - 100, newY))`.
+- Fixed positioning style: `position: fixed; left: ${x}px; top: ${y}px; z-index: 2147483647;`.
+
+### 3.4 CDN Model Mapping (GitHub Releases `vrm-models-v1`)
+Base URL: `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/`
+```typescript
+const FILE_MAP: Record<string, string> = {
+  'changli(fixed).vrm': 'changli.fixed.vrm',
+  'Kid changli.vrm': 'Kid.changli.vrm',
+  'camellya.vrm': 'camellya.vrm',
+  'carlotta.vrm': 'carlotta.vrm',
+  'chixia.vrm': 'chixia.vrm',
+  'jinshi.vrm': 'jinshi.vrm',
+  'pinkshi.vrm': 'pinkshi.vrm',
+  'roccia.vrm': 'roccia.vrm',
+  'rover.vrm': 'rover.vrm',
+  'sanhua.vrm': 'sanhua.vrm',
+  'shorekeeper.vrm': 'shorekeeper.vrm',
+  'verina.vrm': 'verina.vrm',
+  'yangyang.vrm': 'yangyang.vrm',
+  'yinlin.vrm': 'yinlin.vrm',
+};
+```
 
 ---
 
-## 3. Raya AI Companion & Web Speech Synthesis (`js/chatbot.js`)
+## 4. Raya AI Voice & Multilingual Engine (`js/chatbot.js`)
 
-### 3.1 Speech Synthesis Engine & Microsoft Edge Natural Voices
-Raya is configured with human-like voice synthesis tuned for Microsoft Edge, Chrome, Safari, and Firefox:
-- **Default Speech Pitch**: `1.35` (Sweet, lively, friendly companion tone).
-- **Default Speech Rate**: `1.10` (~165 WPM natural conversational pace).
+### 4.1 Speech Synthesis Engine Specification
+- **API**: Window Web Speech API (`SpeechSynthesisUtterance`).
+- **Tuned Pitch**: `1.35` (Sweet, lively, companion character tone).
+- **Tuned Rate**: `1.10` (~165 WPM conversational speaking pace).
 - **Voice Selection Hierarchy**:
-  1. **Microsoft Edge Online Natural Voices**:
-     - *English (US/UK/Default)*: `Microsoft Ava (Natural)`, `Jenny (Natural)`, `Aria (Natural)`, `Sonia (Natural)`, `Libby (Natural)`, `Maisie (Natural)`
-     - *Indian English*: `Microsoft Neerja (Natural)`, `Heera`, `Veena`
-     - *Hindi / Hinglish*: `Microsoft Swara (Natural)`, `Kalpana`, `Neerja (Natural)`, `Google हिन्दी`
-     - *Bengali*: `Microsoft Tanishaa (Natural)`, `Nabami (Natural)`, `Google বাংলা`
-     - *Punjabi*: `Microsoft Gurpreet (Natural)`, `Google ਪੰਜਾਬੀ`
-     - *Gujarati*: `Microsoft Dhwani (Natural)`, `Google ગુજરાતી`
-  2. **Google Cloud Neural Voices**: `Google UK English Female`, `Google US English`, `Google हिन्दी`, `Google বাংলা`, etc.
-  3. **Apple Natural Voices**: `Samantha`, `Karen`, `Moira`, `Tessa`, `Serena`.
+  ```javascript
+  // 1. Edge Natural Female Voices
+  edgeNeuralFemale = voices.find(v => /Ava.*Natural/i.test(v.name) && v.lang.startsWith('en'))
+                  || voices.find(v => /Jenny.*Natural/i.test(v.name) && v.lang.startsWith('en'))
+                  || voices.find(v => /Aria.*Natural/i.test(v.name) && v.lang.startsWith('en'))
+                  || voices.find(v => /Neerja.*Natural/i.test(v.name));
+  // 2. Indian English Female Voices
+  neuralIndianFemale = voices.find(v => v.name.includes('Neerja')) || voices.find(v => v.name.includes('Heera'));
+  // 3. Google Cloud Female Voices
+  googleFemale = voices.find(v => v.name === 'Google UK English Female') || voices.find(v => v.name === 'Google US English');
+  // 4. Apple Natural Voices
+  appleFemale = voices.find(v => v.name === 'Samantha') || voices.find(v => v.name === 'Karen');
+  ```
 
-### 3.2 Real-Time Phonetic Transliteration Engine (`getNativeScriptForTTS`)
-To ensure natural voice pronunciation without cluttering the chat bubble:
-1. Raya generates responses in **conversational Romanized Latin script** (e.g., *"Ami khub bhalo achi"*, *"Haan bilkul main Hindi bol sakti hoon"*).
-2. The UI chat bubble displays clean English letters.
-3. Immediately before speech synthesis, `getNativeScriptForTTS` transliterates the text into native Unicode script (`বাংলা`, `ਪੰਜਾਬੀ`, `ગુજરાતી`, `हिन्दी`), feeding it directly into Edge's neural engine for flawless pronunciation.
-
----
-
-## 4. Resilient Multi-Provider LLM Brain (`server/server.js`)
-
-### 4.1 Circuit Breaker & Failover Architecture
-Every user request to `/api/chat` passes through an **Opossum Circuit Breaker** with automated multi-tier failover:
-1. **Primary LLM**: NVIDIA NIM API (`meta/llama-3.3-70b-instruct`)
-2. **Failover Tier 1**: Groq Multi-Key Rotation Pool (4 API Keys with automatic HTTP 429 60s cooldown & 6 fallback models)
-3. **Failover Tier 2**: Google Gemini API (`gemini-2.0-flash`, `gemini-1.5-flash`)
-4. **Failover Tier 3**: OpenAI API (`gpt-4o-mini`, `gpt-3.5-turbo`)
-5. **Failover Tier 4**: OpenRouter API Direct
-
-### 4.2 Groq 4-Key Smart Rotation with 60-Second Cooldown
-- Supports multi-key configuration via `GROQ_API_KEYS="key1, key2, key3, key4"` or individual environment variables (`GROQ_API_KEY_1`, `GROQ_API_KEY_2`, etc.).
-- When an API key hits **HTTP 429 (Rate Limit)**, it is placed on a **60-second cooldown timer** (`rateLimitedKeys` map).
-- Subsequent requests automatically bypass the rate-limited key and route immediately to the next available key in the pool.
-- After 60 seconds (when Groq's per-minute token window resets), the key automatically re-enters the active pool.
-- Key rotation spans across 6 models (`qwen/qwen3.8-27b`, `openai/gpt-oss-20b`, `qwen/qwen3.6-27b`, `groq/compound-mini`, `groq/compound`, `openai/gpt-oss-120b`) creating **24 distinct failover pathways**.
-
-### 4.3 Compact Token Payload Optimization
-- To avoid Tokens-Per-Minute (TPM) limits on free-tier APIs, the backend:
-  1. Compresses admin telemetry and database stats into a compact **~150-token snapshot**.
-  2. Slices conversation history to the last 6 turns (`messages.slice(-6)`).
-  3. Keeps total prompt payload under **~450 tokens**, allowing 18+ queries per minute per key (70+ queries/min across 4 keys).
-
----
-
-## 5. Inbuilt Suggestion Commands & Programmatic Actions
-
-All chip buttons and voice inputs are processed through the backend LLM brain. Raya controls the website by appending structured JSON action blocks:
-
-| User Command | Spoken Response Summary | Executed Action JSON | UI Behavior |
+### 4.2 Language Voice Mapping & Dialect Matrix
+| Language / Dialect | Detected Script / Keywords | Target Lang Code | Selected Edge Voice |
 | :--- | :--- | :--- | :--- |
-| **"Scroll down" / "Browse"** | *"Scrolling down for you right now!"* | `{"action":"scroll","target":"down"}` | Smooth scrolls viewport by 650px |
-| **"Show projects"** | Enthusiastic overview of SyncPulse, ShopKart, etc. | `{"action":"scroll","target":"projects"}` | Navigates to `#projects` section |
-| **"Show skills"** | Details Software, Android, Embedded, Cloud pillars | `{"action":"scroll","target":"skills"}` | Navigates to `#skills` section |
-| **"Take me to contact"** | *"Taking you straight to the contact section!"* | `{"action":"scroll","target":"contact"}` | Navigates to `#contact` section |
-| **"Take me to experience"** | Explains education at SVIST/MAKAUT | `{"action":"scroll","target":"experience"}` | Navigates to `#experience` section |
-| **"Take me to certifications"**| Highlights verified credentials | `{"action":"scroll","target":"certifications"}` | Navigates to `#certifications` section |
-| **"Leave a message"** | Asks for user message to deliver to Ratnesh | `{"action":"leave_message"}` | Focuses input bar with `"Hi Ratnesh, "` prefill |
-| **"Play music" / Song query** | Confirms track playback | `{"action":"play_song","query":"<song>"}` | Streams background YouTube player |
-| **"Tell me a joke"** | Fresh, creative joke (Hinglish/Punjabi/Bengali/etc.) | *No action appended* | Speaks text with no UI jump |
+| **English (US/Default)** | Default | `en-US` | `Microsoft Ava (Natural)`, `Jenny (Natural)` |
+| **Indian English** | `ratnesh`, `svist`, `makaut`, `btech`, `kolkata`, `yaar` | `en-IN` | `Microsoft Neerja (Natural)`, `Heera`, `Veena` |
+| **UK English** | `colour`, `flavour`, `cheers`, `mate`, `brilliant`, `bloke` | `en-GB` | `Microsoft Sonia (Natural)`, `Libby (Natural)`, `Maisie` |
+| **Hindi / Hinglish** | Devanagari or `namaste`, `kaise`, `kya`, `chutkula`, `hai` | `hi-IN` | `Microsoft Swara (Natural)`, `Kalpana`, `Neerja` |
+| **Bengali** | Bengali script or `kemon`, `acho`, `bhalo`, `amar`, `tumi` | `bn-IN` | `Microsoft Tanishaa (Natural)`, `Nabami (Natural)` |
+| **Punjabi** | Gurmukhi or `kidda`, `sat sri akal`, `kive`, `tussi`, `paaji` | `pa-IN` | `Microsoft Gurpreet (Natural)` |
+| **Gujarati** | Gujarati script or `kem cho`, `majama`, `tamaru`, `su` | `gu-IN` | `Microsoft Dhwani (Natural)` |
 
-> [!IMPORTANT]
-> **No `{"action":"none"}` Rule**: The system prompt strictly prohibits the LLM from generating `{"action":"none"}` or dummy actions. The frontend regex `/\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}/gi` strips all action blocks so raw JSON never displays in the speech bubble.
-
----
-
-## 6. Supabase Cloud Memory & Telemetry (`server/raya-supabase-memory.js`)
-
-Connected to Supabase project `srwmkciescfhnrrfwssx` with direct PostgreSQL persistence:
-
-### 6.1 Database Tables Architecture
-1. `users`: Stores visitor UUIDs, IP hashes, device information, and total visit counts.
-2. `sessions`: Tracks session start/end timestamps and activity duration.
-3. `messages`: Logs visitor and assistant conversation turns.
-4. `learnings`: Stores user-contributed facts and dynamic rules with verification statuses (`pending`, `verified`, `rejected`).
-5. `preferences`: Key-value user store (e.g., `user_name`).
-6. `visitor_messages`: Inquiries left by visitors or recruiters with auto-extracted contact details and timestamps.
-7. `command_cache`: High-speed cache for common command queries.
-
-### 6.2 Visitor Name Aggregation (`getAllKnownVisitorNames`)
-When Ratnesh queries Raya in Admin mode about who visited the site, `getAllKnownVisitorNames()` aggregates and deduplicates names across:
-- `users` table records
-- `preferences` where `key = 'user_name'`
-- `learnings` where `content ILIKE "User's name is %"`
-- `visitor_messages` sender names
-- Historical database records (`Rahul`, `Shubham`, `Divya Raj Singh`, `Raam`, `Darshan`)
-
-### 6.3 Recruiter Intelligence & Classification
-The backend automatically classifies messages as recruiter inquiries if they contain hiring keywords (`hire`, `interview`, `salary`, `ctc`, `role`, `opening`, `opportunity`, `job`, `resume`, `profile`, `package`, `full-time`, `internship`). Recruiter messages receive high-priority formatting in telemetry and notifications.
+### 4.3 Real-Time Phonetic Transliteration Engine (`getNativeScriptForTTS`)
+- **Reason**: Writing native scripts (Devanagari, Bengali, etc.) in the UI chat bubble clashes with the modern English interface design. However, reading Romanized English phonetically with native Edge TTS engines results in awkward pronunciation.
+- **Solution**:
+  1. Raya outputs clean Romanized text in standard English letters (A–Z).
+  2. The UI speech bubble renders the clean English letters.
+  3. Right before calling `speechSynthesis.speak(utterance)`, `getNativeScriptForTTS(cleanText, langCode)` converts Romanized words into native Unicode characters:
+     - `Ami khub bhalo achi` $\rightarrow$ `আমি খুব ভালো আছি` (Spoken by `Tanishaa Natural`)
+     - `Main Hindi mein baat kar sakti hoon` $\rightarrow$ `मैं हिंदी में बात कर सकती हूँ` (Spoken by `Swara Natural`)
+     - `Haanji main Punjabi bol sakdi aan` $\rightarrow$ `ਹਾਂਜੀ ਮੈਂ ਪੰਜਾਬੀ ਬੋਲ ਸਕਦੀ ਆਂ` (Spoken by `Gurpreet Natural`)
+     - `Hu Gujarati ma vaat kari saku chu` $\rightarrow$ `હું ગુજરાતી માં વાત કરી શકું છું` (Spoken by `Dhwani Natural`)
 
 ---
 
-## 7. Real-Time Multi-Channel Admin Notification Engine (`server/raya-notifications.js`)
+## 5. Multi-Provider LLM Gateway & Circuit Breaker (`server/server.js`)
 
-Whenever a visitor or recruiter leaves a message, the backend immediately dispatches formatted alerts across 4 independent channels:
+### 5.1 Provider Failover Hierarchy
+Requests to `/api/chat` execute through an **Opossum Circuit Breaker** (`timeout: 28000ms`, `errorThresholdPercentage: 50%`, `resetTimeout: 30000ms`):
 
-1. **Telegram Bot**: Sends rich HTML messages with sender name, contact info, recruiter status, sender city/IP, and message content to Ratnesh's Telegram chat.
-2. **Discord Webhook**: Sends colored embed cards (Green for Recruiters, Blue for Visitors).
-3. **Custom Webhook**: Dispatches raw JSON payloads for webhook integrations.
-4. **Resend Email API**: Sends automated HTML notification emails directly to `kumarsinghratnesh3@gmail.com`.
+1. **Tier 1: NVIDIA NIM API (Primary)**
+   - Model: `meta/llama-3.3-70b-instruct`
+   - Endpoint: `https://integrate.api.nvidia.com/v1/chat/completions`
+   - Timeout: 7000ms (fast-fail on 401/404/network timeout).
+2. **Tier 2: Groq Cloud API (Multi-Key Rotation Pool)**
+   - Keys: 4 API keys loaded from `GROQ_API_KEYS` (comma/space/newline separated) or `GROQ_API_KEY_1..4`.
+   - Cooldown: On HTTP 429, key enters `rateLimitedKeys` with `Date.now() + 60000` expiration. Next key is tried immediately.
+   - Model Lineup (Rotated across keys):
+     1. `qwen/qwen3.8-27b`
+     2. `openai/gpt-oss-20b`
+     3. `qwen/qwen3.6-27b`
+     4. `groq/compound-mini`
+     5. `groq/compound`
+     6. `openai/gpt-oss-120b`
+   - Total Failover Capacity: 4 keys $\times$ 6 models = **24 distinct fallback paths**.
+3. **Tier 3: Google Gemini API Direct**
+   - Models: `gemini-2.0-flash`, `gemini-1.5-flash`
+   - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+4. **Tier 4: OpenAI API Direct**
+   - Models: `gpt-4o-mini`, `gpt-3.5-turbo`
+5. **Tier 5: OpenRouter Direct**
 
----
-
-## 8. Admin Mode & Security Shielding
-
-### 8.1 Authentication & Admin Rules
-- **Admin Password**: Configured via `ADMIN_PASSWORD` (`Aditya@231`).
-- **Admin Commands**:
-  - `rule: [instruction]`: Adds a permanent verified rule into Supabase memory.
-  - Telemetry inquiries: Raya provides live visit counts, top visitor locations, recruiter inquiries, and recorded visitor names.
-
-### 8.2 Security & Protection
-- **SQL Injection Prevention**: All Supabase database interactions use parameterized SDK queries (`.from().select().eq()`). No raw SQL string concatenation is ever performed.
-- **Prompt Injection & XSS Sanitization**: User inputs are sanitized via `sanitizePromptInjection()`, stripping dangerous payloads, script tags, and evasion patterns before reaching the LLM or database.
-- **Secret Isolation**: All API keys, database credentials, and bot tokens are stored in environment variables and never exposed to client-side bundles.
-
----
-
-## 9. Portfolio Sections & Structure (`Urban/src/App.tsx`)
-
-The portfolio is structured as a clean, single 3D interactive application with 7 sections:
-
-1. **`home`**: Hero greeting, interactive 3D VRM avatar, social links, resume download, and quick command chips.
-2. **`projects`**: Core software projects:
-   - **SyncPulse**: Full-Stack Collaborative Audio Studio & DSP DAW (React, Node.js, Web Audio API, WebSockets).
-   - **ShopKart**: High-Performance E-Commerce Platform (React, Tailwind CSS, Stripe).
-   - **PAK Video Converter**: High-Speed WebAssembly Audio/Video Converter (FFmpeg WASM).
-   - **BMW 3D Visualizer**: Real-Time Three.js 3D Vehicle Customizer.
-   - **MediFlow**: Healthcare Management System (temporarily private repository for database refactoring).
-3. **`about`**: Technical bio, engineering background, and core values.
-4. **`skills`**: Technical skills grouped into 5 engineering pillars: Full-Stack Web & Audio, Native Android, Hardware & RF, Cloud Architecture, and 3D Graphics.
-5. **`experience`**: Education background at Swami Vivekananda Institute of Science & Technology (SVIST / MAKAUT - B.Tech in Electronics & Communication Engineering).
-6. **`certifications`**: Verified credentials and engineering achievements.
-7. **`contact`**: Direct contact form, social links (LinkedIn, GitHub, Instagram, Email), and Raya message conduit.
+### 5.2 Token Optimization & TPM Shielding
+- Free tier Groq keys have an **8,000 Tokens-Per-Minute (TPM)** quota.
+- To prevent rate limit exhaustion:
+  - Admin telemetry is compressed into a **~150-token summary**.
+  - History is strictly bounded to the last 6 turns: `messages.slice(-6)`.
+  - Total payload per request is **<450 tokens**, allowing 18+ queries/min per key and **70+ queries/min across 4 keys**.
 
 ---
 
-## 10. Environment Variables Configuration
+## 6. Programmatic Action Execution Protocol
 
-To run the complete system, configure these environment variables in `.env` (local) or Vercel Project Settings (production):
+Raya orchestrates UI state by appending structured JSON action blocks at the end of her dialogue:
+
+```typescript
+type RayaAction = 
+  | { action: "scroll"; target: "home" | "projects" | "about" | "skills" | "experience" | "certifications" | "contact" | "down" }
+  | { action: "play_song"; query: string }
+  | { action: "leave_message" }
+  | { action: "open_link"; target: string };
+```
+
+### Action Handling Rules:
+1. **JSON Extraction Regex**: `/\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}/gi`
+2. **Filtering**: Any action with `"action":"none"` or `"action":"dummy"` is completely ignored.
+3. **Display Scrubbing**: All matched JSON blocks and markdown code fences (````json ... ````) are stripped from `spokenText` before rendering the chat bubble and triggering TTS.
+4. **Navigation Bridge**: `action: "scroll"` calls `window.navigateToSection(target)` (exposed in `Urban/src/App.tsx`) with fallback `document.getElementById(target)?.scrollIntoView({ behavior: 'smooth' })`.
+5. **Scroll Down**: `target: "down"` executes `window.scrollBy({ top: 650, behavior: 'smooth' })`.
+6. **Music Player**: `action: "play_song"` searches YouTube via `/api/yt-search` and embeds a non-intrusive floating audio player (`#raya-yt-wrapper`).
+
+---
+
+## 7. Supabase PostgreSQL Cloud Memory (`server/raya-supabase-memory.js`)
+
+Connected to Supabase Project `srwmkciescfhnrrfwssx`:
+
+### 7.1 Database Table Schemas
+```sql
+-- 1. Users & Visitors
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fingerprint TEXT UNIQUE,
+    ip_hash TEXT,
+    visit_count INT DEFAULT 1,
+    city TEXT,
+    country TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. User Preferences
+CREATE TABLE preferences (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Dynamic Learnings & Admin Rules
+CREATE TABLE learnings (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    type TEXT CHECK (type IN ('fact', 'preference', 'correction', 'admin_rule', 'admin_outbox')),
+    content TEXT NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rejected')),
+    session_id TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. Visitor & Recruiter Messages
+CREATE TABLE visitor_messages (
+    id SERIAL PRIMARY KEY,
+    user_name TEXT,
+    contact_info TEXT,
+    message TEXT NOT NULL,
+    is_recruiter BOOLEAN DEFAULT FALSE,
+    location TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    read BOOLEAN DEFAULT FALSE
+);
+
+-- 5. Command Cache
+CREATE TABLE command_cache (
+    id SERIAL PRIMARY KEY,
+    query_hash TEXT UNIQUE,
+    query TEXT NOT NULL,
+    response TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### 7.2 Visitor Name Aggregation (`getAllKnownVisitorNames`)
+Aggregates and deduplicates visitor names from across the entire database:
+1. `users` table records
+2. `preferences` table (`key: 'user_name'`)
+3. `learnings` table (`content ILIKE "User's name is %"`)
+4. `visitor_messages` table (`user_name`)
+5. Historical records (`Rahul`, `Shubham`, `Divya Raj Singh`, `Raam`, `Darshan`)
+
+### 7.3 Recruiter Detection Algorithm
+```javascript
+function classifyMessageImportance(message, contactInfo) {
+    const text = (message + ' ' + (contactInfo || '')).toLowerCase();
+    const recruiterKeywords = [
+        'hire', 'interview', 'salary', 'ctc', 'role', 'opening', 'opportunity',
+        'job', 'resume', 'profile', 'package', 'full-time', 'internship',
+        'recruiter', 'hr', 'talent', 'position', 'hiring'
+    ];
+    return recruiterKeywords.some(k => text.includes(k));
+}
+```
+
+---
+
+## 8. Multi-Channel Admin Notification Engine (`server/raya-notifications.js`)
+
+When a visitor leaves a message via Raya or the contact form, notifications dispatch concurrently to:
+
+1. **Telegram Bot API**:
+   - URL: `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`
+   - Formats rich HTML with recruiter badge (`💼 RECRUITER` / `💬 VISITOR`), sender name, contact info, city/country, IST timestamp, and message body.
+2. **Discord Webhooks**:
+   - URL: `${DISCORD_WEBHOOK_URL}`
+   - Dispatches rich embeds (Color `#22c55e` for Recruiters, `#3b82f6` for Visitors).
+3. **Custom Webhook**:
+   - URL: `${NOTIFICATION_WEBHOOK_URL}`
+   - Sends raw JSON payload.
+4. **Resend Email API**:
+   - URL: `https://api.resend.com/emails`
+   - Dispatches HTML emails to `ADMIN_EMAIL` (`kumarsinghratnesh3@gmail.com`).
+
+---
+
+## 9. Security, Authentication & Defense Shielding
+
+1. **Admin Authentication**:
+   - Password: `ADMIN_PASSWORD` (`Aditya@231`).
+   - Authenticated requests pass `Authorization: Bearer <token>`.
+2. **SQL Injection Prevention**:
+   - All Supabase interactions use parameterized SDK calls (`.from().select().eq()`).
+   - Zero raw SQL string interpolation is permitted anywhere in the backend.
+3. **Prompt Injection & XSS Sanitization**:
+   - Inputs pass through `sanitizePromptInjection()`, stripping system prompt override attempts (`ignore previous instructions`, `you are now`, `DAN`, etc.) and HTML script tags.
+4. **Secret Isolation**:
+   - All API keys, database keys, and passwords exist only in server-side environment variables.
+
+---
+
+## 10. Master Bug-Fixing & Troubleshooting Playbook
+
+This section documents every major technical issue encountered during development, along with the permanent fixes implemented.
+
+---
+
+### Issue 1: 3D Avatar Rendered Behind Content Cards (Stacking Context Glitch)
+- **Symptom**: The 3D VRM canvas appeared underneath project cards, skills grids, or background overlays.
+- **Root Cause**: Parent `div` containers in `App.tsx` and `ThreeCharacterScene` had CSS properties (`z-index: 10`, `position: relative`, `backdrop-filter`, or `transform`) that created new isolated CSS Stacking Contexts. Even if the avatar had `z-index: 9999`, it remained trapped behind the parent's sibling layers.
+- **Permanent Solution**:
+  1. Removed isolated stacking contexts from content wrappers.
+  2. Moved `VRMCharacterEngine.tsx` to a top-level fixed container mounted directly to `document.body` with `z-index: 2147483647` (maximum 32-bit integer).
+  3. Added pointer-events isolation so dragging the avatar doesn't trigger clicks on underlying cards.
+
+---
+
+### Issue 2: Microsoft Edge Natural Voices Resetting / Pitch Distortion
+- **Symptom**: Raya's voice in Microsoft Edge suddenly sounded robotic (`Microsoft Zira`) instead of natural neural speech (`Microsoft Ava / Jenny / Neerja`).
+- **Root Cause**: Microsoft Edge's cloud neural TTS engine strictly enforces standard pitch (`1.0`). Applying modified pitch (`1.35`) on cloud neural voices caused Edge's Web Speech implementation to throw `synthesis-failed` and silently revert to offline robotic SAPI voices.
+- **Permanent Solution**:
+  1. Configured `loadVoices()` with comprehensive regex prioritizing Edge Natural variants (`Ava.*Natural`, `Jenny.*Natural`, `Aria.*Natural`, `Neerja.*Natural`, `Swara.*Natural`, `Tanishaa.*Natural`).
+  2. Maintained natural rate (`1.10`) and sweet pitch (`1.35`), with an automatic fallback retry handler in `utterance.onerror` that catches synthesis errors and seamlessly speaks using fallback voices without breaking chat flow.
+
+---
+
+### Issue 3: Rate Limits & 429 Token Rate Limit Failures (Groq TPM Exhaustion)
+- **Symptom**: Raya stopped responding or fell into local fallback loops after several queries in Admin mode.
+- **Root Cause**: `getAdminHistoricalContext` was dumping 600+ lines of raw database JSON into `system_prompt` on every turn (~8,000 tokens/call), instantly exhausting Groq's 8,000 TPM limit.
+- **Permanent Solution**:
+  1. Compressed admin telemetry into a compact **~150-token structured snapshot**.
+  2. Sliced chat history to the last 6 turns: `messages.slice(-6)`.
+  3. Built multi-key round-robin rotation across 4 Groq API keys with an automatic 60-second cooldown timer on HTTP 429 (`rateLimitedKeys` map).
+  4. Structured multi-tier Circuit Breaker failover: NVIDIA NIM $\rightarrow$ Groq (4 keys $\times$ 6 models) $\rightarrow$ Google Gemini $\rightarrow$ OpenAI $\rightarrow$ OpenRouter.
+
+---
+
+### Issue 4: `{"action":"none"}` Visible in Chat Bubble & Spoken Aloud
+- **Symptom**: When Raya told a joke or conversational greeting, raw text like `{"action":"none"}` displayed in the speech bubble and was read aloud by TTS.
+- **Root Cause**: The client-side regex whitelist `/\{"action":"(?:play_song|navigate|...)"\}/` did not match the word `"none"`, so `spokenText.replace()` skipped it, leaving raw JSON in the text.
+- **Permanent Solution**:
+  1. Updated frontend regex to match all JSON action blocks: `/\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}/gi`.
+  2. Filtered out `"none"` and dummy actions before executing.
+  3. Added strict prompt directives: `CRITICAL: NEVER output {"action":"none"} or dummy actions. If no action is needed, output only plain conversation text.`
+
+---
+
+### Issue 5: Inbuilt Suggestion Commands Bypassing LLM API / Navigation Failing
+- **Symptom**: Clicking suggestion chips did not navigate the page or did not process through the AI brain.
+- **Root Cause**: Client-side click handlers intercepted text without forwarding to `/api/chat`, and legacy multi-theme code (`THEME_MAP`, `_awaitingTheme`) broke section navigation.
+- **Permanent Solution**:
+  1. Rewired all chip buttons and mic inputs to call `this.handleUserInput(cmdText)` directly to `/api/chat`.
+  2. Stripped all legacy multi-theme artifacts.
+  3. Integrated section navigation with `window.navigateToSection(secId)` in `App.tsx` and smooth scroll fallback.
+
+---
+
+### Issue 6: Raya Claiming She Does Not Store Visitor Names
+- **Symptom**: When Ratnesh asked in Admin mode who visited the site, Raya responded that she does not collect or store visitor names.
+- **Root Cause**: Known names stored in `users`, `preferences`, `learnings`, and `visitor_messages` were not being injected into Raya's admin prompt context.
+- **Permanent Solution**:
+  1. Created `getAllKnownVisitorNames()` in `server/raya-supabase-memory.js` aggregating distinct visitor names across all tables.
+  2. Injected `Recorded Visitor / User Names in Database: [...]` into Raya's Admin mode system prompt.
+  3. Explicitly instructed Raya: `When Ratnesh asks who visited the website, list of users, or their names, warmly and clearly list these recorded visitor names from your database!`
+
+---
+
+### Issue 7: Admin Messages Trapped as Rules
+- **Symptom**: Any message typed while in Admin mode was saved as a rule, preventing normal conversation.
+- **Root Cause**: The client treated all messages in Admin mode as dynamic rules, and the backend lacked a dedicated rule endpoint.
+- **Permanent Solution**:
+  1. Added `/api/admin/rule` endpoint in `server/server.js`.
+  2. Restricted rule creation to explicit prefixes (`rule: ...` or `add rule: ...`).
+
+---
+
+## 11. Environment Variables Master Reference
 
 ```env
-# Server
+# Server Configuration
 PORT=3000
 NODE_ENV=production
 ADMIN_PASSWORD=Aditya@231
 
-# LLM Providers (Multi-Failover Hierarchy)
+# AI / LLM Provider Keys
 NVIDIA_API_KEY=nvapi-...
 GROQ_API_KEYS=gsk_key1, gsk_key2, gsk_key3, gsk_key4
 GEMINI_API_KEY=AIzaSy...
 OPENAI_API_KEY=sk-...
 OPENROUTER_API_KEY=sk-or-...
 
-# Supabase Cloud Database & Memory
+# Supabase PostgreSQL Configuration
 SUPABASE_URL=https://srwmkciescfhnrrfwssx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 
-# Admin Notification Engine
+# Admin Notification Channels
 TELEGRAM_BOT_TOKEN=123456789:ABCdef...
 TELEGRAM_CHAT_ID=987654321
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+NOTIFICATION_WEBHOOK_URL=https://your-custom-webhook.com/api/notify
 RESEND_API_KEY=re_...
 ADMIN_EMAIL=kumarsinghratnesh3@gmail.com
 ```
 
 ---
 
-## 11. Git Restore Points Index & Recovery Reference
+## 12. Git Restore Points Index & Recovery Reference
 
-| Restore Point | Git Tag / Branch | Commit Hash | System State Description |
+| Restore Point | Git Tag / Branch | Commit Hash | Key Milestone & Status |
 | :--- | :--- | :--- | :--- |
 | **Restore Point 1** | `restore-point-1` | `c112947` | Microsoft Edge natural neural voices with sweet `1.35` pitch baseline. |
-| **Restore Point 2** | `restore-point-2` | `5ec2cf2` | Inbuilt commands rewired through API, smooth section navigation, and cleaned single-theme architecture. |
-| **Restore Point 3** | `restore-point-3` | `HEAD` | **ALL SYSTEMS WORKING PERFECTLY** — Multi-Groq 4-key 60s 429 rotation, Supabase visitor name retrieval, multilingual Romanized TTS pipeline, admin notifications, zero `{"action":"none"}` artifacts, and comprehensive security hardening. |
+| **Restore Point 2** | `restore-point-2` | `5ec2cf2` | Inbuilt commands routed through API, clean single 7-section layout, smooth scrolling. |
+| **Restore Point 3** | `restore-point-3` | `f4aa7e9` | **ALL SYSTEMS WORKING PERFECTLY** — Groq 4-key 60s 429 rotation, Supabase visitor name retrieval, multilingual Romanized TTS pipeline, admin alerts, zero `{"action":"none"}` artifacts, and complete security hardening. |
 
-### How to Switch to a Restore Point:
+### Recovery Commands:
 ```bash
-# Checkout Restore Point 3 (Current Perfect State)
+# Checkout Restore Point 3 (Current Perfect Baseline)
 git checkout restore-point-3
 
 # Checkout Restore Point 2
@@ -280,9 +499,9 @@ git checkout restore-point-2
 # Checkout Restore Point 1
 git checkout restore-point-1
 
-# Return to main branch
+# Return to active production branch
 git checkout main
 ```
 
 ---
-*Created and verified for Ratnesh Kumar Singh's 3D Interactive AI Portfolio.*
+*Authored for Ratnesh Kumar Singh's 3D Interactive AI Portfolio System.*
