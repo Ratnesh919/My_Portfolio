@@ -467,15 +467,29 @@ function fixVRMHitbox(vrmObj) {
 }
 
 const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
-vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile, async gltf => {
-    vrm = gltf.userData.vrm;
-    if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
+vrmLoader.load(
+    window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile,
+    async gltf => {
+        if (typeof window.onVRMLoadProgress === 'function') {
+            window.onVRMLoadProgress(92, 'Initializing bone physics & facial blendshapes...');
+        }
+        vrm = gltf.userData.vrm;
+        if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
 
-    configureVRMPhysics(vrm, initialFile);
-    applyModelVisuals(vrm, initialFile);
-    fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
+        configureVRMPhysics(vrm, initialFile);
+        applyModelVisuals(vrm, initialFile);
+        fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
 
-    window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
+        window._vrmIsReady = true;
+        if (typeof window.onVRMLoadProgress === 'function') {
+            window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
+        }
+        if (typeof window.onVRMReady === 'function') {
+            window.onVRMReady();
+        }
+
+        window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
+
     window.setVRMScale = (scale) => {
         if (!isFinite(scale) || scale <= 0) return;
         const clamped = Math.max(0.3, Math.min(2.5, scale));
@@ -600,6 +614,25 @@ vrmLoader.load(window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialF
                     window.chatBot.introduceHerself();
                 }
             }, 250);
+        }
+    }, (progress) => {
+        if (progress && progress.lengthComputable && progress.total > 0) {
+            const pct = Math.min(90, Math.round((progress.loaded / progress.total) * 90));
+            if (typeof window.onVRMLoadProgress === 'function') {
+                window.onVRMLoadProgress(pct, `Downloading 3D avatar (${pct}%)...`);
+            }
+        } else if (progress && progress.loaded > 0) {
+            const approxTotal = 15 * 1024 * 1024;
+            const pct = Math.min(88, Math.round((progress.loaded / approxTotal) * 88));
+            if (typeof window.onVRMLoadProgress === 'function') {
+                window.onVRMLoadProgress(pct, `Downloading 3D avatar (${pct}%)...`);
+            }
+        }
+    }, (err) => {
+        console.warn('[VRM Initial Load Error]', err);
+        window._vrmIsReady = true;
+        if (typeof window.onVRMReady === 'function') {
+            window.onVRMReady();
         }
     });
 
