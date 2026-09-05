@@ -1105,82 +1105,9 @@ You can control the website and open any demo/link based on user commands! When 
       return;
     }
 
-    // ── Pre-execute side-effects for inbuilt commands instantly,
-    //    then fall through to the AI brain for the conversational reply ──
-
-    // 1. Scroll down — execute immediately, let AI respond
-    if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(qLower)) {
-      window.scrollBy({ top: 600, behavior: 'smooth' });
-      // fall through to AI ↓
-    }
-
-    // 2. Scroll up / Home — execute immediately
-    else if (/^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(qLower)) {
-      onScrollToSection?.('home');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      // fall through to AI ↓
-    }
-
-    // 3. Navigate to contact section — execute immediately
-    else if (/^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(qLower)) {
-      onScrollToSection?.('contact');
-      // fall through to AI ↓
-    }
-
-    // 4. Navigate to projects — execute immediately
-    else if (/^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(qLower)) {
-      onScrollToSection?.('projects');
-      // fall through to AI ↓
-    }
-
-    // 5. Navigate to skills — execute immediately
-    else if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower)) {
-      onScrollToSection?.('skills');
-      // fall through to AI ↓
-    }
-
-    // 6. Play song / music — launch YT player immediately
-    else if (/^play a song|^play music|^play song|^play lofi|^play\s+/.test(qLower)) {
-      const cleanSongName = query.replace(/play|song|music|a|the|for|me|on|youtube/gi, '').trim() || 'lofi hip hop';
-      searchAndPlayYouTube(cleanSongName);
-      // fall through to AI ↓
-    }
-
-    // 7. Leave a message — scroll + prefill input immediately
-    else if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(qLower)) {
-      onScrollToSection?.('contact');
-      setInput('Hi Ratnesh, ');
-      // fall through to AI ↓
-    }
-
-    // 8. Direct Demo / Repo Openers — open immediately
-    else if (/^open shopkart|^open syncpulse|^open pak|^open bmw|^open jobpilot|^open linkedin|^open github|^open instagram|^open facebook/.test(qLower)) {
-      let url = '';
-      if (qLower.includes('shopkart')) url = 'https://shopkart919.netlify.app';
-      else if (qLower.includes('syncpulse')) url = 'https://syncpulse-1igt.onrender.com';
-      else if (qLower.includes('pak')) url = 'https://github.com/Ratnesh919/PAK_Video_Converter_Android_App';
-      else if (qLower.includes('bmw')) url = 'https://relaxed-nasturtium-3abd55.netlify.app/';
-      else if (qLower.includes('jobpilot')) url = 'https://ratnesh919.app.n8n.cloud';
-      else if (qLower.includes('linkedin')) url = 'https://www.linkedin.com/in/ratnesh-kumar-singh-16749325b';
-      else if (qLower.includes('github')) url = 'https://github.com/Ratnesh919';
-      else if (qLower.includes('instagram')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
-      else if (qLower.includes('facebook')) url = 'https://www.facebook.com/share/1De11Vypsn/';
-      if (url) window.open(url, '_blank', 'noopener,noreferrer');
-      // fall through to AI ↓
-    }
-
-    // Track whether the side-effect (scroll/navigate/open) was already executed
-    // so processActionCommands doesn't duplicate it from the AI's JSON action tag
-    const sideEffectAlreadyFired = (
-      /^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(qLower) ||
-      /^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(qLower) ||
-      /^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(qLower) ||
-      /^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(qLower) ||
-      /^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower) ||
-      /^play a song|^play music|^play song|^play lofi|^play\s+/.test(qLower) ||
-      /^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(qLower) ||
-      /^open shopkart|^open syncpulse|^open pak|^open bmw|^open jobpilot|^open linkedin|^open github|^open instagram|^open facebook/.test(qLower)
-    );
+    // All inbuilt commands route directly through the AI brain.
+    // Raya speaks her intelligent reply first, then processActionCommands
+    // fires the action (scroll/navigate/open) after — so it feels natural.
 
     setIsLoading(true);
 
@@ -1216,7 +1143,7 @@ You can control the website and open any demo/link based on user commands! When 
       if (response.ok) {
         const data = await response.json();
         const rawContent = data?.choices?.[0]?.message?.content || data?.reply || data?.message || '';
-        
+
         // Intercept rate limit notices or API missing key messages so user gets real answers
         if (rawContent && !rawContent.includes('rate limits') && !rawContent.includes('API Key Notice') && !rawContent.includes('temporarily resting')) {
           botText = rawContent;
@@ -1227,10 +1154,8 @@ You can control the website and open any demo/link based on user commands! When 
         botText = generateLocalResponse(query);
       }
 
-      // Only run processActionCommands if side-effect was NOT already pre-fired
-      if (!sideEffectAlreadyFired) {
-        processActionCommands(botText);
-      }
+      // Fire actions (scroll/navigate/open/play) AFTER the AI response — so Raya speaks first
+      processActionCommands(botText);
 
       // Strip JSON command from displayed bubble text
       const cleanDisplayText = botText.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
@@ -1247,9 +1172,7 @@ You can control the website and open any demo/link based on user commands! When 
       speakRaya(cleanDisplayText);
     } catch {
       const fallbackText = generateLocalResponse(query);
-      if (!sideEffectAlreadyFired) {
-        processActionCommands(fallbackText);
-      }
+      processActionCommands(fallbackText);
       const cleanDisplayText = fallbackText.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
 
       const rayaMsg: Message = {
