@@ -1105,121 +1105,56 @@ You can control the website and open any demo/link based on user commands! When 
       return;
     }
 
-    // 1. Scroll down
+    // ── Pre-execute side-effects for inbuilt commands instantly,
+    //    then fall through to the AI brain for the conversational reply ──
+
+    // 1. Scroll down — execute immediately, let AI respond
     if (/^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(qLower)) {
       window.scrollBy({ top: 600, behavior: 'smooth' });
-      const reply = "Scrolling down for you right now!";
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    // 2. Scroll up / Home
-    if (/^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(qLower)) {
+    // 2. Scroll up / Home — execute immediately
+    else if (/^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(qLower)) {
       onScrollToSection?.('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      const reply = "Taking you right back to the top!";
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    // 3. Navigation to sections
-    if (/^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(qLower)) {
+    // 3. Navigate to contact section — execute immediately
+    else if (/^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(qLower)) {
       onScrollToSection?.('contact');
-      const reply = "Taking you straight to the contact section where you can reach Ratnesh!";
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    if (/^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(qLower)) {
+    // 4. Navigate to projects — execute immediately
+    else if (/^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(qLower)) {
       onScrollToSection?.('projects');
-      const reply = "Here are Ratnesh's core projects: SyncPulse, ShopKart, PAK Video Converter, MediFlow, and BMW 3D Visualizer! Which one would you like to explore?";
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower)) {
+    // 5. Navigate to skills — execute immediately
+    else if (/^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower)) {
       onScrollToSection?.('skills');
-      const reply = "Ratnesh specializes in Full-Stack Real-Time Web Audio DSP, Android MediaCodec, Automated Workflows, RF Hardware Simulation, and 3D WebGL!";
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    // 4. Play song / music
-    if (/^play a song|^play music|^play song|^play lofi|^play\s+/.test(qLower)) {
+    // 6. Play song / music — launch YT player immediately
+    else if (/^play a song|^play music|^play song|^play lofi|^play\s+/.test(qLower)) {
       const cleanSongName = query.replace(/play|song|music|a|the|for|me|on|youtube/gi, '').trim() || 'lofi hip hop';
       searchAndPlayYouTube(cleanSongName);
-      const reply = `Playing ${cleanSongName} for you on YouTube now! Enjoy the music.`;
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    // 5. Leave a message
-    if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(qLower)) {
+    // 7. Leave a message — scroll + prefill input immediately
+    else if (/^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(qLower)) {
       onScrollToSection?.('contact');
       setInput('Hi Ratnesh, ');
-      const reply = "Sure! Type your message right here, and I'll deliver it to Ratnesh.";
-      const rayaMsg: Message = {
-        id: `raya_${Date.now()}`,
-        sender: 'raya',
-        text: reply,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, rayaMsg]);
-      onUpdateSpeechText?.(reply);
-      speakRaya(reply);
-      return;
+      // fall through to AI ↓
     }
 
-    // 6. Direct Demo / Repo Openers
-    if (/^open shopkart|^open syncpulse|^open pak|^open bmw|^open jobpilot|^open linkedin|^open github|^open instagram|^open facebook/.test(qLower)) {
+    // 8. Direct Demo / Repo Openers — open immediately
+    else if (/^open shopkart|^open syncpulse|^open pak|^open bmw|^open jobpilot|^open linkedin|^open github|^open instagram|^open facebook/.test(qLower)) {
       let url = '';
       if (qLower.includes('shopkart')) url = 'https://shopkart919.netlify.app';
       else if (qLower.includes('syncpulse')) url = 'https://syncpulse-1igt.onrender.com';
@@ -1230,23 +1165,23 @@ You can control the website and open any demo/link based on user commands! When 
       else if (qLower.includes('github')) url = 'https://github.com/Ratnesh919';
       else if (qLower.includes('instagram')) url = 'https://www.instagram.com/ratnesh.199?igsh=MXF3aDd0eWRhaGhiaA==';
       else if (qLower.includes('facebook')) url = 'https://www.facebook.com/share/1De11Vypsn/';
-      if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer');
-        const reply = "Opening that link for you in a new tab now!";
-        const rayaMsg: Message = {
-          id: `raya_${Date.now()}`,
-          sender: 'raya',
-          text: reply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-        setMessages(prev => [...prev, rayaMsg]);
-        onUpdateSpeechText?.(reply);
-        speakRaya(reply);
-        return;
-      }
+      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+      // fall through to AI ↓
     }
 
-    // For all other queries (custom conversation, jokes in languages, inquiries about creator, AI questions), process through LLM API key!
+    // Track whether the side-effect (scroll/navigate/open) was already executed
+    // so processActionCommands doesn't duplicate it from the AI's JSON action tag
+    const sideEffectAlreadyFired = (
+      /^scroll down$|^go down$|^page down$|\bscroll down\b|\bpage down\b/.test(qLower) ||
+      /^scroll up$|^go up$|^page up$|^back to top$|^go to top$|\bscroll up\b|\bback to top\b|^home$/.test(qLower) ||
+      /^take me to contact section$|^contact$|^go to contact$|^reach out$|\bcontact section\b/.test(qLower) ||
+      /^tell me about ratnesh'?s? projects?$|^tell me about projects?$|^projects?$|^show projects?$|^view projects?$|\bprojects? section\b/.test(qLower) ||
+      /^tell me about ratnesh'?s? skills?$|^tell me about skills?$|^skills?$|^show skills?$|^view skills?$|\bskills? section\b|^tech stack$/.test(qLower) ||
+      /^play a song|^play music|^play song|^play lofi|^play\s+/.test(qLower) ||
+      /^leave a message$|^leave a messege$|^leave msg$|^send message$/.test(qLower) ||
+      /^open shopkart|^open syncpulse|^open pak|^open bmw|^open jobpilot|^open linkedin|^open github|^open instagram|^open facebook/.test(qLower)
+    );
+
     setIsLoading(true);
 
     try {
@@ -1292,7 +1227,10 @@ You can control the website and open any demo/link based on user commands! When 
         botText = generateLocalResponse(query);
       }
 
-      processActionCommands(botText);
+      // Only run processActionCommands if side-effect was NOT already pre-fired
+      if (!sideEffectAlreadyFired) {
+        processActionCommands(botText);
+      }
 
       // Strip JSON command from displayed bubble text
       const cleanDisplayText = botText.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
@@ -1309,7 +1247,9 @@ You can control the website and open any demo/link based on user commands! When 
       speakRaya(cleanDisplayText);
     } catch {
       const fallbackText = generateLocalResponse(query);
-      processActionCommands(fallbackText);
+      if (!sideEffectAlreadyFired) {
+        processActionCommands(fallbackText);
+      }
       const cleanDisplayText = fallbackText.replace(/\{[^}]*"action"[^}]*\}/g, '').trim();
 
       const rayaMsg: Message = {
