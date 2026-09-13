@@ -455,31 +455,12 @@ class AvatarChatBot {
         panel.appendChild(this.infoPanel);
         panel.appendChild(inputRow);
 
-        // Suggestions Click Handlers — scroll/navigate executed client-side instantly
+        // Suggestions Click Handlers — strictly routed through LLM API Key (Primary Brain)
         this.infoPanel.querySelectorAll('.suggest-cmd').forEach(item => {
             item.addEventListener('click', (e) => {
                 let cmdText = e.target.textContent.replace(/"/g, '').trim();
                 this.infoPanel.style.display = 'none';
-
-                if (cmdText.includes('Leave a message')) {
-                    this.textInput.value = "Hi Ratnesh, ";
-                    this.textInput.placeholder = "Type your message for Ratnesh...";
-                    this.textInput.focus();
-                } else if (cmdText.toLowerCase().includes('scroll down')) {
-                    this.speakAvatar("Sure! Scrolling down for you.", false);
-                    this.executeScroll('down');
-                } else if (cmdText.toLowerCase().includes('projects')) {
-                    this.speakAvatar("Taking you to the projects section!", false);
-                    this.executeScroll('projects');
-                } else if (cmdText.toLowerCase().includes('skills')) {
-                    this.speakAvatar("Here are Ratnesh's skills!", false);
-                    this.executeScroll('skills');
-                } else if (cmdText.toLowerCase().includes('contact')) {
-                    this.speakAvatar("Taking you to the contact section!", false);
-                    this.executeScroll('contact');
-                } else {
-                    this.handleUserInput(cmdText);
-                }
+                this.handleUserInput(cmdText);
             });
         });
 
@@ -1134,13 +1115,16 @@ class AvatarChatBot {
 
         try {
             const isAdminActive = typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true' || this.isAdminMode);
+            const storedAdminSig = typeof window !== 'undefined' ? (sessionStorage.getItem('adminSig') || localStorage.getItem('adminSig') || '') : '';
             const res = await fetch('/api/chat', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 
                     'Content-Type': 'application/json',
                     'x-user-id': this.userId,
                     'x-is-admin': isAdminActive ? 'true' : 'false',
-                    'x-admin-token': text.trim()
+                    'x-admin-token': text.trim(),
+                    'x-admin-sig': storedAdminSig
                 },
                 body: JSON.stringify({
                     messages: this.messages,
@@ -1159,6 +1143,10 @@ class AvatarChatBot {
                 if (typeof window !== 'undefined') {
                     sessionStorage.setItem('isAdmin', 'true');
                     localStorage.setItem('isAdmin', 'true');
+                    if (data.adminSig) {
+                        sessionStorage.setItem('adminSig', data.adminSig);
+                        localStorage.setItem('adminSig', data.adminSig);
+                    }
                 }
             }
             let reply = data.choices && data.choices[0] ? data.choices[0].message.content : '';

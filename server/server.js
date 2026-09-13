@@ -350,7 +350,7 @@ async function callNvidiaDirect(nvidiaKey, payload) {
                         model,
                         messages: payload.messages,
                         temperature: payload.temperature || 0.7,
-                        max_tokens: payload.max_tokens || 200
+                        max_tokens: payload.max_tokens || 800
                     },
                     {
                         headers: {
@@ -411,7 +411,7 @@ async function callGeminiDirect(geminiKey, payload) {
         contents: contents,
         generationConfig: {
             temperature: payload.temperature || 0.7,
-            maxOutputTokens: payload.max_tokens ? Math.min(payload.max_tokens * 2, 400) : 250,
+            maxOutputTokens: payload.max_tokens || 1000,
         }
     };
 
@@ -461,7 +461,7 @@ async function callOpenAIDirect(openaiKey, payload) {
                     model,
                     messages: payload.messages,
                     temperature: payload.temperature || 0.7,
-                    max_tokens: payload.max_tokens || 160
+                    max_tokens: payload.max_tokens || 800
                 },
                 {
                     headers: {
@@ -492,7 +492,7 @@ async function callOpenRouterDirect(openrouterKey, payload) {
                     model,
                     messages: payload.messages,
                     temperature: payload.temperature || 0.7,
-                    max_tokens: payload.max_tokens || 160
+                    max_tokens: payload.max_tokens || 800
                 },
                 {
                     headers: {
@@ -1035,7 +1035,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
             incomingMessages = sysMsg ? [sysMsg, ...recentTurns.filter(m => m !== sysMsg)] : recentTurns;
         }
 
-        const uid = sanitizeId(req.cookies['raya_user_id'] || 'unknown_user', 'usr');
+        const uid = sanitizeId(req.cookies['raya_user_id'] || req.headers['x-user-id'] || req.body?.userId || 'unknown_user', 'usr');
         const sid = sanitizeId(sessionId || 'default', 'ses');
 
         // Ensure session exists
@@ -1272,7 +1272,7 @@ CRITICAL: NEVER output {"action":"none"} or dummy actions. If no action is neede
 5. MEDIFLOW REPOSITORY STATUS:
 - If a user asks about MediFlow's GitHub repo, explain warmly: "Ratnesh has temporarily set the MediFlow GitHub repository to private while refactoring database schemas and adding real-time features. If you would like an architectural walkthrough, feel free to contact Ratnesh directly!"
 6. CRITICAL EMOJI RULE: NEVER output emojis (e.g. 😊, 🚀, 👍, ✨) or markdown formatting asterisks anywhere in your speech text.
-7. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances. Keep responses concise, warm, and under 150 words.`;
+7. CRITICAL: NEVER use the word "na" or "naa" at the end of sentences under any circumstances. In Visitor Mode, keep responses concise, warm, and under 120 words. In Admin Mode, provide the full, complete, and comprehensive data requested (telemetry, visitor profiles, IP addresses, locations, and conversation dialogue) without cutting off sentences.`;
 
             enrichedMessages[0] = { ...enrichedMessages[0], content: sysContent };
         }
@@ -1283,11 +1283,12 @@ CRITICAL: NEVER output {"action":"none"} or dummy actions. If no action is neede
             : enrichedMessages;
 
         // Call the LLM through the Circuit Breaker (Primary: NVIDIA NIM -> Groq -> Gemini -> OpenAI)
+        const tokenLimit = isAdmin ? 1200 : 500;
         const response = await groqBreaker.fire({
             model: 'meta/llama-3.3-70b-instruct',
             messages: finalMessages,
             temperature: 0.7,
-            max_tokens: 250
+            max_tokens: tokenLimit
         });
 
         let assistantReply = response.data.choices[0]?.message?.content || '';
@@ -1307,7 +1308,8 @@ CRITICAL: NEVER output {"action":"none"} or dummy actions. If no action is neede
         // Return immediately to the user, unblocking the HTTP response
         res.json({
             ...response.data,
-            isAdmin: isAdmin
+            isAdmin: isAdmin,
+            adminSig: isAdmin ? (adminCookieSig || (uid ? generateAdminSig(uid) : undefined)) : undefined
         });
 
         // Run database saves asynchronously so the event loop isn't blocked 
