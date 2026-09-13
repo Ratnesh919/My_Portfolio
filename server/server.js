@@ -11,25 +11,32 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const mem = require('./raya-supabase-memory');
 const app = express();
+app.set('trust proxy', 1);
 
 // ── Strict CORS Policy (Prevents Cross-Origin Data Exfiltration) ─────────────
-const ALLOWED_ORIGIN_REGEX = /^(https:\/\/(?:[a-z0-9-]+-ratnesh919s-projects\.vercel\.app|my-portfolio[a-z0-9-]*\.vercel\.app|ratnesh919\.github\.io)|http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?)$/i;
+function isAllowedOrigin(origin) {
+    if (!origin) return true;
+    try {
+        const parsed = new URL(origin);
+        const host = parsed.hostname.toLowerCase();
+        if (host === 'localhost' || host === '127.0.0.1') return true;
+        if (host === 'ratnesh919.github.io') return true;
+        if (host.endsWith('.vercel.app') && (host.includes('portfolio') || host.includes('ratnesh'))) return true;
+        if (host === 'my-portfolio-omega-liart-40.vercel.app') return true;
+    } catch (e) {}
+    return false;
+}
 
 const corsOptions = {
     origin: (origin, callback) => {
-        // Allow requests without Origin header (e.g. mobile apps, curl, same-origin)
-        if (!origin) return callback(null, true);
-        if (ALLOWED_ORIGIN_REGEX.test(origin) || origin === 'https://my-portfolio-omega-liart-40.vercel.app') {
-            return callback(null, true);
-        }
-        // Disallow CORS headers for unauthorized origins
-        return callback(null, false);
+        callback(null, isAllowedOrigin(origin));
     },
     credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'x-user-id', 'x-is-admin']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    // Omitting allowedHeaders allows express cors to dynamically reflect requested headers (including x-admin-token)
 };
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '64kb' }));
 app.use(cookieParser());
 
@@ -674,8 +681,8 @@ groqBreaker.on('close',   () => console.log ('🟢 [Circuit] Groq circuit CLOSED
 // ── Rate Limiting ────────────────────────────────────────────────────────
 const chatLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 20, // Limit each IP to 20 requests per windowMs
-    message: { error: 'Too many requests. Please slow down.' }
+    max: 40, // 40 requests per minute per IP
+    message: { error: 'Raya is catching her breath! Please wait a moment before sending another message.' }
 });
 
 const ytLimiter = rateLimit({
@@ -1017,8 +1024,16 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         const { messages, sessionId } = req.body;
         
         // Strict payload validation
-        if (!Array.isArray(messages) || messages.length === 0 || messages.length > 25) {
-            return res.status(400).json({ error: 'Invalid messages array. Must be an array between 1 and 25 items.' });
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({ error: 'Invalid messages array.' });
+        }
+
+        // Intelligently window messages to avoid context overflow without rejecting long conversations
+        let incomingMessages = messages;
+        if (messages.length > 20) {
+            const sysMsg = messages[0]?.role === 'system' ? messages[0] : null;
+            const recentTurns = messages.slice(-18);
+            incomingMessages = sysMsg ? [sysMsg, ...recentTurns.filter(m => m !== sysMsg)] : recentTurns;
         }
 
         const uid = sanitizeId(req.cookies['raya_user_id'] || 'unknown_user', 'usr');
@@ -1028,7 +1043,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
         await mem.startSession(uid, sid);
 
         // Sanitize and validate every incoming message
-        const sanitizedMessages = messages.map(m => {
+        const sanitizedMessages = incomingMessages.map(m => {
             const role = ['user', 'assistant', 'system'].includes(m.role) ? m.role : 'user';
             const rawContent = typeof m.content === 'string' ? m.content : '';
             const cleanedContent = sanitizePromptInjection(rawContent).slice(0, 2000);
