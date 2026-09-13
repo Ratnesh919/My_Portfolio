@@ -1,10 +1,11 @@
 const axios = require('axios');
 
 module.exports = async (req, res) => {
-    // Enable CORS for client-side fetches
+    // Enable CORS and Edge CDN Caching (prevents bandwidth exhaustion / DoS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Cache-Control', 'public, max-age=604800, s-maxage=2592000, immutable');
 
     if (req.method === 'OPTIONS') {
         return res.status(204).end();

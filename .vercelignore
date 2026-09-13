@@ -1,0 +1,25 @@
+# Sensitive Environment Variables
+.env
+.env.*
+*.env
+
+# Internal Database Scripts & Schemas
+database/
+*.sql
+
+# Internal Scripts & Documentation
+scripts/
+docs/
+scratch/
+*.md
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Temporary Build Output
+node_modules
+*.tsbuildinfo
+tsc_output.txt
+tsc2.txt
