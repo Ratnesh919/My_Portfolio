@@ -94,6 +94,20 @@ async function initUser(rawUserId, isNewUser, ipAddress, rawLocation = null) {
     const { data: prefs } = await supabase.from('preferences').select('key, value').eq('user_id', userId);
     const userNameObj = (prefs || []).find(p => p.key === 'user_name');
     
+    // Sync into new visitor_profiles table (userid, name, ip_address, location)
+    const profilePayload = {
+        userid: userId,
+        ip_address: safeIp,
+        updated_at: new Date()
+    };
+    if (location) profilePayload.location = location;
+    if (userNameObj?.value) profilePayload.name = userNameObj.value;
+
+    await supabase
+        .from('visitor_profiles')
+        .upsert(profilePayload, { onConflict: 'userid' })
+        .catch(err => console.warn('[Supabase] visitor_profiles initUser warning:', err.message));
+
     return { userName: userNameObj ? userNameObj.value : null };
 }
 
@@ -319,6 +333,7 @@ async function extractLearnings(userId, sessionId, userMsg, assistantReply) {
     if (nameMatch && nameMatch[1] && !['ratnesh', 'admin', 'user', 'guest', 'raya', 'here', 'looking', 'interested', 'trying', 'exploring', 'a'].includes(nameMatch[1].toLowerCase())) {
         const uName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1).toLowerCase();
         await setPreference(userId, 'user_name', uName);
+        await recordVisitorProfile(userId, uName);
         await saveLearning(userId, 'profile', `User introduced themselves as ${uName}`, sessionId);
     }
 
@@ -614,6 +629,56 @@ async function markMessageRead(id) {
     }
 }
 
+// ── Visitor Profiles Operations (userid, name, ip_address, location) ────────
+async function recordVisitorProfile(rawUserId, rawName = null, rawIpAddress = null, rawLocation = null) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const name = rawName ? sanitizeText(rawName, 100) : null;
+    const ip = rawIpAddress ? sanitizeText(rawIpAddress, 64) : null;
+    const loc = rawLocation ? sanitizeText(rawLocation, 120) : null;
+
+    const payload = {
+        userid: userId,
+        updated_at: new Date()
+    };
+    if (name) payload.name = name;
+    if (ip) payload.ip_address = ip;
+    if (loc) payload.location = loc;
+
+    const { data, error } = await supabase
+        .from('visitor_profiles')
+        .upsert(payload, { onConflict: 'userid' });
+
+    if (error) {
+        console.warn('[Supabase] recordVisitorProfile warning:', error.message);
+    }
+    return { data, error };
+}
+
+async function getVisitorProfiles(limit = 50) {
+    const { data, error } = await supabase
+        .from('visitor_profiles')
+        .select('id, userid, name, ip_address, location, created_at, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.warn('[Supabase] getVisitorProfiles warning:', error.message);
+        return [];
+    }
+    return data || [];
+}
+
+async function getVisitorProfileByUserId(rawUserId) {
+    const userId = sanitizeId(rawUserId, 'usr');
+    const { data, error } = await supabase
+        .from('visitor_profiles')
+        .select('*')
+        .eq('userid', userId)
+        .single();
+    if (error) return null;
+    return data;
+}
+
 async function getAdminHistoricalContext() {
     try {
         const [stats, locStats, visitorMsgs, recentMsgs, verifiedLearnings, users] = await Promise.all([
@@ -715,5 +780,6 @@ module.exports = {
     buildMemoryContext, extractLearnings, cleanDatabase, getAllUsers, getAllVerifiedLearnings,
     getLocationStats, classifyMessageImportance, saveVisitorMessage,
     getVisitorMessages, markMessageRead, getAdminHistoricalContext, saveAdminOutboxMessage,
-    getPendingOutboxMessages, getAllKnownVisitorNames
+    getPendingOutboxMessages, getAllKnownVisitorNames,
+    recordVisitorProfile, getVisitorProfiles, getVisitorProfileByUserId
 };

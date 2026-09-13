@@ -713,6 +713,15 @@ app.get('/api/admin/messages', checkAdmin, async (req, res) => {
     }
 });
 
+app.get('/api/admin/visitor-profiles', checkAdmin, async (req, res) => {
+    try {
+        const profiles = await mem.getVisitorProfiles();
+        res.json({ ok: true, profiles });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/admin/unread-count', checkAdmin, async (req, res) => {
     try {
         const messages = await mem.getVisitorMessages();
@@ -1247,6 +1256,7 @@ app.post('/api/learn', generalApiLimiter, async (req, res) => {
     if (nameCandidate && nameCandidate.length >= 2 && nameCandidate.length <= 40) {
         const safeName = sanitizeText(nameCandidate, 40);
         await mem.setPreference(userId, 'user_name', safeName);
+        await mem.recordVisitorProfile(userId, safeName);
     }
 
     res.json({ ok: true });
