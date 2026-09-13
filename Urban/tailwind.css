@@ -149,3 +149,82 @@ canvas, #vrm-canvas, .three-canvas, #master-intro-overlay, #soap-bubble-containe
   -webkit-transform: translateZ(0);
   will-change: transform, backdrop-filter;
 }
+
+/* ═══ High-Craft Moving Outline Glow (Rotating Conic Neon Beam) ═══ */
+@keyframes spin-outline-glow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.moving-outline-glow-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 2px;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25), 0 0 30px rgba(255, 65, 108, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.moving-outline-glow-container:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 30px rgba(255, 65, 108, 0.45), 0 0 45px rgba(168, 85, 247, 0.45);
+}
+
+.moving-outline-glow-container::before {
+  content: '';
+  position: absolute;
+  top: -75%;
+  left: -75%;
+  width: 250%;
+  height: 250%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    #ff416c 45deg,
+    #ec4899 90deg,
+    #a855f7 150deg,
+    #6366f1 210deg,
+    transparent 280deg,
+    #ff416c 360deg
+  );
+  animation: spin-outline-glow 3.5s linear infinite;
+  z-index: 0;
+  will-change: transform;
+}
+
+.moving-outline-glow-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 9999px;
+  background: #110920;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.6rem;
+  color: #f8fafc;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: background 0.25s ease;
+}
+
+.moving-outline-glow-container:hover .moving-outline-glow-inner {
+  background: #190e2e;
+}
+
+/* ═══ Animated Audio Equalizer Bars ═══ */
+@keyframes eqBar1 { 0%, 100% { height: 4px; } 50% { height: 18px; } }
+@keyframes eqBar2 { 0%, 100% { height: 16px; } 50% { height: 6px; } }
+@keyframes eqBar3 { 0%, 100% { height: 8px; } 50% { height: 22px; } }
+@keyframes eqBar4 { 0%, 100% { height: 20px; } 50% { height: 10px; } }
+@keyframes eqBar5 { 0%, 100% { height: 10px; } 50% { height: 16px; } }
+
+.eq-bar-1 { animation: eqBar1 0.8s ease-in-out infinite; }
+.eq-bar-2 { animation: eqBar2 0.7s ease-in-out infinite; }
+.eq-bar-3 { animation: eqBar3 0.9s ease-in-out infinite; }
+.eq-bar-4 { animation: eqBar4 0.75s ease-in-out infinite; }
+.eq-bar-5 { animation: eqBar5 0.85s ease-in-out infinite; }
+

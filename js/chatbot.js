@@ -442,6 +442,7 @@ class AvatarChatBot {
                 <button class="info-panel-close">&times;</button>
             </div>
             <ul class="info-panel-commands">
+                <li class="suggest-cmd">"🎯 Recruiter Quick Tour"</li>
                 <li class="suggest-cmd">"Leave a message"</li>
                 <li class="suggest-cmd">"Scroll down"</li>
                 <li class="suggest-cmd">"Take me to projects"</li>
@@ -460,6 +461,10 @@ class AvatarChatBot {
             item.addEventListener('click', (e) => {
                 let cmdText = e.target.textContent.replace(/"/g, '').trim();
                 this.infoPanel.style.display = 'none';
+                if (cmdText.toLowerCase().includes('recruiter')) {
+                    this.startRecruiterQuickTour();
+                    return;
+                }
                 this.handleUserInput(cmdText);
             });
         });
@@ -1450,76 +1455,170 @@ class AvatarChatBot {
         // Remove any existing player
         document.getElementById('raya-yt-wrapper')?.remove();
 
-        if (!document.getElementById('raya-yt-style')) {
-            const s = document.createElement('style');
-            s.id = 'raya-yt-style';
-            s.textContent = `
-                @keyframes rayaSlideUp {
-                    from { opacity:0; transform:translateY(20px); }
-                    to   { opacity:1; transform:translateY(0); }
-                }
-            `;
-            document.head.appendChild(s);
-        }
-
         const thumbUrl = 'https://i.ytimg.com/vi/' + video.videoId + '/mqdefault.jpg';
         const wrapper = document.createElement('div');
         wrapper.id = 'raya-yt-wrapper';
-        wrapper.style.cssText = `
-            position:fixed; bottom:20px; left:16px; z-index:9999999;
-            display:flex; align-items:center; gap:10px;
-            background:rgba(10,10,14,0.92); backdrop-filter:blur(12px);
-            border:1px solid rgba(255,65,108,0.35); border-radius:14px;
-            padding:10px 14px; max-width:300px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.6);
-            animation:rayaSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) both;
-        `;
+        wrapper.className = 'is-playing';
 
         const thumb = document.createElement('img');
         thumb.src = thumbUrl;
-        thumb.style.cssText = 'width:54px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;';
+        thumb.className = 'raya-player-thumb';
+        thumb.alt = video.title;
 
         const info = document.createElement('div');
-        info.style.cssText = 'flex:1;min-width:0;';
+        info.className = 'raya-player-info';
 
         const titleEl = document.createElement('div');
+        titleEl.className = 'raya-player-title';
         titleEl.textContent = video.title;
-        titleEl.style.cssText = `font-size:0.78rem;font-weight:600;color:#fff;
-            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Outfit',sans-serif;`;
+        titleEl.title = video.title;
 
-        const openBtn = document.createElement('a');
-        openBtn.href = ytUrl;
-        openBtn.target = '_blank';
-        openBtn.rel = 'noopener';
-        openBtn.innerHTML = '↗ Open on YouTube';
-        openBtn.style.cssText = `display:inline-block;margin-top:5px;font-size:0.7rem;
-            font-weight:700;color:#ff416c;text-decoration:none;
-            font-family:'Outfit',sans-serif;letter-spacing:0.5px;`;
-        openBtn.addEventListener('click', () => setTimeout(() => wrapper.remove(), 8000));
+        const subEl = document.createElement('div');
+        subEl.className = 'raya-player-subtitle';
+        subEl.innerHTML = `
+            <div class="raya-eq-bars">
+                <div class="raya-eq-bar"></div>
+                <div class="raya-eq-bar"></div>
+                <div class="raya-eq-bar"></div>
+                <div class="raya-eq-bar"></div>
+            </div>
+            <span>Playing via Raya</span>
+        `;
+
+        info.appendChild(titleEl);
+        info.appendChild(subEl);
+
+        let isPlaying = true;
+        let isMuted = false;
+
+        const playBtn = document.createElement('button');
+        playBtn.className = 'raya-player-btn play-toggle';
+        playBtn.title = 'Pause / Play';
+        const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+        const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+        playBtn.innerHTML = pauseIcon;
+
+        const muteBtn = document.createElement('button');
+        muteBtn.className = 'raya-player-btn';
+        muteBtn.title = 'Mute / Unmute';
+        const volIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+        const muteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+        muteBtn.innerHTML = volIcon;
+
+        const ytLink = document.createElement('a');
+        ytLink.className = 'raya-player-btn';
+        ytLink.href = ytUrl;
+        ytLink.target = '_blank';
+        ytLink.rel = 'noopener';
+        ytLink.title = 'Open on YouTube';
+        ytLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 
         const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-        closeBtn.style.cssText = `background:none;border:none;color:rgba(255,255,255,0.4);
-            cursor:pointer;font-size:0.85rem;padding:0 0 0 6px;flex-shrink:0;line-height:1;`;
-        closeBtn.onclick = () => wrapper.remove();
+        closeBtn.className = 'raya-player-btn';
+        closeBtn.title = 'Close Player';
+        closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
-        // Embed iframe for direct on-page playback (no popups)
+        // Embed iframe
         const iframe = document.createElement('iframe');
         iframe.src = embedUrl;
         iframe.allow = 'autoplay; encrypted-media; clipboard-write; picture-in-picture';
-        // Make iframe take full space behind the thumbnail to trick autoplay blockers
-        iframe.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; opacity:0.01; z-index:-1; border:none; pointer-events:none;';
+        iframe.style.cssText = 'position:absolute; inset:0; width:1px; height:1px; opacity:0.01; z-index:-1; border:none; pointer-events:none;';
 
-        info.appendChild(titleEl);
-        info.appendChild(openBtn);
+        playBtn.onclick = () => {
+            if (isPlaying) {
+                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                playBtn.innerHTML = playIcon;
+                wrapper.classList.remove('is-playing');
+                wrapper.classList.add('is-paused');
+                isPlaying = false;
+            } else {
+                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                playBtn.innerHTML = pauseIcon;
+                wrapper.classList.remove('is-paused');
+                wrapper.classList.add('is-playing');
+                isPlaying = true;
+            }
+        };
+
+        muteBtn.onclick = () => {
+            if (!isMuted) {
+                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'mute', args: [] }), '*');
+                muteBtn.innerHTML = muteIcon;
+                isMuted = true;
+            } else {
+                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+                muteBtn.innerHTML = volIcon;
+                isMuted = false;
+            }
+        };
+
+        closeBtn.onclick = () => {
+            try {
+                iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
+            } catch (e) {}
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateY(20px)';
+            setTimeout(() => wrapper.remove(), 300);
+        };
+
         wrapper.appendChild(thumb);
         wrapper.appendChild(info);
+        wrapper.appendChild(playBtn);
+        wrapper.appendChild(muteBtn);
+        wrapper.appendChild(ytLink);
         wrapper.appendChild(closeBtn);
-        wrapper.appendChild(iframe); // Audio plays from here
+        wrapper.appendChild(iframe);
+
         document.body.appendChild(wrapper);
-        
-        // Auto-remove after a long time or when closed manually
-        setTimeout(() => wrapper.remove?.(), 60000 * 10); // 10 minutes
+        setTimeout(() => wrapper.remove?.(), 60000 * 10);
+    }
+
+    // -- Recruiter Quick Tour ----------------------------------------------------
+    startRecruiterQuickTour() {
+        if (typeof activateAvatarAndChatbot === 'function') {
+            activateAvatarAndChatbot();
+        }
+        const panel = document.getElementById('chatbot-panel');
+        if (panel) {
+            panel.classList.add('active');
+            panel.style.display = 'flex';
+            panel.style.opacity = '1';
+            panel.style.pointerEvents = 'auto';
+        }
+        if (typeof window.playWaveAnimation === 'function') {
+            window.playWaveAnimation();
+        }
+
+        const tourSpeech = "Hi! I'll tell you about my creator Ratnesh. He is an Electronics & Communication Engineer specializing in deep problem solving, building architectures from scratch, continuously experimenting and learning new things. He bridges hardware-level thinking with scalable full-stack software. Would you like to inspect his projects or view his resume?";
+
+        this.bubbleText.innerText = tourSpeech;
+        this.chatBubble.style.opacity = '1';
+
+        this.choiceContainer.style.display = 'flex';
+        this.choiceContainer.innerHTML = '';
+
+        const projectBtn = document.createElement('button');
+        projectBtn.className = 'chatbot-choice-btn recruiter-choice-btn';
+        projectBtn.innerHTML = `<span>🚀 Inspect Projects</span>`;
+        projectBtn.addEventListener('click', () => {
+            this.hideChoices();
+            this.speakAvatar("Taking you to Ratnesh's featured engineering projects!", false);
+            this.executeScroll('projects');
+        });
+
+        const resumeBtn = document.createElement('button');
+        resumeBtn.className = 'chatbot-choice-btn recruiter-choice-btn';
+        resumeBtn.innerHTML = `<span>📄 View Resume</span>`;
+        resumeBtn.addEventListener('click', () => {
+            this.hideChoices();
+            this.speakAvatar("Opening Ratnesh's resume for you now!", false);
+            window.open('./Ratnesh_Kumar_Singh_Resume.pdf', '_blank');
+        });
+
+        this.choiceContainer.appendChild(projectBtn);
+        this.choiceContainer.appendChild(resumeBtn);
+
+        this.speakAvatar(tourSpeech, false);
     }
 
     // -- Show disambiguation UI -------------------------------------------------
@@ -2032,9 +2131,12 @@ if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', () => {
         window.chatBot = new AvatarChatBot();
         window.chatbot = window.chatBot; // alias for index.html hooks
+        window.startRecruiterQuickTour = () => window.chatBot?.startRecruiterQuickTour();
     });
 } else {
     window.chatBot = new AvatarChatBot();
     window.chatbot = window.chatBot; // alias for index.html hooks
+    window.startRecruiterQuickTour = () => window.chatBot?.startRecruiterQuickTour();
 }
+
 

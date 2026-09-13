@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Sparkles, FolderGit2, GraduationCap, Radio, Award, ArrowRight } from 'lucide-react';
+import { Download, FileText, Sparkles, FolderGit2, GraduationCap, Radio, Award, ArrowRight } from 'lucide-react';
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button';
 import { ThreeCharacterScene } from '@/components/portfolio/ThreeCharacterScene';
@@ -55,24 +55,48 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate, onOpenProj
               <LiquidMetalButton label="View My Work" />
             </div>
 
-            {/* Download CV Secondary Button with Pulsating Border Container */}
-            <div className="relative rounded-full overflow-hidden p-0.5 bg-gradient-to-r from-purple-500/40 via-indigo-500/40 to-fuchsia-500/40 hover:from-purple-400 hover:to-indigo-400 transition-all shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]">
+            {/* Prominent High-Craft Download Resume Button with Moving Outline Glow */}
+            <div className="moving-outline-glow-container group cursor-pointer">
               <a
-                href="./CV.pdf"
-                download="Ratnesh_Kumar_Singh_CV.pdf"
+                href="./Ratnesh_Kumar_Singh_Resume.pdf"
+                download="Ratnesh_Kumar_Singh_Resume.pdf"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-[#120a20] hover:bg-[#1a0f2e] text-slate-200 hover:text-white transition-all text-sm font-semibold active:scale-95 group"
+                className="moving-outline-glow-inner active:scale-95 transition-transform"
+                title="Download Ratnesh Kumar Singh's Official Resume"
               >
-                <span>Download CV</span>
-                <Download size={16} className="text-purple-400 group-hover:translate-y-0.5 transition-transform" />
+                <FileText size={17} className="text-[#ff416c] group-hover:scale-110 transition-transform drop-shadow-[0_0_8px_rgba(255,65,108,0.6)]" />
+                <span className="text-sm font-bold bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-transparent">
+                  Download Resume
+                </span>
+                <Download size={15} className="text-purple-400 group-hover:translate-y-0.5 transition-transform" />
               </a>
             </div>
+
+            {/* One-Click Recruiter Quick Tour Button */}
+            <button
+              onClick={() => {
+                if (typeof (window as any).startRecruiterQuickTour === 'function') {
+                  (window as any).startRecruiterQuickTour();
+                } else if ((window as any).chatBot && typeof (window as any).chatBot.startRecruiterQuickTour === 'function') {
+                  (window as any).chatBot.startRecruiterQuickTour();
+                }
+              }}
+              className="relative inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-950/80 via-[#180f2d] to-indigo-950/80 hover:from-purple-900/90 hover:to-indigo-900/90 border border-purple-500/40 hover:border-purple-400 text-purple-200 hover:text-white transition-all text-sm font-semibold shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_30px_rgba(168,85,247,0.45)] active:scale-95 group backdrop-blur-md"
+              title="Launch instant audio walkthrough with Raya AI"
+            >
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+              </span>
+              <Sparkles size={16} className="text-purple-400 group-hover:rotate-12 transition-transform drop-shadow-[0_0_8px_#a855f7]" />
+              <span className="tracking-wide">Recruiter Quick Tour</span>
+            </button>
 
             {/* Quick Explore About Button */}
             <button
               onClick={() => onNavigate('about')}
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-full text-purple-300/80 hover:text-purple-200 text-sm font-medium hover:bg-purple-950/30 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-purple-300/80 hover:text-purple-200 text-sm font-medium hover:bg-purple-950/30 transition-colors"
             >
               <span>About Me</span>
               <ArrowRight size={14} />
