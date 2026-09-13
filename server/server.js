@@ -36,7 +36,6 @@ const corsOptions = {
     // Omitting allowedHeaders allows express cors to dynamically reflect requested headers (including x-admin-token)
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '64kb' }));
 app.use(cookieParser());
 
