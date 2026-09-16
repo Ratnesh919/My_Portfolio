@@ -13,9 +13,7 @@ import {
   Instagram,
   Facebook,
   Bot,
-  Layers,
-  FileText,
-  Download
+  Layers
 } from 'lucide-react';
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
 
@@ -114,24 +112,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
       </nav>
-
-      {/* Resume Quick Access Button in Sidebar */}
-      <div className="pt-2">
-        <a
-          href="./Ratnesh_Kumar_Singh_Resume.pdf"
-          download="Ratnesh_Kumar_Singh_Resume.pdf"
-          target="_blank"
-          rel="noreferrer"
-          className="group flex items-center justify-between w-full px-3 py-2 rounded-xl bg-gradient-to-r from-purple-950/60 to-purple-900/40 border border-purple-500/30 hover:border-purple-400/70 text-purple-200 hover:text-white transition-all text-xs font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:scale-95"
-          title="Download Resume (PDF)"
-        >
-          <div className="flex items-center gap-2">
-            <FileText size={14} className="text-[#ff416c] group-hover:scale-110 transition-transform" />
-            <span>Download Resume</span>
-          </div>
-          <Download size={13} className="text-purple-400 group-hover:translate-y-0.5 transition-transform" />
-        </a>
-      </div>
 
       {/* Social Links pinned to the bottom of the left sidebar near the feet of the avatar */}
       <div className="mt-auto pt-3 border-t border-purple-500/15 flex flex-col gap-2">
