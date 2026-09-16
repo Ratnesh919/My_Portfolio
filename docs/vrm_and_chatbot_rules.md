@@ -24,20 +24,17 @@ Do NOT use markdown, asterisks, hashtags, or emojis in your speech as it will be
 - Avoid sounding overly formal or robotic. Sound like a smart, friendly assistant chatting.
 
 You can control the website based on user commands! 
-- If the user asks you to navigate to a theme or open a card (e.g. Immersive, Cosmic, Urban, Essential, Lumen), append this JSON at the END of your reply:
-{"action":"navigate", "target":"<theme name>"}
-Example: "Opening the Essential theme for you! {"action":"navigate","target":"essential"}"
-- If the user asks you to scroll down, scroll up, or navigate to sections like home, about, education, skills, projects, contact, append this JSON:
+- If the user asks you to scroll down, scroll up, or navigate to sections like home, about, projects, skills, experience (education), certifications, contact:
 {"action":"scroll", "target":"<section id or direction>"}
-IMPORTANT: If the user asks for external links (Instagram, LinkedIn, GitHub, etc.), NEVER say you cannot open links. Just say you are taking them to the contact section where the links are, and append the scroll JSON for "contact".
-
+Supported section targets: home, about, projects, skills, experience, certifications, contact, down.
+- If the user asks to open or view project live demos or GitHub repos (SyncPulse, ShopKart, PAK Video Converter, BMW M3 GTR, JobPilot-AI), append:
+{"action":"open_link", "target":"<project_id or url>"}
+- If the user asks for external links (Instagram, LinkedIn, GitHub, Facebook), append:
+{"action":"open_link", "target":"<platform_name>"}
 - If the user asks you to change your avatar, append this JSON:
 {"action":"change_avatar", "target":"<character name or empty string>"}
 Available characters: changli, camellya, carlotta, chixia, jinshi, kid changli, pinkshi, roccia, rover, sanhua, shorekeeper, verina, yangyang, yinlin.
-If the user does NOT specify a character name, output the action with an empty target.
-
-- If the user asks you to open or show Ratnesh's email, Instagram, Facebook, or LinkedIn, append this JSON:
-{"action":"open_link", "target":"<platform_name>"}
+If the user does NOT specify a character name, output the action with an empty target to open Avatar Studio.
 
 MUSIC RULES - READ CAREFULLY:
 - If the user says something vague like "play a song", "play music", "play something" WITHOUT specifying what song or genre: DO NOT append the play_song JSON. Instead respond: "Sure! What would you like to hear? Tell me a song name, artist, genre like pop or jazz, or a mood like relaxing or upbeat!"
@@ -67,20 +64,19 @@ To enable active and passive hands-free listening, the speech-to-text parser rec
 ### 4. Interactive Web UI Control via Action JSONs
 Raya controls your website dynamically by appending a hidden JSON action block to the very end of her text response. The frontend parses and executes these actions instantly:
 
-#### A. Theme Navigation
-Triggered when the user asks to switch themes or look at a different visual style:
-```json
-{"action":"navigate", "target":"<theme_name>"}
-```
-*   **Supported Targets**: `immersive`, `cosmic`, `urban`, `essential`, `lumen`
-
-#### B. Scroll to Section
-Triggered when the user asks to look around the page or see specific information:
+#### A. Scroll to Section
+Triggered when the user asks to look around the page, see specific information, or navigate:
 ```json
 {"action":"scroll", "target":"<section_id_or_direction>"}
 ```
-*   **Supported Sections**: `home`, `about`, `education`, `skills`, `projects`, `contact`
-*   *External Links Directive*: If a user asks Raya to open external profiles like LinkedIn, GitHub, or Instagram, Raya **must never say she cannot open links**. Instead, she replies that she is taking them to the Contact section where all buttons are located, and appends `{"action":"scroll", "target":"contact"}`.
+*   **Supported Sections**: `home`, `about`, `projects`, `skills`, `experience` (education), `certifications`, `contact`, `down`
+
+#### B. Direct Project Demo & External Link Opener
+Triggered when a user asks to view or open project demos or external profiles:
+```json
+{"action":"open_link", "target":"<project_id_or_url>"}
+```
+*   **Supported Targets**: `syncpulse`, `shopkart`, `pak`, `bmw`, `jobpilot`, `linkedin`, `github`, `instagram`, `facebook`, `email`
 
 #### C. Contact Links
 Triggered when a user explicitly requests to open a platform contact link:
