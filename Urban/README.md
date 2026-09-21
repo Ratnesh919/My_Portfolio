@@ -100,7 +100,7 @@ Copy-Item "..\index.html" "dist\index.html" -Force
 - **TypeScript 5.5.3**
 - **Tailwind CSS 3.4.1**
 - **Lucide React 0.344.0**
-- **Three.js 0.163.0** & **@pixiv/three-vrm 3.4.0**
+- **Three.js 0.163.0** & **@pixiv/three-vrm 3.5.5**
 
 ---
 

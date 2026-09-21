@@ -157,7 +157,7 @@ Whenever a visitor or recruiter leaves a message, notifications dispatch concurr
 Frontend:
   ├── Framework: React 18, Vite 5, TypeScript
   ├── Styling: Tailwind CSS, CSS3 Glassmorphism, Custom Animations
-  ├── 3D Graphics: Three.js (r163), @pixiv/three-vrm (v3.4.0)
+  ├── 3D Graphics: Three.js (r163), @pixiv/three-vrm (v3.5.5)
   ├── Voice & Audio: Web Speech API (SpeechSynthesis + SpeechRecognition), Web Audio API
   ├── Icons: Lucide React
 
