@@ -686,6 +686,14 @@ function loadInitialVRM(modelPath, isFallback = false) {
                     window.onVRMReady();
                 }
 
+                const cvs = document.getElementById('vrm-canvas');
+                if (cvs && (window._bubbleHasPopped || sessionStorage.getItem('raya_bubble_done'))) {
+                    cvs.classList.add('raya-visible');
+                    cvs.classList.add('active');
+                    cvs.style.display = 'block';
+                    cvs.style.opacity = '1';
+                }
+
                 if (window._pendingIntroOnVRMLoad || window._pendingIntroWave || (sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce)) {
                     window._hasIntroducedOnce = true;
                     window._pendingIntroOnVRMLoad = false;
@@ -1583,49 +1591,44 @@ window.switchVRM = function(modelPath) {
         if (barEl) barEl.style.width = '0%';
     }
 
-    let savedPosition = null;
-    let savedSitting = false;
-    let savedHasDragged = false;
+    const oldVrm = vrm;
+    const oldMixer = mixer;
+    let savedPosition = oldVrm?.scene ? oldVrm.scene.position.clone() : null;
+    let savedSitting = isSittingOnChatbox;
+    let savedHasDragged = hasDragged;
 
-    // 1. Instantly tear down current model and remove from scene
-    if (vrm && vrm.scene) {
-        savedPosition = vrm.scene.position.clone();
-        savedSitting = isSittingOnChatbox;
-        savedHasDragged = hasDragged;
-        
-        clearAutoTimer();
-        if (mixer) { mixer.stopAllAction(); mixer.uncacheRoot(vrm.scene); }
-        scene.remove(vrm.scene);
-        VRMUtils.deepDispose(vrm.scene);
-        vrm = null; 
-        mixer = null;
-    }
-
-    // Double-check: ensure NO other VRM models linger in the scene
-    const existingModels = scene.children.filter(c => c.userData?.vrm || c.isVRM || (c.type === 'Group' && c !== window.lookAtTargetObj));
-    existingModels.forEach(m => {
-        scene.remove(m);
-        try { VRMUtils.deepDispose(m); } catch(e){}
-    });
-
-    // Reset animation and state
-    Object.keys(clips).forEach(k => delete clips[k]);
-    Object.keys(actions).forEach(k => delete actions[k]);
-    currentAction = null; currentKey = '';
-    introComplete = false;
-    exprSmooth = 0; dragBlend = 0; hoverBlend = 0;
-    fingerPoseCurrent = { ...FINGER_POSES.idle };
-    fingerPoseTarget  = { ...FINGER_POSES.idle };
-
-    // 2. Load new model
+    // Load new model BEFORE disposing the old one, so screen never goes blank!
     const newLoader = new GLTFLoader();
     newLoader.register(p => new VRMLoaderPlugin(p));
     newLoader.load(window.getAvatarUrl ? window.getAvatarUrl(modelPath) : modelPath, async gltf => {
         if (thisReqId !== activeSwitchReqId) {
-            // A newer switch request was triggered; discard this model
             try { VRMUtils.deepDispose(gltf.scene); } catch(e){}
             return;
         }
+
+        // Now that the new model is parsed and ready, tear down the previous model
+        if (oldVrm && oldVrm.scene) {
+            clearAutoTimer();
+            if (oldMixer) { oldMixer.stopAllAction(); oldMixer.uncacheRoot(oldVrm.scene); }
+            scene.remove(oldVrm.scene);
+            try { VRMUtils.deepDispose(oldVrm.scene); } catch(e){}
+        }
+
+        // Clean any lingering groups or meshes
+        const existingModels = scene.children.filter(c => c.userData?.vrm || c.isVRM || (c.type === 'Group' && c !== window.lookAtTargetObj));
+        existingModels.forEach(m => {
+            scene.remove(m);
+            try { VRMUtils.deepDispose(m); } catch(e){}
+        });
+
+        // Reset animation clips & actions
+        Object.keys(clips).forEach(k => delete clips[k]);
+        Object.keys(actions).forEach(k => delete actions[k]);
+        currentAction = null; currentKey = '';
+        introComplete = false;
+        exprSmooth = 0; dragBlend = 0; hoverBlend = 0;
+        fingerPoseCurrent = { ...FINGER_POSES.idle };
+        fingerPoseTarget  = { ...FINGER_POSES.idle };
 
         vrm = gltf.userData.vrm;
         if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
@@ -1674,6 +1677,15 @@ window.switchVRM = function(modelPath) {
         // Add the new model to the scene
         scene.add(vrm.scene);
 
+        // Ensure canvas is visible
+        const cvs = document.getElementById('vrm-canvas');
+        if (cvs) {
+            cvs.classList.add('raya-visible');
+            cvs.classList.add('active');
+            cvs.style.display = 'block';
+            cvs.style.opacity = '1';
+        }
+
         renderFramesAfterSwitch = 0;
         introComplete = true;
 
@@ -1702,12 +1714,12 @@ window.switchVRM = function(modelPath) {
         console.error('switchVRM failed:', err);
         if (loadingEl && thisReqId === activeSwitchReqId) {
             const textEl = loadingEl.querySelector('.loading-text');
-            if (textEl) textEl.textContent = 'Failed to load model.';
+            if (textEl) textEl.textContent = 'Failed to load model. Retaining active avatar.';
             setTimeout(() => {
                 loadingEl.classList.remove('active');
                 loadingEl.style.opacity = '0';
                 setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
-            }, 2000);
+            }, 2500);
         }
     });
 };

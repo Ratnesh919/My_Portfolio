@@ -16,6 +16,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     if (sessionStorage.getItem('raya_bubble_done')) {
       setPhase('done');
       onComplete();
+      if ((window as any).activateAvatarAndChatbot) (window as any).activateAvatarAndChatbot();
       return;
     }
 

@@ -9,16 +9,7 @@
     { "source": "/api/avatar-proxy", "destination": "/api/avatar-proxy.js" },
     { "source": "/api/(.*)", "destination": "/server/server.js" }
   ],
-  "functions": {
-    "api/avatar-proxy.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    },
-    "server/server.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
+
   "headers": [
     {
       "source": "/(.*)",

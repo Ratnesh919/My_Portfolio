@@ -67,6 +67,7 @@ module.exports = async (req, res) => {
             url: targetUrl,
             responseType: 'stream',
             headers,
+            maxRedirects: 5,
             validateStatus: status => status >= 200 && status < 400
         });
 
@@ -83,9 +84,17 @@ module.exports = async (req, res) => {
 
         res.status(response.status);
         response.data.pipe(res);
+
+        req.on('close', () => {
+            if (response.data && typeof response.data.destroy === 'function') {
+                response.data.destroy();
+            }
+        });
     } catch (error) {
         console.error('[Avatar Proxy Error]', error.message);
         const status = error.response ? error.response.status : 500;
-        res.status(status).send(`Failed to fetch avatar asset: ${error.message}`);
+        if (!res.headersSent) {
+            res.status(status).send(`Failed to fetch avatar asset: ${error.message}`);
+        }
     }
 };
