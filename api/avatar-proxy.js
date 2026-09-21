@@ -4,8 +4,9 @@ module.exports = async (req, res) => {
     // Enable CORS and Edge CDN Caching (prevents bandwidth exhaustion / DoS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.setHeader('Cache-Control', 'public, max-age=604800, s-maxage=2592000, immutable');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
 
     if (req.method === 'OPTIONS') {
         return res.status(204).end();
@@ -56,20 +57,31 @@ module.exports = async (req, res) => {
         const token = process.env.GITHUB_TOKEN.trim();
         headers['Authorization'] = token.startsWith('Bearer ') || token.startsWith('token ') ? token : `Bearer ${token}`;
     }
+    if (req.headers.range) {
+        headers['Range'] = req.headers.range;
+    }
 
     try {
         const response = await axios({
             method: 'get',
             url: targetUrl,
             responseType: 'stream',
-            headers
+            headers,
+            validateStatus: status => status >= 200 && status < 400
         });
 
         res.setHeader('Content-Type', 'application/octet-stream');
         if (response.headers['content-length']) {
             res.setHeader('Content-Length', response.headers['content-length']);
         }
+        if (response.headers['content-range']) {
+            res.setHeader('Content-Range', response.headers['content-range']);
+        }
+        if (response.headers['accept-ranges']) {
+            res.setHeader('Accept-Ranges', response.headers['accept-ranges']);
+        }
 
+        res.status(response.status);
         response.data.pipe(res);
     } catch (error) {
         console.error('[Avatar Proxy Error]', error.message);
