@@ -13,7 +13,7 @@ An interactive, high-performance 3D engineering portfolio featuring **Raya**, a 
 
 1. [Architectural Overview](#-architectural-overview)
 2. [Key System Features](#-key-system-features)
-   - [🫧 Soap Bubble Entry Interface](#-1-realistic-soap-bubble-entry-interface)
+   - [⚡ Cyber-Glass "Enter Experience" CTA](#-1-cyber-glass-enter-experience-cta)
    - [🎭 3D VRM Avatar Character Engine](#-2-3d-vrm-avatar-character-engine)
    - [🤖 Raya AI Companion & Natural Voice Core](#-3-raya-ai-companion--natural-voice-core)
    - [⚡ Inbuilt AI Commands with Natural Interaction Delay](#-4-inbuilt-ai-commands-with-natural-interaction-delay)
@@ -41,16 +41,17 @@ The portfolio uses a **hybrid architecture** combining a modern **React 18 singl
 |  |       3D VRM Avatar Character Engine       |    |       Raya AI Chatbot & Voice Pipeline     |  |
 |  |  - Three.js WebGL (Alpha: True)            |    |  - Web Speech API (SpeechRecognition & TTS)|  |
 |  |  - @pixiv/three-vrm Model Runtime          |    |  - Real-Time Phonetic Transliteration      |  |
-|  |  - Procedural Breathing, Blinking, Wave    |    |  - Edge Neural Voices (Pitch 1.35, Rate 1.1) |
-|  |  - HTML5 Pointer Capture Drag-and-Drop     |    |  - Floating Input Bar & Live Speech Bubble |  |
-|  |  - Z-Index: 2147483647 (Top Layer)         |    |  - YouTube Music Embedded Streamer         |  |
+|  |  - 30-Bone Finger Rigging & Joint Rippling |    |  - Edge Neural Voices (Pitch 1.35, Rate 1.1) |
+|  |  - Procedural Breathing, Blinking, Wave    |    |  - Floating Input Bar & Live Speech Bubble |  |
+|  |  - HTML5 Pointer Capture Drag-and-Drop     |    |  - YouTube Music Embedded Streamer         |  |
+|  |  - Z-Index: 2147483647 (Top Layer)         |    |  - Cross-VRM 0.0/1.0 Expression Aliases    |  |
 |  +--------------------------------------------+    +--------------------------------------------+  |
 |                         \                                       /                                  |
 |                          v                                     v                                   |
 |  +----------------------------------------------------------------------------------------------+  |
 |  |                                React 18 Single-Page Application (Urban UI)                   |  |
-|  |     [🫧 Soap Bubble Intro Loader] (Real-Time VRM Download Progress Bar + Physics Burst)      |  |
-|  |     [1. Hero] [2. Projects] [3. About] [4. Skills] [5. Experience] [6. Certs] [7. Contact]  |  |
+|  |     [⚡ Cyber-Glass Enter Experience CTA] (Real-Time VRM Download Progress + Audio Primer)    |  |
+|  |     [1. Hero] [2. Projects] [3. About] [4. Experience] [5. Certifications] [6. Contact]      |  |
 |  |     - window.navigateToSection() Interop Bridge                                              |  |
 |  +----------------------------------------------------------------------------------------------+  |
 +----------------------------------------------------------------------------------------------------+
@@ -84,26 +85,26 @@ The portfolio uses a **hybrid architecture** combining a modern **React 18 singl
 
 ## ✨ Key System Features
 
-### 🫧 1. Realistic Soap Bubble Entry Interface
-- **Two-Stage Experience**:
-  - **Stage 1 (Live Loader)**: Direct telemetry hook into the 3D VRM model download stream (`window.onVRMLoadProgress`), displaying live download percentages (0–100%) and ready states (`window.onVRMReady`).
-  - **Stage 2 (Interactive Soap Bubbles)**: Iridescent, floating soap bubbles drifting across the screen with organic wobble and lateral sine-wave oscillation.
-- **Visual Physics**:
-  - Ultra-transparent thin-film body (`rgba(130, 220, 255, 0.04)` to `rgba(160, 120, 255, 0.10)`).
-  - Continuous 7-second rainbow thin-film chromatic shimmer (`iridescentFilm`).
-  - Dual specular catch-lights: Soft breathing top-left ellipse + 20° crisp bottom-right glint.
-  - Multi-layer inset box-shadows mimicking optical diffraction and rim reflections.
-- **Bubble Pop Physics**: Popping a bubble triggers 6 radial iridescent crack lines and 12 expanding mist particles, unveiling the portfolio and triggering Raya's voice greeting.
+### ⚡ 1. Cyber-Glass "Enter Experience" CTA
+- **Streamlined Two-Stage Experience**:
+  - **Stage 1 (Live WebGL Loader)**: Direct telemetry hook into the 3D VRM model download stream (`window.onVRMLoadProgress`), displaying live download percentages (0–100%) and ready states (`window.onVRMReady`).
+  - **Stage 2 (Cyber Glass CTA Button)**: When download and shader setup reach 100%, an animated glowing "Enter Experience" button emerges with pulsing neon gradients, micro-shimmer, and sound context priming.
+- **Cinematic Unveil**:
+  - Clicking the CTA button primes the browser's speech synthesis audio context, smoothly dissolves the master loader overlay, unveils the full portfolio, and triggers Raya's initial greeting wave and voice intro.
+  - Zero clutter: replaces legacy floating bubble mini-games with a direct, ultra-crisp interface.
 
 ### 🎭 2. 3D VRM Avatar Character Engine
 - **Engine**: Three.js WebGL with `@pixiv/three-vrm` plugin.
 - **Avatar Selection**: Supports 14 high-fidelity VRM anime avatars (Changli, Camellya, Carlotta, Chixia, Jinshi, Shorekeeper, Yinlin, Rover, Sanhua, etc.) served directly from GitHub Releases CDN (`vrm-models-v1`).
-- **Autonomous Kinematics**:
-  - Procedural chest and spine breathing cycles.
-  - Natural head tilt and look-at micro-movements.
-  - Randomized realistic blinking (`blink` blendshape).
-  - Real-time lip-sync mouth movement (`aa`, `ih` blendshapes) synchronized to speech output.
-  - Interactive wave greeting animation on startup or user command.
+- **Comprehensive Kinematics & Finger Rigging**:
+  - Full **30-bone finger rig mapping** across all five fingers (`Thumb1..3`, `Index1..3`, `Middle1..3`, `Ring1..3`, `Little1..3`) for left and right hands.
+  - Procedural breathing, curl, and micro-ripple joint dynamics.
+  - Cached humanoid bone nodes for instant frame lookups with zero GC overhead.
+- **Facial Expressions & Cross-VRM Compatibility**:
+  - Seamless expression aliasing (`EXPR_ALIASES`) supporting both VRM 0.0 (capitalized) and VRM 1.0 (lowercase) presets.
+  - 23 companion emotion presets (`happy`, `joy`, `caring`, `console`, `empathy`, `advice`, `surprised`, `sad`, `angry`, `relaxed`, `wink`, `blush`, etc.).
+  - Automatic mouth lipsync synchronized with speech output (`aa`, `ih`).
+  - Eye squint and micro-smile overlays.
 - **Full Viewport Interactivity**:
   - Click-and-drag avatar across the screen with HTML5 Pointer Capture.
   - Minimized floating dock button when avatar is stowed.
@@ -315,7 +316,8 @@ To safeguard production integrity and enable instant rollbacks, milestone states
 | **Restore Point 2** | `restore-point-2` | `5ec2cf2` | Single-page layout, viewport scrolling, and initial command routing. |
 | **Restore Point 3** | `restore-point-3` | `5e3fe22` | Real-time VRM avatar loading progress bar, enhanced soap bubble entry screen, site title set to `Ratnesh Kumar Singh`. |
 | **Restore Point 4** | `restore-point-4` | `b05c3bb` | Inbuilt commands wired through AI brain with natural response delays, visitor profiles sync with Supabase (`visitor_profiles` table), and admin endpoints. |
-| **Restore Point 5** | `restore-point-5` | `HEAD` | **Current Master Baseline**: Comprehensive architecture documentation, full project manuals across all directories, and zero legacy remnants. |
+| **Restore Point 5** | `restore-point-5` | `e2a4dc1` | Comprehensive architecture documentation, full project manuals across all directories, and zero legacy remnants. |
+| **Restore Point 6** | `restore-point-6` | `HEAD` | **Current Master Baseline**: Cyber-Glass "Enter Experience" CTA button with WebGL progress & audio primer, 30-bone finger rig mapping with cached bone lookups, cross-VRM 0.0 & 1.0 expression aliases, 23 emotion presets, Software & Technical Skills section retired, and Certifications renamed. |
 
 ### How to Roll Back to a Restore Point:
 ```bash

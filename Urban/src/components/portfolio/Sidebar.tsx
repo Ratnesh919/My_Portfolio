@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   Home, 
   User, 
-  Code2, 
   FolderGit2, 
   Briefcase, 
   Award,
@@ -35,7 +34,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'home', label: 'Home', icon: Home },
     { id: 'projects', label: 'Projects', icon: FolderGit2 },
     { id: 'about', label: 'About', icon: User },
-    { id: 'skills', label: 'Skills', icon: Code2 },
     { id: 'experience', label: 'Experience', icon: Briefcase },
     { id: 'certifications', label: 'Certifications', icon: Award },
     { id: 'contact', label: 'Contact', icon: Mail },

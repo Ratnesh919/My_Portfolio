@@ -31,10 +31,46 @@ const mixamoVRMRigMap = {
     mixamorigLeftFoot:'leftFoot',            mixamorigLeftToeBase:'leftToes',
     mixamorigRightUpLeg:'rightUpperLeg',     mixamorigRightLeg:'rightLowerLeg',
     mixamorigRightFoot:'rightFoot',          mixamorigRightToeBase:'rightToes',
-    // Left hand fingers
-    // (Removed finger mappings to force full control over fingers via custom FINGER_POSES)
-    // Right hand fingers
-    // (Removed finger mappings to force full control over fingers via custom FINGER_POSES)
+    // Left Hand Fingers (Mixamo -> VRM Humanoid)
+    mixamorigLeftHandThumb1:'leftThumbMetacarpal',
+    mixamorigLeftHandThumb2:'leftThumbProximal',
+    mixamorigLeftHandThumb3:'leftThumbDistal',
+    mixamorigLeftHandIndex1:'leftIndexProximal',
+    mixamorigLeftHandIndex2:'leftIndexIntermediate',
+    mixamorigLeftHandIndex3:'leftIndexDistal',
+    mixamorigLeftHandMiddle1:'leftMiddleProximal',
+    mixamorigLeftHandMiddle2:'leftMiddleIntermediate',
+    mixamorigLeftHandMiddle3:'leftMiddleDistal',
+    mixamorigLeftHandRing1:'leftRingProximal',
+    mixamorigLeftHandRing2:'leftRingIntermediate',
+    mixamorigLeftHandRing3:'leftRingDistal',
+    mixamorigLeftHandPinky1:'leftLittleProximal',
+    mixamorigLeftHandPinky2:'leftLittleIntermediate',
+    mixamorigLeftHandPinky3:'leftLittleDistal',
+    mixamorigLeftHandLittle1:'leftLittleProximal',
+    mixamorigLeftHandLittle2:'leftLittleIntermediate',
+    mixamorigLeftHandLittle3:'leftLittleDistal',
+
+    // Right Hand Fingers (Mixamo -> VRM Humanoid)
+    mixamorigRightHandThumb1:'rightThumbMetacarpal',
+    mixamorigRightHandThumb2:'rightThumbProximal',
+    mixamorigRightHandThumb3:'rightThumbDistal',
+    mixamorigRightHandIndex1:'rightIndexProximal',
+    mixamorigRightHandIndex2:'rightIndexIntermediate',
+    mixamorigRightHandIndex3:'rightIndexDistal',
+    mixamorigRightHandMiddle1:'rightMiddleProximal',
+    mixamorigRightHandMiddle2:'rightMiddleIntermediate',
+    mixamorigRightHandMiddle3:'rightMiddleDistal',
+    mixamorigRightHandRing1:'rightRingProximal',
+    mixamorigRightHandRing2:'rightRingIntermediate',
+    mixamorigRightHandRing3:'rightRingDistal',
+    mixamorigRightHandPinky1:'rightLittleProximal',
+    mixamorigRightHandPinky2:'rightLittleIntermediate',
+    mixamorigRightHandPinky3:'rightLittleDistal',
+    mixamorigRightHandLittle1:'rightLittleProximal',
+    mixamorigRightHandLittle2:'rightLittleIntermediate',
+    mixamorigRightHandLittle3:'rightLittleDistal',
+
     // Face / jaw (VRM 1.0 uses these names)
     mixamorigJaw:'jaw',
     mixamorigLeftEye:'leftEye',
@@ -87,6 +123,51 @@ const SITTING_POOL = [
 
 // (No extra breathing set needed — sitRub already has its own body motion)
 const SITTING_BREATHE_KEYS = new Set();
+
+// ─── CROSS-VRM EXPRESSION ALIASES (VRM 0.0 & 1.0) ───────────────────────────
+const EXPR_ALIASES = {
+    happy:     ['happy', 'Joy', 'joy', 'HAPPY', 'JOY'],
+    surprised: ['surprised', 'Surprised', 'SURPRISED', 'fun', 'Fun'],
+    sad:       ['sad', 'Sorrow', 'sorrow', 'SAD', 'SORROW'],
+    angry:     ['angry', 'Angry', 'ANGRY'],
+    relaxed:   ['relaxed', 'Fun', 'fun', 'RELAXED'],
+    think:     ['neutral', 'Neutral', 'NEUTRAL', 'confused'],
+    wink:      ['blinkLeft', 'blink_l', 'Blink_L', 'BLINK_L', 'blinkRight'],
+    blink:     ['blink', 'Blink', 'BLINK'],
+    neutral:   ['neutral', 'Neutral', 'NEUTRAL'],
+    blush:     ['blush', 'Blush', 'heart eyes'],
+    aa:        ['aa', 'A', 'a', 'AA'],
+    ee:        ['ee', 'E', 'e', 'EE'],
+    ih:        ['ih', 'I', 'i', 'IH'],
+    oh:        ['oh', 'O', 'o', 'OH'],
+    ou:        ['ou', 'U', 'u', 'OU']
+};
+
+const EMOTION_PRESETS = {
+    neutral:       {},
+    happy:         { happy: 0.60, relaxed: 0.15 },
+    joy:           { happy: 0.95, relaxed: 0.35 },
+    caring:        { sad: 0.45, relaxed: 0.15 },
+    console:       { sad: 0.60, relaxed: 0.10 },
+    empathy:       { sad: 0.50, relaxed: 0.15 },
+    advice:        { relaxed: 0.35, surprised: 0.15 },
+    surprised:     { surprised: 0.85 },
+    sad:           { sad: 0.85 },
+    angry:         { angry: 0.85 },
+    relaxed:       { relaxed: 0.45, happy: 0.2 },
+    think:         { relaxed: 0.30, surprised: 0.18 },
+    wink:          { wink: 1.0, happy: 0.6, relaxed: 0.15 },
+    blush:         { blush: 0.95, happy: 0.55, wink: 0.15 },
+    curiosity:     { surprised: 0.4, relaxed: 0.2 },
+    amusement:     { happy: 0.75, relaxed: 0.25 },
+    admiration:    { relaxed: 0.45, happy: 0.40, surprised: 0.15 },
+    love:          { relaxed: 0.45, happy: 0.50, blush: 0.8 },
+    gratitude:     { relaxed: 0.45, happy: 0.45 },
+    optimism:      { happy: 0.65, relaxed: 0.2 },
+    embarrassment: { blush: 0.85, wink: 0.3, happy: 0.35 },
+    disappointment:{ sad: 0.65, angry: 0.2 },
+    confusion:     { surprised: 0.45, angry: 0.1 }
+};
 
 // ─── FINGER POSES (per animation) ─────────────────────────────────────────────
 const FINGER_POSES = {
@@ -664,6 +745,7 @@ function loadInitialVRM(modelPath, isFallback = false) {
             }
 
             poseRestingArms(vrm);
+            initCachedFingerBones(vrm);
             vrm.scene.updateMatrixWorld(true);
             vrm.update(0);
             scene.add(vrm.scene);
@@ -1173,9 +1255,27 @@ window.addEventListener('click', e => {
 document.addEventListener('pointerup', () => { setTimeout(() => { blocksNextClick = false; }, 100); });
 document.addEventListener('pointercancel', () => { blocksNextClick = false; });
 
-// ─── FINGER BONE DRIVER ───────────────────────────────────────────────────────
+// ─── FINGER BONE DRIVER (WITH CACHED BONE LOOKUPS) ───────────────────────────
+let cachedFingerBones = null;
+function initCachedFingerBones(vrmInstance) {
+    if (!vrmInstance?.humanoid) {
+        cachedFingerBones = null;
+        return;
+    }
+    const h = vrmInstance.humanoid;
+    cachedFingerBones = {
+        leftChains: FINGER_CHAINS_L.map(chain => chain.map(n => h.getNormalizedBoneNode(n))),
+        rightChains: FINGER_CHAINS_R.map(chain => chain.map(n => h.getNormalizedBoneNode(n))),
+        thumbL: THUMB_L.map(n => h.getNormalizedBoneNode(n)),
+        thumbR: THUMB_R.map(n => h.getNormalizedBoneNode(n))
+    };
+}
+
 function applyFingerPose(t, dt) {
     if (!vrm) return;
+    if (!cachedFingerBones) initCachedFingerBones(vrm);
+    if (!cachedFingerBones) return;
+
     const s = Math.min(1, dt * 6); // lerp speed
     for (const k of Object.keys(fingerPoseTarget))
         fingerPoseCurrent[k] = lerp(fingerPoseCurrent[k], fingerPoseTarget[k], s);
@@ -1186,14 +1286,14 @@ function applyFingerPose(t, dt) {
     const leftP       = leftPoseKey ? FINGER_POSES[leftPoseKey] : p;
 
     // Left hand
-    FINGER_CHAINS_L.forEach((chain, fi) => {
+    cachedFingerBones.leftChains.forEach((chain, fi) => {
         const phase = FINGER_PHASES[fi];
         const b     = Math.sin(t * BREATHE_FREQ + phase) * BREATHE_AMP;
         // Micro-ripple: each joint in the chain curls with a slight phase offset
         const r0 = Math.sin(t * RIPPLE_FREQ + phase)           * RIPPLE_AMP;
         const r1 = Math.sin(t * RIPPLE_FREQ + phase + 0.5)     * RIPPLE_AMP;
         const r2 = Math.sin(t * RIPPLE_FREQ + phase + 1.0)     * RIPPLE_AMP;
-        const [b0,b1,b2] = chain.map(n => vrm.humanoid?.getNormalizedBoneNode(n));
+        const [b0,b1,b2] = chain;
         
         let pProx = leftP.proximal;
         let pInt  = leftP.intermediate;
@@ -1209,20 +1309,20 @@ function applyFingerPose(t, dt) {
         if (b1)   b1.rotation.z = pInt  + b * 0.6 + r1;
         if (b2)   b2.rotation.z = pDist + b * 0.3 + r2;
     });
-    const [tL0,tL1,tL2] = THUMB_L.map(n => vrm.humanoid?.getNormalizedBoneNode(n));
+    const [tL0,tL1,tL2] = cachedFingerBones.thumbL;
     const tRipple = Math.sin(t * RIPPLE_FREQ * 0.7) * RIPPLE_AMP;
     if (tL0) { tL0.rotation.x = leftP.thumbCurl + tRipple; tL0.rotation.y = -leftP.thumbSpread; }
     if (tL1)   tL1.rotation.x = leftP.thumbCurl * 0.65 + tRipple * 0.6;
     if (tL2)   tL2.rotation.x = leftP.thumbCurl * 0.35 + tRipple * 0.3;
 
     // Right hand (z-axis mirrored, always uses the main right-hand pose p)
-    FINGER_CHAINS_R.forEach((chain, fi) => {
+    cachedFingerBones.rightChains.forEach((chain, fi) => {
         const phase = FINGER_PHASES[fi] + 0.28;
         const b     = Math.sin(t * BREATHE_FREQ + phase) * BREATHE_AMP;
         const r0 = Math.sin(t * RIPPLE_FREQ + phase)           * RIPPLE_AMP;
         const r1 = Math.sin(t * RIPPLE_FREQ + phase + 0.5)     * RIPPLE_AMP;
         const r2 = Math.sin(t * RIPPLE_FREQ + phase + 1.0)     * RIPPLE_AMP;
-        const [b0,b1,b2] = chain.map(n => vrm.humanoid?.getNormalizedBoneNode(n));
+        const [b0,b1,b2] = chain;
         
         let pProx = p.proximal;
         let pInt  = p.intermediate;
@@ -1238,7 +1338,7 @@ function applyFingerPose(t, dt) {
         if (b1)   b1.rotation.z = -(pInt  + b * 0.6 + r1);
         if (b2)   b2.rotation.z = -(pDist + b * 0.3 + r2);
     });
-    const [tR0,tR1,tR2] = THUMB_R.map(n => vrm.humanoid?.getNormalizedBoneNode(n));
+    const [tR0,tR1,tR2] = cachedFingerBones.thumbR;
     const tRippleR = Math.sin(t * RIPPLE_FREQ * 0.7 + 0.4) * RIPPLE_AMP;
     if (tR0) { tR0.rotation.x = p.thumbCurl + tRippleR; tR0.rotation.y =  p.thumbSpread; }
     if (tR1)   tR1.rotation.x = p.thumbCurl * 0.65 + tRippleR * 0.6;
@@ -1263,19 +1363,62 @@ function handleVisibilityChange() {
 }
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
-// ─── OPTIMIZED EXPRESSION HELPER ──────────────────────────────────────────────
+// ─── OPTIMIZED EXPRESSION HELPER (VRM 0.0 & 1.0 CROSS-COMPATIBLE) ─────────────
 let activeExpressions = {};
 function setVRMExpression(name, value) {
     if (!vrm) return;
     const manager = vrm.expressionManager || vrm.blendShapeProxy;
     if (!manager) return;
-    try {
-        manager.setValue(name, value);
-        if (value > 0) {
-            activeExpressions[name] = true;
-        }
-    } catch (_) {}
+    const targets = EXPR_ALIASES[name] || [name];
+    let applied = false;
+    for (const target of targets) {
+        try {
+            if (typeof manager.getExpression === 'function') {
+                if (manager.getExpression(target)) {
+                    manager.setValue(target, value);
+                    if (value > 0) activeExpressions[target] = true;
+                    applied = true;
+                    break;
+                }
+            } else {
+                manager.setValue(target, value);
+                if (value > 0) activeExpressions[target] = true;
+                applied = true;
+                break;
+            }
+        } catch (_) {}
+    }
+    if (!applied) {
+        try {
+            manager.setValue(name, value);
+            if (value > 0) activeExpressions[name] = true;
+        } catch (_) {}
+    }
 }
+
+// Rich companion emotion caller with auto-reset
+let customEmotionTimer = null;
+window.setVRMEmotion = function(name, intensity = 1.0, autoResetMs = 4500) {
+    if (customEmotionTimer) { clearTimeout(customEmotionTimer); customEmotionTimer = null; }
+    const preset = EMOTION_PRESETS[name];
+    if (preset) {
+        const mainKey = Object.keys(preset)[0] || 'happy';
+        const val = (preset[mainKey] || 0.6) * THREE.MathUtils.clamp(intensity, 0, 1);
+        expr = mainKey;
+        exprTarget = val;
+    } else {
+        expr = name;
+        exprTarget = THREE.MathUtils.clamp(intensity, 0, 1);
+    }
+    if (autoResetMs && autoResetMs > 0) {
+        customEmotionTimer = setTimeout(() => {
+            expr = 'happy';
+            exprTarget = 0.6;
+            customEmotionTimer = null;
+        }, autoResetMs);
+    }
+};
+window.setVRMExpression = setVRMExpression;
 
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
 function animate() {
@@ -1651,6 +1794,7 @@ window.switchVRM = function(modelPath) {
         }
         
         vrm.scene.rotation.y = Math.PI;
+        initCachedFingerBones(vrm);
 
         mixer = new THREE.AnimationMixer(vrm.scene);
         mixer.addEventListener('finished', () => { clearAutoTimer(); returnToIdle(); });
