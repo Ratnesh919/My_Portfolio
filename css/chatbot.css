@@ -22,7 +22,8 @@
     transform: translateZ(0);
     will-change: transform;
 }
-#vrm-canvas.raya-visible {
+#vrm-canvas.raya-visible,
+#vrm-canvas.active {
     opacity: 1 !important;
 }
 
