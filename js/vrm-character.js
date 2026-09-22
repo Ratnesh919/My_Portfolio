@@ -241,8 +241,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+// NOTE: No toneMapping — MToon / KHR_materials_unlit are self-contained pre-lit shaders.
+// ACESFilmicToneMapping causes white blowout on these materials. Use LinearToneMapping (default).
 
 if (canvas) {
     canvas.addEventListener('webglcontextlost', (event) => {
@@ -261,23 +261,21 @@ const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
 
-// Spec-correct lighting per PROJECT_DOCUMENTATION.md §3.1
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.7);
+// Restored from restore-point-4 — the last known-working lighting config
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+ambientLight.userData.baseIntensity = 0.8;
 scene.add(ambientLight);
 
 const dirLights = [];
+[[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
+    .forEach(([x,y,z,c,i]) => {
+        const l = new THREE.DirectionalLight(c,i);
+        l.position.set(x,y,z);
+        l.userData.baseIntensity = i;
+        scene.add(l);
+        dirLights.push(l);
+    });
 
-const keyLight = new THREE.DirectionalLight(0xff416c, 2.4);
-keyLight.position.set(1.0, 2.0, 1.0);
-keyLight.userData.baseIntensity = 2.4;
-scene.add(keyLight);
-dirLights.push(keyLight);
-
-const rimLight = new THREE.DirectionalLight(0x38bdf8, 2.0);
-rimLight.position.set(-1.0, 1.5, -1.0);
-rimLight.userData.baseIntensity = 2.0;
-scene.add(rimLight);
-dirLights.push(rimLight);
 
 
 function getVisibleWidth() {
@@ -508,48 +506,40 @@ function configureVRMPhysics(vrmModel, modelPath) {
 }
 
 function applyModelVisuals(vrm, modelPath) {
-    if (!vrm?.scene) return;
-    const conf = (window.VRM_MODEL_CONFIGS && (window.VRM_MODEL_CONFIGS[modelPath] || window.VRM_MODEL_CONFIGS['default'])) || {
-        brightness: 0.65,
-        glow: 0.0,
-        hairBrightness: 0.55,
-        skinBrightness: 0.72
-    };
+    if (!window.VRM_MODEL_CONFIGS) return;
+    const conf = window.VRM_MODEL_CONFIGS[modelPath] || window.VRM_MODEL_CONFIGS['default'];
+    if (!conf) return;
 
-    // 1. Lighting — spec-correct, no brightness multiplier needed (pre-calibrated)
-    // Note: brightness config is kept for backwards compat but no longer dims lights
+    // 1. Adjust brightness (scene lighting)
+    const bMultiplier = conf.brightness !== undefined ? conf.brightness : 1.0;
+    ambientLight.intensity = ambientLight.userData.baseIntensity * bMultiplier;
+    dirLights.forEach(l => {
+        l.intensity = l.userData.baseIntensity * bMultiplier;
+    });
 
-    const hMultiplier = conf.hairBrightness !== undefined ? conf.hairBrightness : 0.55;
-    const sMultiplier = conf.skinBrightness !== undefined ? conf.skinBrightness : 0.72;
+    // 2. Adjust material glow (emission) and specific part brightness
+    const gMultiplier = conf.glow !== undefined ? conf.glow : 1.0;
+    const hMultiplier = conf.hairBrightness !== undefined ? conf.hairBrightness : 1.0;
+    const sMultiplier = conf.skinBrightness !== undefined ? conf.skinBrightness : 1.0;
 
     vrm.scene.traverse((node) => {
         if (node.isMesh && node.material) {
             const materials = Array.isArray(node.material) ? node.material : [node.material];
             materials.forEach(mat => {
-                // Ensure emissive does NOT blow up unlit/MToon meshes to white
                 if (mat.emissive) {
-                    if (conf.glow && conf.glow > 0) {
-                        if (!mat.userData.baseEmissive) mat.userData.baseEmissive = mat.emissive.clone();
-                        mat.emissive.copy(mat.userData.baseEmissive).multiplyScalar(conf.glow);
-                    } else {
-                        mat.emissive.setRGB(0, 0, 0);
-                    }
+                    if (!mat.userData.baseEmissive) mat.userData.baseEmissive = mat.emissive.clone();
+                    mat.emissive.copy(mat.userData.baseEmissive).multiplyScalar(gMultiplier);
                 }
-                const matName = (mat.name || '').toLowerCase();
-                const isHair = matName.includes('hair') || matName.includes('kami') || matName.includes('toufa');
-                const isSkin = matName.includes('face') || matName.includes('skin') || matName.includes('body') ||
-                               matName.includes('head') || matName.includes('hada') || matName.includes('kao') ||
-                               matName.includes('arm') || matName.includes('leg');
-
-                const scale = isHair ? hMultiplier : isSkin ? sMultiplier : 1.0;
-
                 if (mat.color) {
                     if (!mat.userData.baseColor) mat.userData.baseColor = mat.color.clone();
-                    mat.color.copy(mat.userData.baseColor).multiplyScalar(scale);
-                }
-                if (mat.shadeColor) {
-                    if (!mat.userData.baseShadeColor) mat.userData.baseShadeColor = mat.shadeColor.clone();
-                    mat.shadeColor.copy(mat.userData.baseShadeColor).multiplyScalar(scale);
+                    const matName = (mat.name || '').toLowerCase();
+                    if (matName.includes('hair')) {
+                        mat.color.copy(mat.userData.baseColor).multiplyScalar(hMultiplier);
+                    } else if (matName.includes('face') || matName.includes('skin') || matName.includes('body')) {
+                        mat.color.copy(mat.userData.baseColor).multiplyScalar(sMultiplier);
+                    } else {
+                        mat.color.copy(mat.userData.baseColor);
+                    }
                 }
             });
         }
