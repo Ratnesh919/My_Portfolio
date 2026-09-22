@@ -41,7 +41,7 @@
 
     <link rel="stylesheet" href="./css/chatbot.css">
     
-    <script type="module" crossorigin src="/assets/index-lapXqRRg.js"></script>
+    <script type="module" crossorigin src="/assets/index-nSz6gztp.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-DQIdzz0Y.css">
   </head>
   <body class="bg-[#07050d] text-slate-100 selection:bg-purple-600 selection:text-white m-0 p-0 overflow-x-hidden">
@@ -68,18 +68,7 @@
       window.getAvatarUrl = function(localPath) {
         if (!localPath) return '';
         if (localPath.startsWith('http://') || localPath.startsWith('https://')) return localPath;
-        const host = (window.location.hostname || '').toLowerCase();
-        if (
-          host === 'localhost' ||
-          host === '127.0.0.1' ||
-          host === '::1' ||
-          host === '' ||
-          window.location.protocol === 'file:' ||
-          /^192\.168\.\d+\.\d+$/.test(host) ||
-          /^10\.\d+\.\d+\.\d+$/.test(host) ||
-          /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(host) ||
-          host.endsWith('.local')
-        ) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '' || window.location.protocol === 'file:') {
           return localPath;
         }
         return `/api/avatar-proxy?file=${encodeURIComponent(localPath)}`;

@@ -1712,19 +1712,6 @@ app.get('/api/avatar-proxy', async (req, res) => {
         'yinlin.vrm': 'yinlin.vrm',
     };
 
-    // 1. Direct local disk serving if running locally and model file exists
-    const localWuwa = path.join(__dirname, '..', 'Wuwa', filename);
-    const localDirect = path.join(__dirname, '..', file);
-    const candidatePath = fs.existsSync(localWuwa) ? localWuwa : (fs.existsSync(localDirect) ? localDirect : null);
-    if (candidatePath) {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
-        res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
-        res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
-        res.setHeader('Content-Type', 'application/octet-stream');
-        return res.sendFile(candidatePath);
-    }
-
     const targetFile = FILE_MAP[filename] || filename;
     const targetUrl = `https://github.com/Ratnesh919/My_Portfolio/releases/download/vrm-models-v1/${targetFile}`;
     
@@ -1734,35 +1721,23 @@ app.get('/api/avatar-proxy', async (req, res) => {
     if (process.env.GITHUB_TOKEN) {
         reqHeaders['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
     }
-    if (req.headers.range) {
-        reqHeaders['Range'] = req.headers.range;
-    }
 
     try {
         const response = await axios({
             method: 'get',
             url: targetUrl,
             responseType: 'stream',
-            headers: reqHeaders,
-            validateStatus: status => status >= 200 && status < 400
+            headers: reqHeaders
         });
         
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
-        res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        res.setHeader('Cache-Control', 'public, max-age=604800, s-maxage=2592000, immutable');
         res.setHeader('Content-Type', 'application/octet-stream');
         if (response.headers['content-length']) {
             res.setHeader('Content-Length', response.headers['content-length']);
         }
-        if (response.headers['content-range']) {
-            res.setHeader('Content-Range', response.headers['content-range']);
-        }
-        if (response.headers['accept-ranges']) {
-            res.setHeader('Accept-Ranges', response.headers['accept-ranges']);
-        }
         
-        res.status(response.status);
         response.data.pipe(res);
     } catch (error) {
         console.error('[Avatar Proxy Error]', error.message);

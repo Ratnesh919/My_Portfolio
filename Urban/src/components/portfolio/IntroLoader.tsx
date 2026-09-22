@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Zap } from 'lucide-react';
 
 interface IntroLoaderProps {
@@ -57,10 +57,10 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       finishLoading();
     };
 
-    // 45-second fallback timeout in case mobile network or WebGL takes longer
+    // 20-second fallback timeout in case WebGL or network takes longer
     const fallbackTimer = setTimeout(() => {
       finishLoading();
-    }, 45000);
+    }, 20000);
 
     return () => {
       clearTimeout(fallbackTimer);

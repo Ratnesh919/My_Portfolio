@@ -9,16 +9,6 @@
     { "source": "/api/avatar-proxy", "destination": "/api/avatar-proxy.js" },
     { "source": "/api/(.*)", "destination": "/server/server.js" }
   ],
-  "functions": {
-    "api/avatar-proxy.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    },
-    "server/server.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -30,7 +20,7 @@
         { "key": "Permissions-Policy",         "value": "camera=(), microphone=(self), geolocation=()" },
         { "key": "X-DNS-Prefetch-Control",     "value": "off" },
         { "key": "X-Download-Options",         "value": "noopen" },
-        { "key": "Content-Security-Policy",    "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; connect-src 'self' https://*.vercel.app https://api.groq.com https://*.supabase.co https://raw.githubusercontent.com https://*.githubusercontent.com https://github.com https://unpkg.com https://*.youtube.com https://*.chocolatemoo53.com https://*.thepixora.com https://*.flokinet.to; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self';" }
+        { "key": "Content-Security-Policy",    "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; connect-src 'self' https://*.vercel.app https://api.groq.com https://*.supabase.co https://raw.githubusercontent.com https://github.com https://unpkg.com https://*.youtube.com https://*.chocolatemoo53.com https://*.thepixora.com https://*.flokinet.to; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self';" }
       ]
     }
   ]

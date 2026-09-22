@@ -161,19 +161,6 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-if (canvas) {
-    canvas.addEventListener('webglcontextlost', (event) => {
-        event.preventDefault();
-        console.warn('[VRM] WebGL context lost. Suspending rendering until restored.');
-        loopPaused = true;
-    }, false);
-    canvas.addEventListener('webglcontextrestored', () => {
-        console.log('[VRM] WebGL context restored. Resuming rendering.');
-        loopPaused = false;
-        animate();
-    }, false);
-}
-
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
@@ -479,291 +466,306 @@ function fixVRMHitbox(vrmObj) {
     });
 }
 
-// ─── GLOBAL AVATAR INTERACTION HELPERS ───────────────────────────────────────
-window.playVRMAnimation = (animId) => {
-    if (!vrm) return;
-    const animMap = {
-        'idle': ANIM.idle,
-        'wave': ANIM.wave1,
-        'happy': ANIM.happy,
-        'excited': ANIM.excited,
-        'sitting': ANIM.sit1,
-        'yawn': ANIM.yawn,
-        'angry': ANIM.angry,
-        'sad': ANIM.sad1
-    };
-    const targetAnim = animMap[animId] || ANIM.idle;
-    if (actions[targetAnim]) {
-        applyState(animId === 'wave' ? 'wave' : 'happy', 'happy', 0.8);
-        playAnim(targetAnim, animId === 'idle' || animId === 'sitting', 0.35);
-    } else {
-        console.log('[VRM] Animation loading or not found:', animId);
-    }
-};
-
-window.playWaveAnimation = async () => {
-    if (!vrm) {
-        window._pendingIntroWave = true;
-        return;
-    }
-    const wave1Key = ANIM.wave1;
-    clearAutoTimer();
-    applyState('wave', 'happy', 0.85);
-
-    try {
-        let action = actions[wave1Key];
-        if (!action && vrm) {
-            action = await loadSingleAnimation(wave1Key, vrm);
-        }
-        if (action) {
-            await playAnim(wave1Key, false, 0.35);
-        } else if (actions[ANIM.wave2]) {
-            await playAnim(ANIM.wave2, false, 0.35);
-        }
-    } catch (e) {
-        console.warn('[VRM] Wave anim fallback:', e);
-        if (actions[ANIM.wave2]) playAnim(ANIM.wave2, false, 0.35);
-    }
-};
-
-window.onBubblePopped = () => {
-    if (hasDragged || isDragging) return;
-    window._bubbleHasPopped = true;
-    const cvs = document.getElementById('vrm-canvas');
-    if (cvs) cvs.classList.add('raya-visible');
-    if (vrm && window._vrmIsReady) {
-        window.playWaveAnimation();
-        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-            window.chatBot.introduceHerself();
-        }
-    } else {
-        window._pendingIntroOnVRMLoad = true;
-    }
-};
-
-const hasIntroOverlay = document.getElementById('master-intro-overlay') || document.getElementById('bubble-screen');
-if (!hasIntroOverlay && sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce) {
-    const cvs = document.getElementById('vrm-canvas');
-    if (cvs) cvs.classList.add('raya-visible');
-    setTimeout(async () => {
-        if (hasDragged || isDragging) return;
-        window.playWaveAnimation();
-        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-            window.chatBot.introduceHerself();
-        }
-    }, 800);
-}
-
-// ─── RESILIENT MULTI-TIER VRM LOADER ──────────────────────────────────────────
 const initialFile = window.initialAvatarFile || './Wuwa/changli(fixed).vrm';
+vrmLoader.load(
+    window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile,
+    async gltf => {
+        if (typeof window.onVRMLoadProgress === 'function') {
+            window.onVRMLoadProgress(92, 'Initializing bone physics & facial blendshapes...');
+        }
+        vrm = gltf.userData.vrm;
+        if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
 
-function loadInitialVRM(modelPath, isFallback = false) {
-    const url = window.getAvatarUrl ? window.getAvatarUrl(modelPath) : modelPath;
-    console.log(`[VRM] Initiating load for: ${modelPath} -> ${url} (isFallback=${isFallback})`);
+        configureVRMPhysics(vrm, initialFile);
+        applyModelVisuals(vrm, initialFile);
+        fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
 
-    vrmLoader.load(
-        url,
-        async gltf => {
-            if (typeof window.onVRMLoadProgress === 'function') {
-                window.onVRMLoadProgress(92, 'Initializing bone physics & facial blendshapes...');
-            }
-            vrm = gltf.userData.vrm;
-            if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
+        window._vrmIsReady = true;
+        if (typeof window.onVRMLoadProgress === 'function') {
+            window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
+        }
+        if (typeof window.onVRMReady === 'function') {
+            window.onVRMReady();
+        }
 
-            configureVRMPhysics(vrm, modelPath);
-            applyModelVisuals(vrm, modelPath);
-            fixVRMHitbox(vrm);
+        window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
 
-            window._vrmIsReady = true;
-            if (typeof window.onVRMLoadProgress === 'function') {
-                window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
-            }
-            if (typeof window.onVRMReady === 'function') {
-                window.onVRMReady();
-            }
+    window.setVRMScale = (scale) => {
+        if (!isFinite(scale) || scale <= 0) return;
+        const clamped = Math.max(0.3, Math.min(2.5, scale));
+        window.currentVRMScale = clamped;
+        if (vrm && vrm.scene) {
+            vrm.scene.scale.set(clamped, clamped, clamped);
+        }
+    };
+    window.setVRMVisibility = (visible) => {
+        window.vrmEnabled = !!visible;
+        localStorage.setItem('avatarEnabled', visible ? 'true' : 'false');
+        if (vrm && vrm.scene) vrm.scene.visible = !!visible;
+        const canvas = document.getElementById('vrm-canvas');
+        if (canvas) {
+            canvas.style.display = visible ? 'block' : 'none';
+        }
+    };
+    // Always make avatar visible by default on load
+    window.setVRMVisibility(true);
 
-            window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
 
-            window.setVRMScale = (scale) => {
-                if (!isFinite(scale) || scale <= 0) return;
-                const clamped = Math.max(0.3, Math.min(2.5, scale));
-                window.currentVRMScale = clamped;
-                if (vrm && vrm.scene) {
-                    vrm.scene.scale.set(clamped, clamped, clamped);
-                }
-            };
-            window.setVRMVisibility = (visible) => {
-                window.vrmEnabled = !!visible;
-                localStorage.setItem('avatarEnabled', visible ? 'true' : 'false');
-                if (vrm && vrm.scene) vrm.scene.visible = !!visible;
-                const c = document.getElementById('vrm-canvas');
-                if (c) c.style.display = visible ? 'block' : 'none';
-            };
-            window.setVRMVisibility(true);
+    // Live brightness controls exposed to UI sliders
+    window.setVRMBrightness = (val) => {
+        if (!isFinite(val) || val <= 0) return;
+        ambientLight.intensity = (ambientLight.userData.baseIntensity || 1.7) * val;
+        dirLights.forEach(l => { l.intensity = (l.userData.baseIntensity || 1.0) * val; });
+    };
 
-            window.setVRMBrightness = (val) => {
-                if (!isFinite(val) || val <= 0) return;
-                ambientLight.intensity = (ambientLight.userData.baseIntensity || 1.7) * val;
-                dirLights.forEach(l => { l.intensity = (l.userData.baseIntensity || 1.0) * val; });
-            };
-
-            window.setVRMHairBrightness = (val) => {
-                if (!vrm) return;
-                vrm.scene.traverse((node) => {
-                    if (node.isMesh && node.material) {
-                        const mats = Array.isArray(node.material) ? node.material : [node.material];
-                        mats.forEach(mat => {
-                            if (mat.color && (mat.name || '').toLowerCase().includes('hair')) {
-                                if (!mat.userData.baseColor) mat.userData.baseColor = mat.color.clone();
-                                mat.color.copy(mat.userData.baseColor).multiplyScalar(val);
-                            }
-                        });
+    window.setVRMHairBrightness = (val) => {
+        if (!vrm) return;
+        vrm.scene.traverse((node) => {
+            if (node.isMesh && node.material) {
+                const mats = Array.isArray(node.material) ? node.material : [node.material];
+                mats.forEach(mat => {
+                    if (mat.color && (mat.name || '').toLowerCase().includes('hair')) {
+                        if (!mat.userData.baseColor) mat.userData.baseColor = mat.color.clone();
+                        mat.color.copy(mat.userData.baseColor).multiplyScalar(val);
                     }
                 });
-            };
+            }
+        });
+    };
 
-            window.setVRMSkinBrightness = (val) => {
-                if (!vrm) return;
-                vrm.scene.traverse((node) => {
-                    if (node.isMesh && node.material) {
-                        const mats = Array.isArray(node.material) ? node.material : [node.material];
-                        mats.forEach(mat => {
-                            const n = (mat.name || '').toLowerCase();
-                            if (mat.color && (n.includes('face') || n.includes('skin') || n.includes('body'))) {
-                                if (!mat.userData.baseColor) mat.userData.baseColor = mat.color.clone();
-                                mat.color.copy(mat.userData.baseColor).multiplyScalar(val);
-                            }
-                        });
+    window.setVRMSkinBrightness = (val) => {
+        if (!vrm) return;
+        vrm.scene.traverse((node) => {
+            if (node.isMesh && node.material) {
+                const mats = Array.isArray(node.material) ? node.material : [node.material];
+                mats.forEach(mat => {
+                    const n = (mat.name || '').toLowerCase();
+                    if (mat.color && (n.includes('face') || n.includes('skin') || n.includes('body'))) {
+                        if (!mat.userData.baseColor) mat.userData.baseColor = mat.color.clone();
+                        mat.color.copy(mat.userData.baseColor).multiplyScalar(val);
                     }
                 });
-            };
-
-            function poseRestingArms(vrmInstance) {
-                if (!vrmInstance?.humanoid) return;
-                const lArm = vrmInstance.humanoid.getNormalizedBoneNode('leftUpperArm');
-                const rArm = vrmInstance.humanoid.getNormalizedBoneNode('rightUpperArm');
-                if (lArm) { lArm.rotation.z = 1.25; lArm.rotation.x = 0.1; }
-                if (rArm) { rArm.rotation.z = -1.25; rArm.rotation.x = 0.1; }
             }
+        });
+    };
 
-            vrm.scene.scale.setScalar(window.currentVRMScale);
-            vrm.scene.position.set(0, -0.97, 0);
-            updateCharPos();
-            vrm.scene.rotation.y = Math.PI;
+    function poseRestingArms(vrmInstance) {
+        if (!vrmInstance?.humanoid) return;
+        const lArm = vrmInstance.humanoid.getNormalizedBoneNode('leftUpperArm');
+        const rArm = vrmInstance.humanoid.getNormalizedBoneNode('rightUpperArm');
+        if (lArm) { lArm.rotation.z = 1.25; lArm.rotation.x = 0.1; }
+        if (rArm) { rArm.rotation.z = -1.25; rArm.rotation.x = 0.1; }
+    }
 
-            mixer = new THREE.AnimationMixer(vrm.scene);
-            mixer.addEventListener('finished', () => {
-                clearAutoTimer();
-                returnToIdle();
-            });
+    vrm.scene.scale.setScalar(window.currentVRMScale);
+    
+    // Plant feet exactly at the bottom edge of the visible screen
+    vrm.scene.position.set(0, -0.97, 0);
+    updateCharPos();
+    vrm.scene.rotation.y = Math.PI; // default face-camera; animate() will smooth-track from here
 
-            const siteLoaderEl = document.getElementById('site-loader');
-            if (siteLoaderEl) {
-                const textEl = document.getElementById('site-loader-text');
-                if (textEl) textEl.textContent = 'Getting ready...';
-            }
+    mixer = new THREE.AnimationMixer(vrm.scene);
 
-            poseRestingArms(vrm);
-            vrm.scene.updateMatrixWorld(true);
-            vrm.update(0);
-            scene.add(vrm.scene);
+    // When a one-shot (LoopOnce) animation finishes naturally
+    mixer.addEventListener('finished', () => {
+        clearAutoTimer();
+        returnToIdle();
+    });
 
+    const siteLoaderEl = document.getElementById('site-loader');
+    if (siteLoaderEl) {
+        const textEl = document.getElementById('site-loader-text');
+        if (textEl) textEl.textContent = 'Getting ready...';
+    }
+
+    poseRestingArms(vrm);
+    vrm.scene.updateMatrixWorld(true);
+    vrm.update(0);
+    scene.add(vrm.scene);
+
+    if (typeof window.onVRMLoadProgress === 'function') {
+        window.onVRMLoadProgress(80, 'Setting up graphics & shaders...');
+    }
+
+    loadEssentialAnimations(vrm).then(() => {
+        // Step 1: Start idle immediately
+        applyState('idle', 'happy', 0.6);
+        playAnim(ANIM.idle, true, 0.3);
+        if (mixer) mixer.update(0);
+
+        if (typeof window.onVRMLoadProgress === 'function') {
+            window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
+        }
+
+        // Notify IntroLoader that VRM is fully loaded and ready
+        window._vrmIsReady = true;
+        if (typeof window.onVRMReady === 'function') {
+            window.onVRMReady();
+        }
+
+        // If user already popped the bubble or intro was queued, play wave1 and speak simultaneously
+        if (window._pendingIntroOnVRMLoad || window._pendingIntroWave || (sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce)) {
+            window._hasIntroducedOnce = true;
+            window._pendingIntroOnVRMLoad = false;
+            window._pendingIntroWave = false;
+            setTimeout(() => {
+                window.playWaveAnimation();
+                if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                    window.chatBot.introduceHerself();
+                }
+            }, 250);
+        }
+    }, (progress) => {
+        if (progress && progress.lengthComputable && progress.total > 0) {
+            const pct = Math.min(90, Math.round((progress.loaded / progress.total) * 90));
             if (typeof window.onVRMLoadProgress === 'function') {
-                window.onVRMLoadProgress(80, 'Setting up graphics & shaders...');
+                window.onVRMLoadProgress(pct, `Downloading 3D avatar (${pct}%)...`);
             }
-
-            loadEssentialAnimations(vrm).then(() => {
-                applyState('idle', 'happy', 0.6);
-                playAnim(ANIM.idle, true, 0.3);
-                if (mixer) mixer.update(0);
-
-                if (typeof window.onVRMLoadProgress === 'function') {
-                    window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
-                }
-
-                window._vrmIsReady = true;
-                if (typeof window.onVRMReady === 'function') {
-                    window.onVRMReady();
-                }
-
-                if (window._pendingIntroOnVRMLoad || window._pendingIntroWave || (sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce)) {
-                    window._hasIntroducedOnce = true;
-                    window._pendingIntroOnVRMLoad = false;
-                    window._pendingIntroWave = false;
-                    setTimeout(() => {
-                        window.playWaveAnimation();
-                        if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
-                            window.chatBot.introduceHerself();
-                        }
-                    }, 250);
-                }
-            });
-
-            if (siteLoaderEl) { 
-                siteLoaderEl.classList.add('hidden');
-                setTimeout(() => siteLoaderEl?.remove(), 800); 
-            }
-
-            const animsToPrewarm = [ANIM.happy, ANIM.excited, ANIM.yawn, ANIM.angry, ANIM.sad1, ANIM.no];
-            let prewarmIndex = 0;
-            const prewarmNext = () => {
-                if (prewarmIndex >= animsToPrewarm.length || !vrm) return;
-                const file = animsToPrewarm[prewarmIndex++];
-                if (!actions[file]) {
-                    loadSingleAnimation(file, vrm).catch(() => {});
-                }
-                setTimeout(prewarmNext, 2500);
-            };
-            setTimeout(prewarmNext, 5000);
-        },
-        xhr => {
-            const totalSize = (xhr.total && xhr.total > 0) ? xhr.total : (AVATAR_SIZES[modelPath] || 31422968);
-            const rawPct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
-            const scaledPct = Math.round(rawPct * 0.75);
-
+        } else if (progress && progress.loaded > 0) {
+            const approxTotal = 15 * 1024 * 1024;
+            const pct = Math.min(88, Math.round((progress.loaded / approxTotal) * 88));
             if (typeof window.onVRMLoadProgress === 'function') {
-                window.onVRMLoadProgress(scaledPct, `Loading 3D Character (${rawPct}%)...`);
-            }
-
-            const siteLoaderEl = document.getElementById('site-loader');
-            if (siteLoaderEl) {
-                const pctEl = document.getElementById('site-loader-pct');
-                const barEl = document.getElementById('site-loader-bar');
-                const textEl = document.getElementById('site-loader-text');
-                if (pctEl) pctEl.textContent = `${scaledPct}%`;
-                if (barEl) barEl.style.width = `${scaledPct}%`;
-                if (textEl) textEl.textContent = `Loading 3D Character (${rawPct}%)...`;
-            }
-        },
-        err => {
-            console.warn(`[VRM] Failed to load avatar from ${url}:`, err);
-            
-            // Automatic mobile recovery fallback:
-            // If the heavy 31.4MB model fails on mobile connection/memory, fallback to 11.8MB Kid changli
-            if (!isFallback && modelPath !== './Wuwa/Kid changli.vrm') {
-                console.log('[VRM] Falling back to lightweight mobile model: ./Wuwa/Kid changli.vrm');
-                if (typeof window.onVRMLoadProgress === 'function') {
-                    window.onVRMLoadProgress(35, 'Optimizing 3D character for mobile...');
-                }
-                loadInitialVRM('./Wuwa/Kid changli.vrm', true);
-                return;
-            }
-
-            console.error('[VRM] All avatar load attempts failed.');
-            window._vrmIsReady = true;
-            if (typeof window.onVRMReady === 'function') {
-                window.onVRMReady();
-            }
-            const siteLoaderEl = document.getElementById('site-loader');
-            if (siteLoaderEl) {
-                const textEl = document.getElementById('site-loader-text');
-                if (textEl) textEl.textContent = 'Failed to load system.';
+                window.onVRMLoadProgress(pct, `Downloading 3D avatar (${pct}%)...`);
             }
         }
-    );
-}
+    }, (err) => {
+        console.warn('[VRM Initial Load Error]', err);
+        window._vrmIsReady = true;
+        if (typeof window.onVRMReady === 'function') {
+            window.onVRMReady();
+        }
+    });
 
-loadInitialVRM(initialFile);
+    if (siteLoaderEl) { 
+        siteLoaderEl.classList.add('hidden');
+        setTimeout(() => siteLoaderEl?.remove(), 800); 
+    }
+
+    // Step 2: Gently pre-warm remaining animations in the background.
+    // Starts 5s after load, loads ONE animation every 2.5s with no main-thread blocking.
+    const animsToPrewarm = [ANIM.happy, ANIM.excited, ANIM.yawn, ANIM.angry, ANIM.sad1, ANIM.no];
+    let prewarmIndex = 0;
+    const prewarmNext = () => {
+        if (prewarmIndex >= animsToPrewarm.length || !vrm) return;
+        const file = animsToPrewarm[prewarmIndex++];
+        if (!actions[file]) {
+            loadSingleAnimation(file, vrm).catch(() => {});
+        }
+        setTimeout(prewarmNext, 2500); // 2.5s gap — never causes lag spikes
+    };
+    setTimeout(prewarmNext, 5000); // wait 5s before starting prewarm
+
+    // Global helper to play custom animations from Avatar Studio
+    window.playVRMAnimation = (animId) => {
+        if (!vrm) return;
+        const animMap = {
+            'idle': ANIM.idle,
+            'wave': ANIM.wave1,
+            'happy': ANIM.happy,
+            'excited': ANIM.excited,
+            'sitting': ANIM.sit1,
+            'yawn': ANIM.yawn,
+            'angry': ANIM.angry,
+            'sad': ANIM.sad1
+        };
+        const targetAnim = animMap[animId] || ANIM.idle;
+        if (actions[targetAnim]) {
+            applyState(animId === 'wave' ? 'wave' : 'happy', 'happy', 0.8);
+            playAnim(targetAnim, animId === 'idle' || animId === 'sitting', 0.35);
+        } else {
+            console.log('[VRM] Animation loading or not found:', animId);
+        }
+    };
+
+    // Global helper so chatbot can trigger the intro wave.
+    window.playWaveAnimation = async () => {
+        if (!vrm) {
+            window._pendingIntroWave = true;
+            return;
+        }
+        const wave1Key = ANIM.wave1;
+        clearAutoTimer();
+        applyState('wave', 'happy', 0.85);
+
+        try {
+            let action = actions[wave1Key];
+            if (!action && vrm) {
+                action = await loadSingleAnimation(wave1Key, vrm);
+            }
+            if (action) {
+                await playAnim(wave1Key, false, 0.35);
+            } else if (actions[ANIM.wave2]) {
+                await playAnim(ANIM.wave2, false, 0.35);
+            }
+        } catch (e) {
+            console.warn('[VRM] Wave anim fallback:', e);
+            if (actions[ANIM.wave2]) playAnim(ANIM.wave2, false, 0.35);
+        }
+    };
+
+    // Trigger intro: wait for bubble pop if master intro overlay or bubble screen is active
+    window.onBubblePopped = () => {
+        if (hasDragged || isDragging) return;
+        window._bubbleHasPopped = true;
+        // ── Reveal the VRM canvas now that bubble has been popped ──
+        const cvs = document.getElementById('vrm-canvas');
+        if (cvs) cvs.classList.add('raya-visible');
+        if (vrm && window._vrmIsReady) {
+            window.playWaveAnimation();
+            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                window.chatBot.introduceHerself();
+            }
+        } else {
+            // Queue intro until VRM is ready
+            window._pendingIntroOnVRMLoad = true;
+        }
+    };
+
+    const hasIntroOverlay = document.getElementById('master-intro-overlay') || document.getElementById('bubble-screen');
+    if (!hasIntroOverlay && sessionStorage.getItem('raya_bubble_done') && !window._hasIntroducedOnce) {
+        // Returning visitor — show canvas immediately (no bubble screen)
+        const cvs = document.getElementById('vrm-canvas');
+        if (cvs) cvs.classList.add('raya-visible');
+        setTimeout(async () => {
+            if (hasDragged || isDragging) return;
+            window.playWaveAnimation();
+            if (window.chatBot && typeof window.chatBot.introduceHerself === 'function') {
+                window.chatBot.introduceHerself();
+            }
+        }, 800);
+    }
+
+
+}, xhr => {
+    const totalSize = (xhr.total && xhr.total > 0) ? xhr.total : (AVATAR_SIZES[initialFile] || 31422968);
+    const rawPct = Math.min(100, Math.round((xhr.loaded / totalSize) * 100));
+    const scaledPct = Math.round(rawPct * 0.75); // 0 - 75% for VRM bytes stream
+
+    if (typeof window.onVRMLoadProgress === 'function') {
+        window.onVRMLoadProgress(scaledPct, `Loading 3D Character (${rawPct}%)...`);
+    }
+
+    const siteLoaderEl = document.getElementById('site-loader');
+    if (siteLoaderEl) {
+        const pctEl = document.getElementById('site-loader-pct');
+        const barEl = document.getElementById('site-loader-bar');
+        const textEl = document.getElementById('site-loader-text');
+        
+        if (pctEl) pctEl.textContent = `${scaledPct}%`;
+        if (barEl) barEl.style.width = `${scaledPct}%`;
+        if (textEl) textEl.textContent = `Loading 3D Character (${rawPct}%)...`;
+    }
+}, err => {
+    console.error(err);
+    if (typeof window.onVRMReady === 'function') {
+        window.onVRMReady();
+    }
+    const siteLoaderEl = document.getElementById('site-loader');
+    if (siteLoaderEl) {
+        const textEl = document.getElementById('site-loader-text');
+        if (textEl) textEl.textContent = 'Failed to load system.';
+    }
+});
 
 const fbxLoader = new FBXLoader();
 const activeAnimPromises = new Map();
