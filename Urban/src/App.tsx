@@ -3,6 +3,7 @@ import { Sidebar } from '@/components/portfolio/Sidebar';
 import { HeroSection } from '@/components/portfolio/HeroSection';
 import { ProjectsSection } from '@/components/portfolio/ProjectsSection';
 import { AboutSection } from '@/components/portfolio/AboutSection';
+import { SkillsSection } from '@/components/portfolio/SkillsSection';
 import { ExperienceSection } from '@/components/portfolio/ExperienceSection';
 import { CertificationsSection } from '@/components/portfolio/CertificationsSection';
 import { ContactSection } from '@/components/portfolio/ContactSection';
@@ -67,7 +68,7 @@ export const App: React.FC = () => {
   // ═══ Real-Time Scroll Spy via IntersectionObserver ═══
   // Strictly serial order matching right-side page flow
   useEffect(() => {
-    const sectionIds = ['home', 'projects', 'about', 'experience', 'certifications', 'contact'];
+    const sectionIds = ['home', 'projects', 'about', 'skills', 'experience', 'certifications', 'contact'];
 
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 400);
@@ -175,7 +176,10 @@ export const App: React.FC = () => {
           {/* 3. About Section */}
           <AboutSection />
 
-          {/* 4. Experience & Academics Section */}
+          {/* 4. Skills 5 Pillars Section */}
+          <SkillsSection />
+
+          {/* 5. Experience & Academics Section */}
           <ExperienceSection />
 
           {/* 6. Certifications Section */}

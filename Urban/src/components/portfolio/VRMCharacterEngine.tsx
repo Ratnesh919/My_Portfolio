@@ -181,22 +181,29 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 60.0);
     camera.position.set(0, 0.9, 7.5);
 
-    // Spec-correct lighting per PROJECT_DOCUMENTATION.md §3.1
-    // Ambient + pink key + blue rim — matches documented avatar appearance target
+    // Multi-Point Studio Lighting (from js/vrm-character.js)
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    [[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
-      .forEach(([x,y,z,c,i]) => {
-        const l = new THREE.DirectionalLight(c, i);
-        l.position.set(x, y, z);
-        scene.add(l);
-      });
+    const dirLights = [
+      [2, 4, 3, 0xfff0f8, 1.2],
+      [-3, 2, -2, 0x8899ff, 0.6],
+      [0, -1, 4, 0xffddcc, 0.3],
+      [5, 2, 0, 0xffffff, 0.5],
+      [-5, 2, 0, 0xffffff, 0.5],
+    ];
+    dirLights.forEach(([x, y, z, color, intensity]) => {
+      const light = new THREE.DirectionalLight(color as number, intensity as number);
+      light.position.set(x as number, y as number, z as number);
+      scene.add(light);
+    });
 
     const getVisibleWidth = () => {
       const vFOV = THREE.MathUtils.degToRad(camera.fov);
@@ -231,14 +238,7 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     const candidateUrls = getAvatarCandidateUrls(currentAvatarFile);
     let isDisposed = false;
 
-    let lastWaveTriggerTime = 0;
-
     const triggerWave = () => {
-      const now = performance.now();
-      // Debounce: only one wave per 4500ms (spec: wave auto-resets after 4000ms per §3.2)
-      if (now - lastWaveTriggerTime < 4500) return;
-      lastWaveTriggerTime = now;
-
       if (waveActionRef.current && idleActionRef.current) {
         waveActionRef.current.reset();
         idleActionRef.current.crossFadeTo(waveActionRef.current, 0.35, false);
@@ -353,10 +353,6 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
                   mat.map.magFilter = THREE.LinearFilter;
                   mat.map.needsUpdate = true;
                 }
-                // Zero emissive to prevent MToon white blowout under ACES tone mapping
-                if (mat.emissive) mat.emissive.setScalar(0);
-                if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = 0;
-                mat.needsUpdate = true;
               });
             }
           });

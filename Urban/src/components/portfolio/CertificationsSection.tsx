@@ -23,7 +23,7 @@ export const CertificationsSection: React.FC<CertificationsSectionProps> = ({ on
           <span>Verified Credentials</span>
         </div>
         <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Certifications
+          Licenses & Certifications
         </h2>
       </div>
 
