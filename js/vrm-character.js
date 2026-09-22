@@ -242,7 +242,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.0;
 
 if (canvas) {
     canvas.addEventListener('webglcontextlost', (event) => {
@@ -261,26 +261,24 @@ const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
-ambientLight.userData.baseIntensity = 0.95;
-ambientLight.intensity = 0.95 * 0.65;
+// Spec-correct lighting per PROJECT_DOCUMENTATION.md §3.1
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.7);
 scene.add(ambientLight);
 
 const dirLights = [];
-const lightConfigs = [
-    { pos: [1.5, 2.5, 2.5], color: 0xfff5f0, intensity: 1.4 },  // Key light
-    { pos: [-2, 1.5, 1.5],  color: 0xe8f0ff, intensity: 0.85 }, // Fill light
-    { pos: [0, 3, -3],      color: 0xcc66ff, intensity: 1.2 },  // Cyberpunk rim light
-    { pos: [0, -1, 2],      color: 0x66ccff, intensity: 0.4 }   // Under light
-];
-lightConfigs.forEach(({ pos, color, intensity }) => {
-    const l = new THREE.DirectionalLight(color, intensity);
-    l.position.set(...pos);
-    l.userData.baseIntensity = intensity;
-    l.intensity = intensity * 0.65;
-    scene.add(l);
-    dirLights.push(l);
-});
+
+const keyLight = new THREE.DirectionalLight(0xff416c, 2.4);
+keyLight.position.set(1.0, 2.0, 1.0);
+keyLight.userData.baseIntensity = 2.4;
+scene.add(keyLight);
+dirLights.push(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0x38bdf8, 2.0);
+rimLight.position.set(-1.0, 1.5, -1.0);
+rimLight.userData.baseIntensity = 2.0;
+scene.add(rimLight);
+dirLights.push(rimLight);
+
 
 function getVisibleWidth() {
     const vFOV = THREE.MathUtils.degToRad(camera.fov);
@@ -518,14 +516,9 @@ function applyModelVisuals(vrm, modelPath) {
         skinBrightness: 0.72
     };
 
-    // 1. Adjust brightness (scene lighting)
-    const bMultiplier = conf.brightness !== undefined ? conf.brightness : 0.65;
-    if (ambientLight) ambientLight.intensity = (ambientLight.userData.baseIntensity || 0.95) * bMultiplier;
-    dirLights.forEach(l => {
-        l.intensity = (l.userData.baseIntensity || 1.0) * bMultiplier;
-    });
+    // 1. Lighting — spec-correct, no brightness multiplier needed (pre-calibrated)
+    // Note: brightness config is kept for backwards compat but no longer dims lights
 
-    // 2. Adjust material properties and brightness
     const hMultiplier = conf.hairBrightness !== undefined ? conf.hairBrightness : 0.55;
     const sMultiplier = conf.skinBrightness !== undefined ? conf.skinBrightness : 0.72;
 
