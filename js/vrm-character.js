@@ -159,7 +159,10 @@ const renderer = new THREE.WebGLRenderer({
 // Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
+// MToon is a pre-lit / self-luminous shader — it handles color internally.
+// SRGBColorSpace causes double gamma-correction on Chrome/Edge GPU → white silhouette.
+// LinearSRGBColorSpace passes MToon's output untouched to the display.
+renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
