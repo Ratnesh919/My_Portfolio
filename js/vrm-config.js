@@ -1,4 +1,4 @@
-﻿window.VRM_MODEL_CONFIGS = {
+window.VRM_MODEL_CONFIGS = {
     './Wuwa/changli(fixed).vrm': {
         brightness: 1.0,         
         glow: 1.0,               

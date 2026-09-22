@@ -181,8 +181,6 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 60.0);
@@ -190,16 +188,15 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
 
     // Spec-correct lighting per PROJECT_DOCUMENTATION.md §3.1
     // Ambient + pink key + blue rim — matches documented avatar appearance target
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xff416c, 2.4);
-    keyLight.position.set(1.0, 2.0, 1.0);
-    scene.add(keyLight);
-
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 2.0);
-    rimLight.position.set(-1.0, 1.5, -1.0);
-    scene.add(rimLight);
+    [[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
+      .forEach(([x,y,z,c,i]) => {
+        const l = new THREE.DirectionalLight(c, i);
+        l.position.set(x, y, z);
+        scene.add(l);
+      });
 
     const getVisibleWidth = () => {
       const vFOV = THREE.MathUtils.degToRad(camera.fov);
