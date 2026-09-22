@@ -241,6 +241,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 
 if (canvas) {
     canvas.addEventListener('webglcontextlost', (event) => {
@@ -259,19 +261,26 @@ const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-ambientLight.userData.baseIntensity = 0.8;
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+ambientLight.userData.baseIntensity = 0.95;
+ambientLight.intensity = 0.95 * 0.65;
 scene.add(ambientLight);
 
 const dirLights = [];
-[[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
-    .forEach(([x,y,z,c,i]) => { 
-        const l = new THREE.DirectionalLight(c,i); 
-        l.position.set(x,y,z); 
-        l.userData.baseIntensity = i;
-        scene.add(l); 
-        dirLights.push(l);
-    });
+const lightConfigs = [
+    { pos: [1.5, 2.5, 2.5], color: 0xfff5f0, intensity: 1.4 },  // Key light
+    { pos: [-2, 1.5, 1.5],  color: 0xe8f0ff, intensity: 0.85 }, // Fill light
+    { pos: [0, 3, -3],      color: 0xcc66ff, intensity: 1.2 },  // Cyberpunk rim light
+    { pos: [0, -1, 2],      color: 0x66ccff, intensity: 0.4 }   // Under light
+];
+lightConfigs.forEach(({ pos, color, intensity }) => {
+    const l = new THREE.DirectionalLight(color, intensity);
+    l.position.set(...pos);
+    l.userData.baseIntensity = intensity;
+    l.intensity = intensity * 0.65;
+    scene.add(l);
+    dirLights.push(l);
+});
 
 function getVisibleWidth() {
     const vFOV = THREE.MathUtils.degToRad(camera.fov);
@@ -501,40 +510,53 @@ function configureVRMPhysics(vrmModel, modelPath) {
 }
 
 function applyModelVisuals(vrm, modelPath) {
-    if (!window.VRM_MODEL_CONFIGS) return;
-    const conf = window.VRM_MODEL_CONFIGS[modelPath] || window.VRM_MODEL_CONFIGS['default'];
-    if (!conf) return;
+    if (!vrm?.scene) return;
+    const conf = (window.VRM_MODEL_CONFIGS && (window.VRM_MODEL_CONFIGS[modelPath] || window.VRM_MODEL_CONFIGS['default'])) || {
+        brightness: 0.65,
+        glow: 0.0,
+        hairBrightness: 0.55,
+        skinBrightness: 0.72
+    };
 
     // 1. Adjust brightness (scene lighting)
-    const bMultiplier = conf.brightness !== undefined ? conf.brightness : 1.0;
-    ambientLight.intensity = ambientLight.userData.baseIntensity * bMultiplier;
+    const bMultiplier = conf.brightness !== undefined ? conf.brightness : 0.65;
+    if (ambientLight) ambientLight.intensity = (ambientLight.userData.baseIntensity || 0.95) * bMultiplier;
     dirLights.forEach(l => {
-        l.intensity = l.userData.baseIntensity * bMultiplier;
+        l.intensity = (l.userData.baseIntensity || 1.0) * bMultiplier;
     });
 
-    // 2. Adjust material glow (emission) and specific part brightness
-    const gMultiplier = conf.glow !== undefined ? conf.glow : 1.0;
-    const hMultiplier = conf.hairBrightness !== undefined ? conf.hairBrightness : 1.0;
-    const sMultiplier = conf.skinBrightness !== undefined ? conf.skinBrightness : 1.0;
+    // 2. Adjust material properties and brightness
+    const hMultiplier = conf.hairBrightness !== undefined ? conf.hairBrightness : 0.55;
+    const sMultiplier = conf.skinBrightness !== undefined ? conf.skinBrightness : 0.72;
 
     vrm.scene.traverse((node) => {
         if (node.isMesh && node.material) {
             const materials = Array.isArray(node.material) ? node.material : [node.material];
             materials.forEach(mat => {
+                // Ensure emissive does NOT blow up unlit/MToon meshes to white
                 if (mat.emissive) {
-                    if (!mat.userData.baseEmissive) mat.userData.baseEmissive = mat.emissive.clone();
-                    mat.emissive.copy(mat.userData.baseEmissive).multiplyScalar(gMultiplier);
+                    if (conf.glow && conf.glow > 0) {
+                        if (!mat.userData.baseEmissive) mat.userData.baseEmissive = mat.emissive.clone();
+                        mat.emissive.copy(mat.userData.baseEmissive).multiplyScalar(conf.glow);
+                    } else {
+                        mat.emissive.setRGB(0, 0, 0);
+                    }
                 }
+                const matName = (mat.name || '').toLowerCase();
+                const isHair = matName.includes('hair') || matName.includes('kami') || matName.includes('toufa');
+                const isSkin = matName.includes('face') || matName.includes('skin') || matName.includes('body') ||
+                               matName.includes('head') || matName.includes('hada') || matName.includes('kao') ||
+                               matName.includes('arm') || matName.includes('leg');
+
+                const scale = isHair ? hMultiplier : isSkin ? sMultiplier : 1.0;
+
                 if (mat.color) {
                     if (!mat.userData.baseColor) mat.userData.baseColor = mat.color.clone();
-                    const matName = (mat.name || '').toLowerCase();
-                    if (matName.includes('hair')) {
-                        mat.color.copy(mat.userData.baseColor).multiplyScalar(hMultiplier);
-                    } else if (matName.includes('face') || matName.includes('skin') || matName.includes('body')) {
-                        mat.color.copy(mat.userData.baseColor).multiplyScalar(sMultiplier);
-                    } else {
-                        mat.color.copy(mat.userData.baseColor);
-                    }
+                    mat.color.copy(mat.userData.baseColor).multiplyScalar(scale);
+                }
+                if (mat.shadeColor) {
+                    if (!mat.userData.baseShadeColor) mat.userData.baseShadeColor = mat.shadeColor.clone();
+                    mat.shadeColor.copy(mat.userData.baseShadeColor).multiplyScalar(scale);
                 }
             });
         }
@@ -582,10 +604,24 @@ window.playVRMAnimation = (animId) => {
     }
 };
 
+let waveTimeoutId = null;
+let lastWaveTriggerTime = 0;
+
 window.playWaveAnimation = async () => {
     if (!vrm) {
         window._pendingIntroWave = true;
         return;
+    }
+    // Prevent rapid re-triggering within 4.5 seconds
+    const now = performance.now();
+    if (now - lastWaveTriggerTime < 4500) {
+        return;
+    }
+    lastWaveTriggerTime = now;
+
+    if (waveTimeoutId) {
+        clearTimeout(waveTimeoutId);
+        waveTimeoutId = null;
     }
     const wave1Key = ANIM.wave1;
     clearAutoTimer();
@@ -605,6 +641,14 @@ window.playWaveAnimation = async () => {
         console.warn('[VRM] Wave anim fallback:', e);
         if (actions[ANIM.wave2]) playAnim(ANIM.wave2, false, 0.35);
     }
+
+    // Explicitly auto-return to idle after 3500ms (single greeting wave per project specs)
+    waveTimeoutId = setTimeout(() => {
+        if (currentKey === ANIM.wave1 || currentKey === ANIM.wave2) {
+            returnToIdle();
+        }
+        waveTimeoutId = null;
+    }, 3500);
 };
 
 window.onBubblePopped = () => {
@@ -684,8 +728,8 @@ function loadInitialVRM(modelPath, isFallback = false) {
 
             window.setVRMBrightness = (val) => {
                 if (!isFinite(val) || val <= 0) return;
-                ambientLight.intensity = (ambientLight.userData.baseIntensity || 1.7) * val;
-                dirLights.forEach(l => { l.intensity = (l.userData.baseIntensity || 1.0) * val; });
+                ambientLight.intensity = (ambientLight.userData.baseIntensity || 0.95) * val * 0.65;
+                dirLights.forEach(l => { l.intensity = (l.userData.baseIntensity || 1.0) * val * 0.65; });
             };
 
             window.setVRMHairBrightness = (val) => {
@@ -734,6 +778,10 @@ function loadInitialVRM(modelPath, isFallback = false) {
 
             mixer = new THREE.AnimationMixer(vrm.scene);
             mixer.addEventListener('finished', () => {
+                if (waveTimeoutId) {
+                    clearTimeout(waveTimeoutId);
+                    waveTimeoutId = null;
+                }
                 clearAutoTimer();
                 returnToIdle();
             });
@@ -958,6 +1006,10 @@ function clearAutoTimer() {
 
 // After any animation ends → go to idle/sit, then schedule next auto-anim (30s gap)
 function returnToIdle() {
+    if (waveTimeoutId) {
+        clearTimeout(waveTimeoutId);
+        waveTimeoutId = null;
+    }
     if (isSittingOnChatbox) {
         // Sitting cycle base: sit2 is the resting pose
         applyState('happyIdle', 'relaxed', 0.55);
@@ -1472,10 +1524,9 @@ function animate() {
                 }
             } else {
                 // Standing mode speaking:
-                // ONE exception — waving animations (wave1 or wave2) during the intro.
-                // Allow wave to play to completion alongside intro speech — do nothing.
-                if (currentKey === ANIM.wave1 || currentKey === ANIM.wave2) {
-                    // Do nothing — let wave play to completion
+                // Allow wave only during its initial 3.5s window, then return to idle
+                if ((currentKey === ANIM.wave1 || currentKey === ANIM.wave2) && (performance.now() - lastWaveTriggerTime < 3500)) {
+                    // Let wave play to completion within grace window
                 } else {
                     clearAutoTimer();
                     applyState('idle', 'happy', 0.75);
@@ -1684,14 +1735,18 @@ function animate() {
 
     // Wrist angle tweak during wave1 — rotate right wrist/forearm for natural wave
     if (currentKey === ANIM.wave1) {
-        const rHand = vrm.humanoid?.getNormalizedBoneNode('rightHand');
-        if (rHand) {
-            rHand.rotation.z = lerp(rHand.rotation.z ?? 0, -0.45, dt * 3); // Bend hand
-            rHand.rotation.x = lerp(rHand.rotation.x ?? 0, -1.0, dt * 3);  // Twist wrist to face palm front
-            rHand.rotation.y = lerp(rHand.rotation.y ?? 0, 0.5, dt * 3);   // Adjust angle slightly
+        if (performance.now() - lastWaveTriggerTime > 3600) {
+            returnToIdle();
+        } else {
+            const rHand = vrm.humanoid?.getNormalizedBoneNode('rightHand');
+            if (rHand) {
+                rHand.rotation.z = lerp(rHand.rotation.z ?? 0, -0.45, dt * 3); // Bend hand
+                rHand.rotation.x = lerp(rHand.rotation.x ?? 0, -1.0, dt * 3);  // Twist wrist to face palm front
+                rHand.rotation.y = lerp(rHand.rotation.y ?? 0, 0.5, dt * 3);   // Adjust angle slightly
+            }
+            const rLower = vrm.humanoid?.getNormalizedBoneNode('rightLowerArm');
+            if (rLower) rLower.rotation.z = lerp(rLower.rotation.z ?? 0, 0.3, dt * 3);
         }
-        const rLower = vrm.humanoid?.getNormalizedBoneNode('rightLowerArm');
-        if (rLower) rLower.rotation.z = lerp(rLower.rotation.z ?? 0, 0.3, dt * 3);
     }
 
     if (!isDragging) {
@@ -1797,7 +1852,14 @@ window.switchVRM = function(modelPath) {
         initCachedFingerBones(vrm);
 
         mixer = new THREE.AnimationMixer(vrm.scene);
-        mixer.addEventListener('finished', () => { clearAutoTimer(); returnToIdle(); });
+        mixer.addEventListener('finished', () => {
+            if (waveTimeoutId) {
+                clearTimeout(waveTimeoutId);
+                waveTimeoutId = null;
+            }
+            clearAutoTimer();
+            returnToIdle();
+        });
 
         const extraToLoad = [];
         if (savedSitting && !isMobile) {

@@ -91,9 +91,6 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       onComplete();
       if ((window as any).activateAvatarAndChatbot) (window as any).activateAvatarAndChatbot();
       if ((window as any).chatBot) (window as any).chatBot._userHasGestured = true;
-      if (typeof (window as any).onBubblePopped === 'function') {
-        (window as any).onBubblePopped();
-      }
     }, 600);
   };
 

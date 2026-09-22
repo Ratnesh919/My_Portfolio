@@ -225,7 +225,6 @@ class AvatarChatBot {
 
         // Always attempt to speak immediately (Autoplay)
         console.log('[Raya Intro] Attempting auto-play immediately.');
-        try { window.playWaveAnimation?.(); } catch(e) {}
         this.speakAvatar(introMessage, false);
 
         if (!this._userHasGestured) {
@@ -446,7 +445,6 @@ class AvatarChatBot {
                 <li class="suggest-cmd">"Leave a message"</li>
                 <li class="suggest-cmd">"Scroll down"</li>
                 <li class="suggest-cmd">"Take me to projects"</li>
-                <li class="suggest-cmd">"Take me to skills"</li>
                 <li class="suggest-cmd">"Take me to contact section"</li>
                 <li class="suggest-cmd">"Tell me about Ratnesh's projects"</li>
                 <li class="suggest-cmd">"Tell me a joke"</li>
@@ -996,6 +994,7 @@ class AvatarChatBot {
     async handleUserInput(text) {
         console.log('[Raya] handleUserInput called:', JSON.stringify(text), '| awaitingName:', this._awaitingName, '| awaitingTheme:', this._awaitingTheme, '| isThinking:', this.isThinking);
         if (!text) return;
+        this._lastUserPrompt = text;
 
         // ── Onboarding: name collection ────────────────────────────────────────
         if (this._awaitingName) {
@@ -1300,8 +1299,7 @@ class AvatarChatBot {
         const t = target.toLowerCase().trim();
         if (t === 'home' || t === 'top' || t === 'hero') this.executeScroll('home');
         else if (t.includes('project') || t.includes('work')) this.executeScroll('projects');
-        else if (t.includes('about') || t.includes('bio')) this.executeScroll('about');
-        else if (t.includes('skill') || t.includes('stack')) this.executeScroll('skills');
+        else if (t.includes('about') || t.includes('bio') || t.includes('skill') || t.includes('stack')) this.executeScroll('about');
         else if (t.includes('experience') || t.includes('academic') || t.includes('education') || t.includes('timeline')) this.executeScroll('experience');
         else if (t.includes('cert') || t.includes('certificate')) this.executeScroll('certifications');
         else if (t.includes('contact') || t.includes('email') || t.includes('social')) this.executeScroll('contact');
@@ -1338,9 +1336,8 @@ class AvatarChatBot {
 
         let secId = 'home';
         if (target === 'home' || target === 'hero') secId = 'home';
-        else if (target.includes('about') || target.includes('bio')) secId = 'about';
+        else if (target.includes('about') || target.includes('bio') || target.includes('skill') || target.includes('tech') || target.includes('stack')) secId = 'about';
         else if (target.includes('project') || target.includes('work') || target.includes('portfolio')) secId = 'projects';
-        else if (target.includes('skill') || target.includes('tech') || target.includes('stack')) secId = 'skills';
         else if (target.includes('experience') || target.includes('education') || target.includes('timeline') || target.includes('college') || target.includes('university') || target.includes('degree')) secId = 'experience';
         else if (target.includes('cert') || target.includes('certificate')) secId = 'certifications';
         else if (target.includes('contact') || target.includes('email') || target.includes('social') || target.includes('linkedin') || target.includes('github') || target.includes('instagram')) secId = 'contact';
@@ -1782,22 +1779,25 @@ class AvatarChatBot {
 
             // Universal multi-language script and Romanized phonetics detection
             const hasBengaliScript  = /[\u0980-\u09FF]/.test(cleanText);
-            const isBengaliWords    = hasBengaliScript || /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob|bangla|bengali|ami|obosshoi|paro|jigyesh|korte|parbo|kichu|bolchi|shuncho|bolun|ache|ektu|dada|didi|khabar|kheyecho|prithibi|gol|keno|football|aamader|ghurbe|phire|ashbe|chutkula|bol)\b/i.test(cleanText);
-
             const hasPunjabiScript  = /[\u0A00-\u0A7F]/.test(cleanText);
-            const isPunjabiWords    = hasPunjabiScript || /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi|bolde|bol sakdi|baraf|tukda|haanji|puch|sakde|ho|veere|paaji|ki|karde|pya|soniye|munder|kiven|theek|santa|banta|hath|dekh|reha|si|kithon|chutkula|sunao)\b/i.test(cleanText);
-
             const hasGujaratiScript = /[\u0A80-\u0AFF]/.test(cleanText);
-            const isGujaratiWords   = hasGujaratiScript || /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame|aavde|vaat|paisa|bachavani|kharidya|vagar|ghare|jaav|bol|saku|shako|vishe|mane|kai|pan|puchi|bhai|ben|shu|karo|dukanwala|grahak|scheme|chutkula|sunavo)\b/i.test(cleanText);
-
             const hasJapaneseScript = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(cleanText);
             const hasDevanagari     = /[\u0900-\u097F]/.test(cleanText);
-            const isHindiWords      = hasDevanagari || /\b(namaste|kaise|kaisi|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|haan|nahi|kaisa|main|meri|mera|mujhe|tum|kar|rahe|rahi|samjho|baat|bol|sakdi|sakta|saktee|shonao|pappu|dost|sapne|khata|hindi|bilkul|pooch|sakto|bataiye|theek|badhiya|chidiya|ped|goli|bachengi|aawaz)\b/i.test(cleanText);
+
+            // Context-aware chat language identification (evaluates user prompt + assistant response)
+            const promptLower = (this._lastUserPrompt || '').toLowerCase();
+            const isHindiPrompt = /\b(hindi|chutkula|shayari|kavita|hasao|sunao|batao|kaisa|kaise|kaisi|namaste)\b/i.test(promptLower);
+            const isBengaliPrompt = /\b(bangla|bengali|kemon|acho)\b/i.test(promptLower);
+            const isPunjabiPrompt = /\b(punjabi|kive|kidda|sat sri akal)\b/i.test(promptLower);
+            const isGujaratiPrompt = /\b(gujarati|kem cho|majama)\b/i.test(promptLower);
+
+            const isHindiWords = hasDevanagari || isHindiPrompt || /\b(namaste|kaise|kaisi|kaisa|kya|bhai|yaar|aap|suno|karo|batao|chutkula|hai|hain|haan|nahi|main|meri|mera|mere|mujhe|tum|tumhe|kar|rahe|rahi|raha|samjho|baat|bol|sakdi|sakta|saktee|shonao|pappu|dost|sapne|khata|hindi|bilkul|pooch|sakto|bataiye|theek|badhiya|chidiya|ped|goli|bachengi|aawaz|ek|baar|mariz|doctor|accha|achha|shukriya|dhanyawad|samjhe|arre|are|aur|lekin|kyun|kyu|kaun|kaunsa|kaha|kahan|hum|hume|apna|apni|apne|dekho|dekh|sun|sunie|haso|hasao|mazaak|mazak)\b/i.test(cleanText);
+            const isBengaliWords = hasBengaliScript || isBengaliPrompt || /\b(kemon|acho|achi|khobor|bhalo|amar|naam|tomar|bolte|shonao|korcho|koro|ki|korchis|tumi|apni|shune|shob|bangla|bengali|ami|obosshoi|paro|jigyesh|korte|parbo|kichu|bolchi|shuncho|bolun|ache|ektu|dada|didi|khabar|kheyecho|prithibi|gol|keno|football|aamader|ghurbe|phire|ashbe|chutkula|bol)\b/i.test(cleanText);
+            const isPunjabiWords = hasPunjabiScript || isPunjabiPrompt || /\b(kidda|sat sri akal|kive|haal|changa|tussi|saade|gall|karo|daso|punjabi|bolde|bol sakdi|baraf|tukda|haanji|puch|sakde|ho|veere|paaji|ki|karde|pya|soniye|munder|kiven|theek|santa|banta|hath|dekh|reha|si|kithon|chutkula|sunao)\b/i.test(cleanText);
+            const isGujaratiWords = hasGujaratiScript || isGujaratiPrompt || /\b(kem|cho|majama|tamaru|naam|su|kare|che|namaskar|gujarati|aaje|tame|aavde|vaat|paisa|bachavani|kharidya|vagar|ghare|jaav|bol|saku|shako|vishe|mane|kai|pan|puchi|bhai|ben|shu|karo|dukanwala|grahak|scheme|chutkula|sunavo)\b/i.test(cleanText);
 
             let langCode = 'en-IN';
             let selectedVoice = null;
-            const speechRate = 1.10; // ~165 WPM natural speaking pace
-            const speechPitch = 1.35; // Sweet, lively companion tone
 
             const allVoices = this.synth.getVoices();
             // Strict filter to guarantee ONLY female voices are ever used for Raya
@@ -1839,8 +1839,8 @@ class AvatarChatBot {
                                 candidateVoices.find(v => (v.name.includes('ગુજરાતી') || v.name.includes('Gujarati')) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
-                   } else if (hasDevanagari || isHindiWords) {
-                // Hindi Voice (Mobile Chrome Android: Google हिन्दी, Edge: Swara Natural / Kalpana)
+            } else if (hasDevanagari) {
+                // True Devanagari Hindi (Edge: Swara Natural, Google Hindi)
                 langCode = 'hi-IN';
                 selectedVoice = candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Swara/i.test(v.name)) ||
@@ -1850,6 +1850,17 @@ class AvatarChatBot {
                                 candidateVoices.find(v => /Kalpana/i.test(v.name)) ||
                                 candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
                                 candidateVoices.find(v => /Neerja/i.test(v.name)) ||
+                                candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
+            } else if (isHindiWords) {
+                // Romanized Hindi / Hinglish dialogue
+                // Neerja Natural natively handles Romanized Indian phonetics with genuine cadence.
+                langCode = 'hi-IN';
+                selectedVoice = candidateVoices.find(v => /Neerja.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Swara.*Natural/i.test(v.name)) ||
+                                candidateVoices.find(v => /Neerja/i.test(v.name)) ||
+                                candidateVoices.find(v => /Swara/i.test(v.name)) ||
+                                candidateVoices.find(v => /Google.*(?:हिन्दी|Hindi)/i.test(v.name) && !MALE_FILTER.test(v.name)) ||
+                                candidateVoices.find(v => (v.lang.startsWith('hi') || v.lang.replace('_', '-').startsWith('hi')) && !MALE_FILTER.test(v.name)) ||
                                 candidateVoices.find(v => /Heera|Veena/i.test(v.name)) || null;
             } else if (isUKEnglish) {
                 // UK English British Accent
@@ -1892,9 +1903,50 @@ class AvatarChatBot {
                 selectedVoice = this.femaleVoice || candidateVoices[0];
             }
 
-            // Transliterate Romanized speech text into native script for authentic Edge Natural TTS synthesis
-            const getNativeScriptForTTS = (textStr, lang) => {
+            // Microsoft Edge Natural (Azure Neural) pitch protection:
+            // Neural voices require pitch = 1.0. Applying pitch != 1.0 breaks Edge's synthesizer and sounds distorted/robotic!
+            const isEdgeNatural = selectedVoice && (/Online \(Natural\)|Natural|Neural/i.test(selectedVoice.name));
+            const speechPitch = isEdgeNatural ? 1.0 : (langCode.startsWith('hi') ? 1.05 : 1.25);
+            const speechRate  = isEdgeNatural ? 1.0 : 1.08;
+
+            // Fallback phonetic transliteration of Devanagari Hindi for Western / English-only voices
+            const transliterateDevanagari = (text) => {
+                if (!text || !/[\u0900-\u097F]/.test(text)) return text;
+                const wordMap = {
+                    'नमस्ते': 'Namaste', 'नमस्ते!': 'Namaste!', 'प्रणाम': 'Pranam', 'हैलो': 'Hello', 'हाय': 'Hi',
+                    'हाँ': 'Haan', 'नहीं': 'Nahi', 'धन्यवाद': 'Dhanyavaad', 'शुक्रिया': 'Shukriya', 'अलविदा': 'Alvida',
+                    'बहुत': 'bahut', 'अच्छा': 'achha', 'अच्छी': 'achhi', 'अच्छे': 'achhe', 'बढ़िया': 'badhiya',
+                    'कैसे': 'kaise', 'कैसा': 'kaisa', 'कैसी': 'kaisi', 'हो': 'ho', 'हैं': 'hain', 'है': 'hai', 'हूँ': 'hoon',
+                    'आप': 'aap', 'तुम': 'tum', 'मैं': 'main', 'हम': 'hum', 'क्या': 'kya', 'क्यों': 'kyun', 'कहाँ': 'kahan',
+                    'बताओ': 'batao', 'बोलो': 'bolo', 'दिन': 'din', 'बात': 'baat', 'दोस्त': 'dost', 'प्यार': 'pyaar',
+                    'सुप्रभात': 'Shuprabhat', 'शुभ रात्रि': 'Shubh raatri', 'सब': 'sab', 'ठीक': 'theek', 'चुटकुला': 'chutkula'
+                };
+                let res = text;
+                for (const [hi, en] of Object.entries(wordMap)) {
+                    res = res.replace(new RegExp(hi, 'g'), en);
+                }
+                if (/[\u0900-\u097F]/.test(res)) {
+                    const chars = {
+                        'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo','ए':'e','ऐ':'ai','ओ':'o','औ':'au','अं':'am','अः':'ah',
+                        'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ng',
+                        'च':'ch','छ':'chh','ज':'j','झ':'jh','ञ':'ny',
+                        'ट':'t','ठ':'th','ड':'d','ढ':'dh','ण':'n',
+                        'त':'t','थ':'th','द':'d','ध':'dh','न':'n',
+                        'प':'p','फ':'ph','ब':'b','भ':'bh','म':'m',
+                        'य':'y','र':'r','ल':'l','व':'v','श':'sh','ष':'sh','स':'s','ह':'h',
+                        'ा':'a','ि':'i','ी':'ee','ु':'u','ू':'oo','े':'e','ै':'ai','ो':'o','ौ':'au','्':'','ं':'n','ः':'h','ँ':'n'
+                    };
+                    res = res.replace(/[\u0900-\u097F]/g, (c) => chars[c] || '');
+                }
+                return res;
+            };
+
+            // Script adaptation for authentic Edge Natural TTS synthesis
+            const getNativeScriptForTTS = (textStr, lang, voice) => {
                 if (!textStr) return textStr;
+                const vName = (voice?.name || '').toLowerCase();
+                const vLang = (voice?.lang || '').toLowerCase();
+
                 if (lang.startsWith('bn')) {
                     if (/[\u0980-\u09FF]/.test(textStr)) return textStr;
                     const bnPhrases = [
@@ -1912,7 +1964,7 @@ class AvatarChatBot {
                     ];
                     let res = textStr;
                     for (const [re, val] of bnPhrases) res = res.replace(re, val);
-                    const bnDict = { 'ami': 'আমি', 'tumi': 'তুমি', 'bhalo': 'ভালো', 'kemon': 'কেমন', 'acho': 'আছো', 'achi': 'আছি', 'naam': 'নাম', 'nam': 'নাম', 'tomar': 'তোমার', 'amar': 'আমার', 'bolte': 'বলতে', 'pari': 'পারি', 'paro': 'পারো', 'obosshoi': 'অবশ্যই', 'haan': 'হ্যাঁ', 'haa': 'হ্যাঁ', 'korcho': 'করছো', 'koro': 'করো', 'kichu': 'कुछ', 'jante': 'জানতে', 'chao': 'চাও', 'bolo': 'বলো', 'sahajyo': 'সাহায্য', 'korte': 'করতে', 'jigyesh': 'জিজ্ঞেস', 'ratnesh': 'রত্নেশ', 'bangla': 'বাংলা', 'bengali': 'বাংলা', 'shonao': 'শোনাও', 'chutkula': 'কৌতুক', 'bol': 'বল', 'shuncho': 'শুনছো', 'dada': 'দাদা', 'didi': 'দিদি', 'khabar': 'খাবার', 'kheyecho': 'খেয়েছো', 'shob': 'সব', 'ki': 'কি' };
+                    const bnDict = { 'ami': 'আমি', 'tumi': 'তুমি', 'bhalo': 'ভালো', 'kemon': 'কেমন', 'acho': 'আছো', 'achi': 'আছি', 'naam': 'নাম', 'nam': 'নাম', 'tomar': 'তোমার', 'amar': 'আমার', 'bolte': 'বলতে', 'pari': 'পারি', 'paro': 'পারো', 'obosshoi': 'অবশ্যই', 'haan': 'হ্যাঁ', 'haa': 'হ্যাঁ', 'korcho': 'করছো', 'koro': 'করো', 'kichu': 'কিছু', 'jante': 'জানতে', 'chao': 'চাও', 'bolo': 'বলো', 'sahajyo': 'সাহায্য', 'korte': 'করতে', 'jigyesh': 'জিজ্ঞেস', 'ratnesh': 'রত্নেশ', 'bangla': 'বাংলা', 'bengali': 'বাংলা', 'shonao': 'শোনাও', 'chutkula': 'কৌতুক', 'bol': 'বল', 'shuncho': 'শুনছো', 'dada': 'দাদা', 'didi': 'দিদি', 'khabar': 'খাবার', 'kheyecho': 'খেয়েছো', 'shob': 'সব', 'ki': 'কি' };
                     return res.replace(/\b[a-zA-Z]+\b/g, w => bnDict[w.toLowerCase()] || w);
                 }
                 if (lang.startsWith('pa')) {
@@ -1922,11 +1974,22 @@ class AvatarChatBot {
                 }
                 if (lang.startsWith('gu')) {
                     if (/[\u0A80-\u0AFF]/.test(textStr)) return textStr;
-                    const guDict = { 'haan': 'હા', 'bilkul': 'બિલકુલ', 'hu': 'હું', 'gujarati': 'ગુજરાતી', 'ma': 'માં', 'vaat': 'વાત', 'kari': 'કરી', 'saku': 'શકું', 'chu': 'છું', 'ekdam': 'એકદમ', 'majama': 'મજામાં', 'tame': 'તમે', 'bolo': 'બોલો', 'kem': 'કેમ', 'cho': 'છો', 'ratnesh': 'રત્નેશ', 'na': 'ના', 'projects': 'પ્રોજેક્ટ્સ', 'vishe': 'વિશે', 'mane': 'મને', 'kai': 'કંઈ', 'pan': 'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
+                    const guDict = { 'haan': 'હા', 'bilkul': 'બિલਕੁਲ', 'hu': 'હું', 'gujarati': 'ગુજરાતી', 'ma': 'માં', 'vaat': 'વાત', 'kari': 'કરી', 'saku': 'શકું', 'chu': 'છું', 'ekdam': 'એકદમ', 'majama': 'મજામાં', 'tame': 'તમે', 'bolo': 'બોলো', 'kem': 'કેમ', 'cho': 'છો', 'ratnesh': 'રત્નેશ', 'na': 'ના', 'projects': 'પ્રોજેક્ટ્સ', 'vishe': 'વિશે', 'mane': 'મને', 'kai': 'કંઈ', 'pan': 'પણ', 'puchi': 'પૂછી', 'shako': 'શકો', 'su': 'શું', 'janva': 'જાણવા', 'mango': 'માંગો', 'che': 'છે', 'bapu': 'બાપુ', 'pappu': 'પપ્પુ' };
                     return textStr.replace(/\b[a-zA-Z]+\b/g, w => guDict[w.toLowerCase()] || w);
                 }
                 if (lang.startsWith('hi')) {
-                    if (/[\u0900-\u097F]/.test(textStr)) return textStr;
+                    const hasDev = /[\u0900-\u097F]/.test(textStr);
+                    // If text contains Devanagari but voice is English-only (fallback), transliterate to Latin
+                    if (hasDev && !vLang.startsWith('hi') && !vName.includes('swara') && !vName.includes('hindi')) {
+                        return transliterateDevanagari(textStr);
+                    }
+                    // If voice is Neerja (English-India), pass Romanized text directly (no mixed fragmented scripts)
+                    if (vName.includes('neerja') && !hasDev) {
+                        return textStr;
+                    }
+                    if (hasDev) return textStr;
+
+                    // If speaking through Swara or native Hindi voice, transliterate complete phrases
                     const hiPhrases = [
                         [/\bhaan\s+bilkul\b/gi, 'हाँ बिल्कुल'],
                         [/\bmain\s+hindi\s+mein\s+baat\s+kar\s+sakti\s+hoon\b/gi, 'मैं हिंदी में बात कर सकती हूँ'],
@@ -1947,24 +2010,12 @@ class AvatarChatBot {
                     ];
                     let res = textStr;
                     for (const [re, val] of hiPhrases) res = res.replace(re, val);
-                    const hiDict = {
-                        'haan': 'हाँ', 'bilkul': 'बिल्कुल', 'main': 'मैं', 'hindi': 'हिंदी', 'mein': 'में', 'baat': 'बात',
-                        'kar': 'कर', 'sakti': 'सकती', 'sakte': 'सकते', 'sakta': 'सकता', 'hoon': 'हूँ', 'aap': 'आप', 'mujhse': 'मुझसे',
-                        'ratnesh': 'रत्नेश', 'ke': 'के', 'ki': 'की', 'ka': 'का', 'ko': 'को', 'projects': 'प्रोजेक्ट्स', 'ya': 'या',
-                        'kisi': 'किसी', 'bhi': 'भी', 'baare': 'बारे', 'pooch': 'पूछ', 'hain': 'हैं', 'hai': 'है', 'ekdam': 'एकदम',
-                        'badhiya': 'बढ़िया', 'bataiye': 'बताइए', 'kaise': 'कैसे', 'kaisi': 'कैसी', 'kya': 'क्या', 'rahi': 'रही',
-                        'rahe': 'रहे', 'raha': 'रहा', 'guide': 'गाइड', 'namaste': 'नमस्ते', 'theek': 'ठीक', 'sab': 'सब',
-                        'karo': 'करो', 'batao': 'बताओ', 'chutkula': 'चुटकुला', 'hasao': 'हंसाओ', 'pappu': 'पप्पू', 'dost': 'दोस्त',
-                        'doctor': 'डॉक्टर', 'sapne': 'सपने', 'chidiya': 'चिड़िया', 'ped': 'पेड़', 'goli': 'गोली', 'aawaz': 'आवाज़',
-                        'nahi': 'नहीं', 'kuch': 'कुछ', 'bata': 'बता', 'bolo': 'बोलो', 'sunao': 'सुनाओ', 'shukriya': 'शुक्रिया',
-                        'dhanyawad': 'धन्यवाद', 'achha': 'अच्छा', 'suno': 'सुनो', 'samjhe': 'समझे'
-                    };
-                    return res.replace(/\b[a-zA-Z]+\b/g, w => hiDict[w.toLowerCase()] || w);
+                    return res;
                 }
                 return textStr;
             };
 
-            const spokenScriptText = getNativeScriptForTTS(cleanText, langCode);
+            const spokenScriptText = getNativeScriptForTTS(cleanText, langCode, selectedVoice);
             const utterance = new SpeechSynthesisUtterance(spokenScriptText);
 
             utterance.voice = selectedVoice;
