@@ -159,9 +159,12 @@ const renderer = new THREE.WebGLRenderer({
 // Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
-// Standard MToon lighting: ambient fill + single key light.
-// Total intensity ~1.7 keeps hair/skin colours without blowout.
-renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+// SRGBColorSpace applies the correct gamma curve for monitor display.
+// LinearSRGBColorSpace was the real bug — it made all VRM colours (pink hair etc.)
+// appear washed-out / near-white because monitors expect sRGB, not linear.
+// White blowout was caused by 5 lights (4.9 total intensity), NOT by SRGBColorSpace.
+// Now using 2 lights (~2.1 total) so SRGBColorSpace won't blow out.
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 
 const scene  = new THREE.Scene();

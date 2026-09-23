@@ -180,9 +180,9 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
-    // MToon materials are pre-lit — ACESFilmic remaps them to white.
-    // LinearSRGBColorSpace + NoToneMapping is required for correct VRM colours.
-    renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    // SRGBColorSpace is required — LinearSRGBColorSpace makes all colours washed out
+    // because monitors expect sRGB gamma, not linear. NoToneMapping prevents MToon blowout.
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping;
 
     const scene = new THREE.Scene();
