@@ -159,28 +159,26 @@ const renderer = new THREE.WebGLRenderer({
 // Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
-// MToon is a pre-lit / self-luminous shader — it handles color internally.
-// SRGBColorSpace causes double gamma-correction on Chrome/Edge GPU → white silhouette.
-// LinearSRGBColorSpace passes MToon's output untouched to the display.
+// MToon toon shading blows out to white when total scene light > ~1.2.
+// 5 directional lights = 4.9 total intensity → skin/hair saturate to white.
+// Fix: ambient 0.5 + single warm key 0.7 = 1.2 total. Colours preserved.
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+renderer.toneMapping = THREE.NoToneMapping;
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-ambientLight.userData.baseIntensity = 0.8;
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+ambientLight.userData.baseIntensity = 0.5;
 scene.add(ambientLight);
 
 const dirLights = [];
-[[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
-    .forEach(([x,y,z,c,i]) => { 
-        const l = new THREE.DirectionalLight(c,i); 
-        l.position.set(x,y,z); 
-        l.userData.baseIntensity = i;
-        scene.add(l); 
-        dirLights.push(l);
-    });
+const keyLight = new THREE.DirectionalLight(0xfff0f8, 0.7);
+keyLight.position.set(1, 3, 2);
+keyLight.userData.baseIntensity = 0.7;
+scene.add(keyLight);
+dirLights.push(keyLight);
 
 function getVisibleWidth() {
     const vFOV = THREE.MathUtils.degToRad(camera.fov);
