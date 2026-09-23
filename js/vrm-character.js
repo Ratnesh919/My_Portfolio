@@ -159,9 +159,8 @@ const renderer = new THREE.WebGLRenderer({
 // Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
-// MToon toon shading blows out to white when total scene light > ~1.2.
-// 5 directional lights = 4.9 total intensity → skin/hair saturate to white.
-// Fix: ambient 0.5 + single warm key 0.7 = 1.2 total. Colours preserved.
+// Standard MToon lighting: ambient fill + single key light.
+// Total intensity ~1.7 keeps hair/skin colours without blowout.
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 
@@ -169,14 +168,14 @@ const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-ambientLight.userData.baseIntensity = 0.5;
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+ambientLight.userData.baseIntensity = 0.7;
 scene.add(ambientLight);
 
 const dirLights = [];
-const keyLight = new THREE.DirectionalLight(0xfff0f8, 0.7);
+const keyLight = new THREE.DirectionalLight(0xfff0f8, 1.0);
 keyLight.position.set(1, 3, 2);
-keyLight.userData.baseIntensity = 0.7;
+keyLight.userData.baseIntensity = 1.0;
 scene.add(keyLight);
 dirLights.push(keyLight);
 
