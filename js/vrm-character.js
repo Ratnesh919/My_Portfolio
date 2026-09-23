@@ -159,36 +159,25 @@ const renderer = new THREE.WebGLRenderer({
 // Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 renderer.setSize(window.innerWidth, window.innerHeight);
-// SRGBColorSpace applies the correct gamma curve for monitor display.
-// LinearSRGBColorSpace was the real bug — it made all VRM colours (pink hair etc.)
-// appear washed-out / near-white because monitors expect sRGB, not linear.
-// White blowout was caused by 5 lights (4.9 total intensity), NOT by SRGBColorSpace.
-// Now using 2 lights (~2.1 total) so SRGBColorSpace won't blow out.
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.NoToneMapping;
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
 camera.position.set(0, 0.9, 7.5);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-ambientLight.userData.baseIntensity = 0.7;
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+ambientLight.userData.baseIntensity = 0.8;
 scene.add(ambientLight);
 
 const dirLights = [];
-// Key light: warm white from front-top-right
-const keyLight = new THREE.DirectionalLight(0xfff0f8, 0.9);
-keyLight.position.set(1, 3, 2);
-keyLight.userData.baseIntensity = 0.9;
-scene.add(keyLight);
-dirLights.push(keyLight);
-
-// Fill light: warm pink from left — gives skin/hair colour definition
-const fillLight = new THREE.DirectionalLight(0xff88aa, 0.5);
-fillLight.position.set(-2, 2, 1);
-fillLight.userData.baseIntensity = 0.5;
-scene.add(fillLight);
-dirLights.push(fillLight);
+[[2,4,3,0xfff0f8,1.2],[-3,2,-2,0x8899ff,0.6],[0,-1,4,0xffddcc,0.3],[5,2,0,0xffffff,0.5],[-5,2,0,0xffffff,0.5]]
+    .forEach(([x,y,z,c,i]) => { 
+        const l = new THREE.DirectionalLight(c,i); 
+        l.position.set(x,y,z); 
+        l.userData.baseIntensity = i;
+        scene.add(l); 
+        dirLights.push(l);
+    });
 
 function getVisibleWidth() {
     const vFOV = THREE.MathUtils.degToRad(camera.fov);

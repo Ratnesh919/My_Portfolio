@@ -180,22 +180,27 @@ export const VRMCharacterEngine: React.FC<VRMCharacterEngineProps> = ({
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
-    // SRGBColorSpace is required — LinearSRGBColorSpace makes all colours washed out
-    // because monitors expect sRGB gamma, not linear. NoToneMapping prevents MToon blowout.
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.NoToneMapping;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 60.0);
     camera.position.set(0, 0.9, 7.5);
 
-    // 2-light setup for MToon: total intensity ~1.7 keeps colours correct.
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff0f8, 1.0);
-    keyLight.position.set(1, 3, 2);
-    scene.add(keyLight);
+    const dirLights = [
+      [2, 4, 3, 0xfff0f8, 1.2],
+      [-3, 2, -2, 0x8899ff, 0.6],
+      [0, -1, 4, 0xffddcc, 0.3],
+      [5, 2, 0, 0xffffff, 0.5],
+      [-5, 2, 0, 0xffffff, 0.5],
+    ];
+    dirLights.forEach(([x, y, z, color, intensity]) => {
+      const light = new THREE.DirectionalLight(color as number, intensity as number);
+      light.position.set(x as number, y as number, z as number);
+      scene.add(light);
+    });
 
     const getVisibleWidth = () => {
       const vFOV = THREE.MathUtils.degToRad(camera.fov);
