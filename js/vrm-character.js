@@ -173,11 +173,19 @@ ambientLight.userData.baseIntensity = 0.7;
 scene.add(ambientLight);
 
 const dirLights = [];
-const keyLight = new THREE.DirectionalLight(0xfff0f8, 1.0);
+// Key light: warm white from front-top-right
+const keyLight = new THREE.DirectionalLight(0xfff0f8, 0.9);
 keyLight.position.set(1, 3, 2);
-keyLight.userData.baseIntensity = 1.0;
+keyLight.userData.baseIntensity = 0.9;
 scene.add(keyLight);
 dirLights.push(keyLight);
+
+// Fill light: warm pink from left — gives skin/hair colour definition
+const fillLight = new THREE.DirectionalLight(0xff88aa, 0.5);
+fillLight.position.set(-2, 2, 1);
+fillLight.userData.baseIntensity = 0.5;
+scene.add(fillLight);
+dirLights.push(fillLight);
 
 function getVisibleWidth() {
     const vFOV = THREE.MathUtils.degToRad(camera.fov);
