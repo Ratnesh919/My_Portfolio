@@ -61,6 +61,77 @@ const WAKE_WORD_VARIANTS = [
   'raja', 'raaja', 'rayoo'
 ];
 
+const FORBIDDEN_NAME_WORDS = new Set([
+  'take', 'taking', 'took', 'get', 'getting', 'got', 'give', 'giving', 'gave', 'let', 'lets',
+  'make', 'making', 'made', 'show', 'showing', 'showed', 'tell', 'telling', 'told', 'play', 'playing', 'played',
+  'open', 'opening', 'opened', 'view', 'viewing', 'viewed', 'look', 'looking', 'looked', 'see', 'seeing', 'saw',
+  'watch', 'watching', 'watched', 'check', 'checking', 'checked', 'find', 'finding', 'found', 'call', 'calling', 'called',
+  'help', 'helping', 'helped', 'run', 'running', 'ran', 'start', 'starting', 'started', 'begin', 'beginning', 'began',
+  'launch', 'launching', 'launched', 'scroll', 'scrolling', 'scrolled', 'navigate', 'navigating', 'navigated',
+  'go', 'going', 'went', 'gone', 'visit', 'visiting', 'visited', 'explore', 'exploring', 'explored',
+  'try', 'trying', 'tried', 'test', 'testing', 'tested', 'click', 'clicking', 'clicked',
+  'read', 'reading', 'write', 'writing', 'wrote', 'leave', 'leaving', 'left', 'send', 'sending', 'sent',
+  'submit', 'submitting', 'stop', 'stopping', 'stopped', 'pause', 'pausing', 'paused', 'resume', 'resuming',
+  'cancel', 'cancelling', 'close', 'closing', 'closed', 'exit', 'exiting', 'switch', 'switching', 'switched',
+  'change', 'changing', 'changed', 'choose', 'choosing', 'chose', 'select', 'selecting', 'selected',
+  'follow', 'following', 'wait', 'waiting', 'waited', 'listen', 'listening', 'listened', 'hear', 'hearing', 'heard',
+  'talk', 'talking', 'talked', 'speak', 'speaking', 'spoke', 'ask', 'asking', 'asked', 'answer', 'answering', 'answered',
+  'think', 'thinking', 'thought', 'know', 'knowing', 'knew', 'want', 'wanting', 'wanted', 'need', 'needing', 'needed',
+  'like', 'liking', 'liked', 'love', 'loving', 'loved', 'wish', 'wishing', 'hope', 'hoping',
+  'hire', 'hiring', 'hired', 'work', 'working', 'worked', 'build', 'building', 'built', 'create', 'creating', 'created',
+  'learn', 'learning', 'learned', 'study', 'studying', 'studied', 'graduate', 'graduating',
+  'pass', 'passing', 'skip', 'skipping', 'skipped',
+  'do', 'doing', 'did', 'done', 'does', 'have', 'having', 'had', 'has', 'be', 'being', 'been', 'am', 'is', 'are', 'was', 'were',
+  'i', 'me', 'my', 'mine', 'myself', 'you', 'your', 'yours', 'yourself', 'yourselves',
+  'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself',
+  'we', 'us', 'our', 'ours', 'ourselves', 'they', 'them', 'their', 'theirs', 'themselves',
+  'this', 'that', 'these', 'those', 'a', 'an', 'the', 'some', 'any', 'all', 'each', 'every', 'both', 'few', 'much', 'many', 'more', 'most', 'other', 'others', 'another', 'such',
+  'to', 'from', 'in', 'out', 'on', 'off', 'at', 'by', 'for', 'with', 'about', 'into', 'through', 'during',
+  'before', 'after', 'above', 'below', 'under', 'down', 'up', 'over', 'between', 'against', 'among',
+  'and', 'but', 'or', 'nor', 'so', 'yet', 'because', 'although', 'since', 'unless', 'while',
+  'where', 'when', 'how', 'why', 'what', 'which', 'who', 'whom', 'whose', 'if', 'then', 'else',
+  'good', 'great', 'awesome', 'cool', 'fine', 'okay', 'ok', 'well', 'nice', 'bad', 'terrible',
+  'really', 'very', 'quite', 'just', 'only', 'now', 'here', 'there', 'today', 'tomorrow', 'yesterday',
+  'soon', 'later', 'always', 'never', 'sometimes', 'often', 'actually', 'maybe', 'perhaps',
+  'please', 'thanks', 'thank', 'sorry', 'welcome', 'hello', 'hi', 'hey', 'yo', 'hola', 'sup', 'greetings',
+  'bye', 'goodbye', 'morning', 'afternoon', 'evening', 'night', 'sure', 'yeah', 'yep', 'nope', 'nah', 'yes', 'no',
+  'true', 'false',
+  'recruiter', 'recruiting', 'talent', 'acquisition', 'hr', 'hiring', 'interview', 'interviewer',
+  'engineer', 'engineering', 'developer', 'development', 'coder', 'programmer', 'architect', 'designer',
+  'manager', 'lead', 'director', 'founder', 'ceo', 'cto', 'candidate', 'visitor', 'guest', 'user', 'admin', 'root', 'owner',
+  'ratnesh', 'singh', 'raya', 'portfolio', 'project', 'projects', 'skill', 'skills', 'experience',
+  'education', 'academics', 'cert', 'certs', 'certificate', 'certificates', 'certification', 'certifications',
+  'contact', 'resume', 'cv', 'demo', 'live', 'site', 'website', 'code', 'repo', 'repository', 'github', 'linkedin',
+  'instagram', 'facebook', 'email', 'audio', 'dsp', 'music', 'song', 'youtube', 'model', 'vrm', 'avatar', 'character',
+  '3d', 'webgl', 'three', 'tour', 'quick', 'fast', 'instant', 'walkthrough', 'system', 'systems',
+  'computer', 'browser', 'mobile', 'android', 'phone', 'desktop', 'laptop', 'tablet', 'camera', 'mic', 'microphone',
+  'skip', 'pass', 'refuse', 'secret', 'anon', 'anonymous', 'private', 'unknown', 'undefined', 'null',
+  'none', 'nothing', 'nobody', 'neither', 'test', 'testing', 'tester', 'asdf', 'qwerty', 'abc', 'foo', 'bar', 'temp', 'dummy'
+]);
+
+function parseValidName(rawText: string): string | null {
+  if (!rawText) return null;
+  const text = rawText.trim();
+  const explicitPattern = /^(?:(?:hi|hello|hey|namaste|greetings)[,\s]+)?(?:my name is|my name's|i am|i'm|call me|this is|mera naam|amar naam)\s+([a-zA-Z\s'-]+?)(?:\s+hai)?[\.!]?$/i;
+  const match = text.match(explicitPattern);
+  if (!match || !match[1]) return null;
+
+  const words = match[1].trim().split(/\s+/).filter(Boolean);
+  if (words.length < 1 || words.length > 2) return null;
+
+  const validWords: string[] = [];
+  for (const w of words) {
+    const clean = w.replace(/[^a-zA-Z'-]/g, '');
+    const lower = clean.toLowerCase();
+    if (!/^[a-zA-Z]+(?:['-][a-zA-Z]+)?$/.test(clean)) return null;
+    if (clean.length < 2 || clean.length > 20) return null;
+    if (FORBIDDEN_NAME_WORDS.has(lower)) return null;
+    validWords.push(clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase());
+  }
+
+  return validWords.length > 0 ? validWords.join(' ') : null;
+}
+
 function getTimeOfDayGreeting() {
   const hr = new Date().getHours();
   if (hr >= 5 && hr < 12) return "Good morning";
@@ -711,14 +782,13 @@ function getSpokenTextForTTS(text: string, lang: string): string {
     }
 
     // User name introductions
-    const nameMatch = q.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
-    if (nameMatch && nameMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameMatch[1].toLowerCase())) {
-      const uName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
+    const validatedName = parseValidName(query);
+    if (validatedName) {
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('userName', uName);
-        localStorage.setItem('userName', uName);
+        sessionStorage.setItem('userName', validatedName);
+        localStorage.setItem('userName', validatedName);
       }
-      return `Nice to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
+      return `Nice to meet you, ${validatedName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
     }
 
     if (q.includes('scroll down') || q.includes('scroll further') || q.includes('scroll the page')) {
@@ -1085,14 +1155,13 @@ You can control the website and open any demo/link based on user commands! When 
     }
 
     // 0e. User Introductions & Names
-    const nameIntroMatch = qLower.match(/(?:my name is|i am|i'm|this is|call me|mera naam|amar naam) ([a-zA-Z]+)/i);
-    if (nameIntroMatch && nameIntroMatch[1] && !['ratnesh', 'admin', 'user', 'guest'].includes(nameIntroMatch[1].toLowerCase())) {
-      const uName = nameIntroMatch[1].charAt(0).toUpperCase() + nameIntroMatch[1].slice(1);
+    const validatedName = parseValidName(query);
+    if (validatedName) {
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('userName', uName);
-        localStorage.setItem('userName', uName);
+        sessionStorage.setItem('userName', validatedName);
+        localStorage.setItem('userName', validatedName);
       }
-      const reply = `It's wonderful to meet you, ${uName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
+      const reply = `It's wonderful to meet you, ${validatedName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
       const rayaMsg: Message = {
         id: `raya_${Date.now()}`,
         sender: 'raya',

@@ -96,6 +96,11 @@ const recruiterKeywords = [
 ];
 ```
 
+### Visitor Name Sanitization & Validation (`validatePersonName`):
+To prevent bot injections, button commands (e.g. "Take", "Tour", "Recruiter", "Scroll"), or arbitrary conversational words from polluting `visitor_profiles` and `preferences`:
+- `/api/learn` and `/api/init-user` validate candidate names against `SERVER_FORBIDDEN_NAME_WORDS` and strict length/character rules before committing to Supabase.
+- Disallowed words return `null` and are discarded without interrupting the user's conversation.
+
 ---
 
 ## 🔔 Multi-Channel Notification Dispatcher

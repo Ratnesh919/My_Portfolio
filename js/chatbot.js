@@ -85,13 +85,138 @@ const WAKE_WORD_VARIANTS = [
     'raaaya', 'raayaa', 'rayyaa', 'raaayaa','raja','raaja', 'rayoo',
 ];
 
+// Comprehensive stop-words & disallowed vocabulary for visitor names
+const RAYA_FORBIDDEN_NAME_WORDS = new Set([
+    // Navigation / actions / verbs
+    'take', 'taking', 'took', 'get', 'getting', 'got', 'give', 'giving', 'gave', 'let', 'lets',
+    'make', 'making', 'made', 'show', 'showing', 'showed', 'tell', 'telling', 'told', 'play', 'playing', 'played',
+    'open', 'opening', 'opened', 'view', 'viewing', 'viewed', 'look', 'looking', 'looked', 'see', 'seeing', 'saw',
+    'watch', 'watching', 'watched', 'check', 'checking', 'checked', 'find', 'finding', 'found', 'call', 'calling', 'called',
+    'help', 'helping', 'helped', 'run', 'running', 'ran', 'start', 'starting', 'started', 'begin', 'beginning', 'began',
+    'launch', 'launching', 'launched', 'scroll', 'scrolling', 'scrolled', 'navigate', 'navigating', 'navigated',
+    'go', 'going', 'went', 'gone', 'visit', 'visiting', 'visited', 'explore', 'exploring', 'explored',
+    'try', 'trying', 'tried', 'test', 'testing', 'tested', 'click', 'clicking', 'clicked',
+    'read', 'reading', 'write', 'writing', 'wrote', 'leave', 'leaving', 'left', 'send', 'sending', 'sent',
+    'submit', 'submitting', 'stop', 'stopping', 'stopped', 'pause', 'pausing', 'paused', 'resume', 'resuming',
+    'cancel', 'cancelling', 'close', 'closing', 'closed', 'exit', 'exiting', 'switch', 'switching', 'switched',
+    'change', 'changing', 'changed', 'choose', 'choosing', 'chose', 'select', 'selecting', 'selected',
+    'follow', 'following', 'wait', 'waiting', 'waited', 'listen', 'listening', 'listened', 'hear', 'hearing', 'heard',
+    'talk', 'talking', 'talked', 'speak', 'speaking', 'spoke', 'ask', 'asking', 'asked', 'answer', 'answering', 'answered',
+    'think', 'thinking', 'thought', 'know', 'knowing', 'knew', 'want', 'wanting', 'wanted', 'need', 'needing', 'needed',
+    'like', 'liking', 'liked', 'love', 'loving', 'loved', 'wish', 'wishing', 'hope', 'hoping',
+    'hire', 'hiring', 'hired', 'work', 'working', 'worked', 'build', 'building', 'built', 'create', 'creating', 'created',
+    'learn', 'learning', 'learned', 'study', 'studying', 'studied', 'graduate', 'graduating',
+    'pass', 'passing', 'skip', 'skipping', 'skipped',
+    'do', 'doing', 'did', 'done', 'does', 'have', 'having', 'had', 'has', 'be', 'being', 'been', 'am', 'is', 'are', 'was', 'were',
+
+    // Pronouns, articles, determiners
+    'i', 'me', 'my', 'mine', 'myself', 'you', 'your', 'yours', 'yourself', 'yourselves',
+    'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself',
+    'we', 'us', 'our', 'ours', 'ourselves', 'they', 'them', 'their', 'theirs', 'themselves',
+    'this', 'that', 'these', 'those', 'a', 'an', 'the', 'some', 'any', 'all', 'each', 'every', 'both', 'few', 'much', 'many', 'more', 'most', 'other', 'others', 'another', 'such',
+
+    // Prepositions, Conjunctions & Questions
+    'to', 'from', 'in', 'out', 'on', 'off', 'at', 'by', 'for', 'with', 'about', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'under', 'down', 'up', 'over', 'between', 'against', 'among',
+    'and', 'but', 'or', 'nor', 'so', 'yet', 'because', 'although', 'since', 'unless', 'while',
+    'where', 'when', 'how', 'why', 'what', 'which', 'who', 'whom', 'whose', 'if', 'then', 'else',
+
+    // Fillers, adjectives, adverbs, greetings, polite words
+    'good', 'great', 'awesome', 'cool', 'fine', 'okay', 'ok', 'well', 'nice', 'bad', 'terrible',
+    'really', 'very', 'quite', 'just', 'only', 'now', 'here', 'there', 'today', 'tomorrow', 'yesterday',
+    'soon', 'later', 'always', 'never', 'sometimes', 'often', 'actually', 'maybe', 'perhaps',
+    'please', 'thanks', 'thank', 'sorry', 'welcome', 'hello', 'hi', 'hey', 'yo', 'hola', 'sup', 'greetings',
+    'bye', 'goodbye', 'morning', 'afternoon', 'evening', 'night', 'sure', 'yeah', 'yep', 'nope', 'nah', 'yes', 'no',
+    'true', 'false',
+
+    // Domain / Portfolio / Recruiter words
+    'recruiter', 'recruiting', 'talent', 'acquisition', 'hr', 'hiring', 'interview', 'interviewer',
+    'engineer', 'engineering', 'developer', 'development', 'coder', 'programmer', 'architect', 'designer',
+    'manager', 'lead', 'director', 'founder', 'ceo', 'cto', 'candidate', 'visitor', 'guest', 'user', 'admin', 'root', 'owner',
+    'ratnesh', 'singh', 'raya', 'portfolio', 'project', 'projects', 'skill', 'skills', 'experience',
+    'education', 'academics', 'cert', 'certs', 'certificate', 'certificates', 'certification', 'certifications',
+    'contact', 'resume', 'cv', 'demo', 'live', 'site', 'website', 'code', 'repo', 'repository', 'github', 'linkedin',
+    'instagram', 'facebook', 'email', 'audio', 'dsp', 'music', 'song', 'youtube', 'model', 'vrm', 'avatar', 'character',
+    '3d', 'webgl', 'three', 'tour', 'quick', 'fast', 'instant', 'walkthrough', 'system', 'systems',
+    'computer', 'browser', 'mobile', 'android', 'phone', 'desktop', 'laptop', 'tablet', 'camera', 'mic', 'microphone',
+
+    // Refusal / meta / placeholder words
+    'skip', 'pass', 'refuse', 'secret', 'anon', 'anonymous', 'private', 'unknown', 'undefined', 'null',
+    'none', 'nothing', 'nobody', 'neither', 'test', 'testing', 'tester', 'asdf', 'qwerty', 'abc', 'foo', 'bar', 'temp', 'dummy'
+]);
+
+function parseValidName(rawText, isAwaitingName = false) {
+    if (!rawText || typeof rawText !== 'string') return null;
+    const text = rawText.trim();
+    if (!text) return null;
+
+    // Check for explicit refusal or skip
+    const isSkipOrRefusal = /^(?:skip|pass|no|nope|nah|no\s+thanks?|no\s+thank\s+you|never\s*mind|nevermind|don'?t\s+want\s+to(?:\s+say)?|prefer\s+not\s+to\s+say|rather\s+not(?:\s+say)?|i'?d\s+rather\s+not|later|not\s+now|private|anonymous)$/i.test(text.toLowerCase());
+    if (isSkipOrRefusal) {
+        return { isSkip: true, name: null };
+    }
+
+    // 1. Explicit intro pattern:
+    // e.g., "My name is John", "I am Sarah Connor", "I'm Alex", "Call me David", "This is Priya", "Mera naam Rahul hai", "Amar naam Rohan"
+    const explicitPattern = /^(?:(?:hi|hello|hey|namaste|greetings)[,\s]+)?(?:my name is|my name's|i am|i'm|call me|this is|mera naam|amar naam)\s+([a-zA-Z\s'-]+?)(?:\s+hai)?[\.!]?$/i;
+    const explicitMatch = text.match(explicitPattern);
+
+    let candidate = null;
+    if (explicitMatch && explicitMatch[1]) {
+        candidate = explicitMatch[1].trim();
+    } else if (isAwaitingName) {
+        // Direct answer when specifically prompted "what is your name?"
+        // Reject if it contains punctuation like ?, !, ;, quotes, or numbers
+        if (/[\?!\/\\0-9@#$%^&*()_+=\[\]{};:"<>]/.test(text)) {
+            return null;
+        }
+        const cleaned = text.replace(/^[,\.\s!]+|[,\.\s!]+$/g, '').trim();
+        const parts = cleaned.split(/\s+/);
+        // Only accept 1 or 2 words (e.g. "John" or "John Doe")
+        if (parts.length >= 1 && parts.length <= 2) {
+            candidate = cleaned;
+        }
+    }
+
+    if (!candidate) return null;
+
+    const words = candidate.split(/\s+/).filter(Boolean);
+    if (words.length < 1 || words.length > 2) return null;
+
+    // Validate each word
+    const formattedWords = [];
+    for (const w of words) {
+        const cleanWord = w.replace(/[^a-zA-Z'-]/g, '');
+        const lower = cleanWord.toLowerCase();
+        // Word must be between 2 and 20 chars, letters only (with optional hyphen or apostrophe)
+        if (!/^[a-zA-Z]+(?:['-][a-zA-Z]+)?$/.test(cleanWord)) return null;
+        if (cleanWord.length < 2 || cleanWord.length > 20) return null;
+        if (RAYA_FORBIDDEN_NAME_WORDS.has(lower)) return null;
+
+        formattedWords.push(cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1).toLowerCase());
+    }
+
+    if (formattedWords.length === 0) return null;
+    return { isSkip: false, name: formattedWords.join(' ') };
+}
+
 class AvatarChatBot {
     constructor() {
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         try {
             this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
-            this.userName = localStorage.getItem('rayaUserName') || '';
+            const storedName = localStorage.getItem('rayaUserName') || (typeof window !== 'undefined' ? sessionStorage.getItem('userName') : '') || '';
+            const validated = parseValidName(storedName, true);
+            if (validated && validated.name) {
+                this.userName = validated.name;
+            } else {
+                this.userName = '';
+                localStorage.removeItem('rayaUserName');
+                if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('userName');
+                }
+            }
             localStorage.removeItem('rayaMessages'); // Start fresh chat session on page load
         } catch(e) {
             this.messages = [{ role: 'system', content: SYSTEM_PROMPT }];
@@ -172,8 +297,14 @@ class AvatarChatBot {
             });
             const data = await res.json();
             if (data.userName) {
-                this.userName = data.userName;
-                localStorage.setItem('rayaUserName', this.userName);
+                const validated = parseValidName(data.userName, true);
+                if (validated && validated.name) {
+                    this.userName = validated.name;
+                    localStorage.setItem('rayaUserName', this.userName);
+                    if (typeof window !== 'undefined') {
+                        sessionStorage.setItem('userName', this.userName);
+                    }
+                }
             }
         } catch (err) {
             console.error('[Analytics Error]', err);
@@ -1000,51 +1131,88 @@ class AvatarChatBot {
         // ── Onboarding: name collection ────────────────────────────────────────
         if (this._awaitingName) {
             if (this._nameTimeoutId) { clearTimeout(this._nameTimeoutId); this._nameTimeoutId = null; }
+            this._awaitingName = false;
 
-            const tLower = text.toLowerCase().trim();
-            const isCommandOrAction = /^(select|open|play|show|go|navigate|what|where|who|how|tell|scroll|help|change|exit|admin|last|first)\b/i.test(tLower);
-            const hasExplicitNamePrefix = /(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i.test(text);
+            const parsed = parseValidName(text, true);
 
-            if (isCommandOrAction && !hasExplicitNamePrefix) {
-                this._awaitingName = false;
-            } else {
-                this._awaitingName = false;
-
-                const nameCandidates = text.match(/(?:my name is|i am|i'm|call me|it's|its)\s+([a-zA-Z]+)/i);
-                const extractedName = nameCandidates ? nameCandidates[1] : (text.trim().split(/\s+/)[0]);
-                const name = extractedName.charAt(0).toUpperCase() + extractedName.slice(1).toLowerCase();
-
-                const forbiddenNameVerbs = ['select','open','play','show','go','navigate','what','where','who','how','tell','scroll','help','change','exit','last','first','yes','no','sure','okay','hi','hello','hey'];
-
-                if (name && name.length >= 2 && name.length <= 20 && /^[a-zA-Z]+$/.test(name) && !forbiddenNameVerbs.includes(name.toLowerCase())) {
-                    this.userName = name;
-                    localStorage.setItem('rayaUserName', name);
-                    if (typeof window !== 'undefined') {
-                        sessionStorage.setItem('userName', name);
-                    }
-                    fetch('/api/learn', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            type: 'preference', 
-                            content: `User's name is ${name}`, 
-                            sessionId: this.sessionId,
-                            userId: this.userId,
-                            userName: name
-                        })
-                    }).catch(()=>{});
-
-                    this.showUserBubble(text);
-                    this.messages.push({ role: 'user', content: text });
-
-                    const greeting = `Nice to meet you, ${name}! Welcome to Ratnesh's portfolio. Feel free to ask me anything about his projects, tell me to navigate or scroll, or play a song!`;
-                    this._awaitingCommand = true;
-                    this.messages.push({ role: 'assistant', content: greeting });
-                    localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
-                    this.speakAvatar(greeting, false);
-                    return;
-                }
+            if (parsed && parsed.isSkip) {
+                this.showUserBubble(text);
+                this.messages.push({ role: 'user', content: text });
+                const skipReply = "No problem at all! Welcome to Ratnesh's portfolio. Feel free to explore his projects, ask questions, or tell me where you'd like to go!";
+                this._awaitingCommand = true;
+                this.messages.push({ role: 'assistant', content: skipReply });
+                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                this.speakAvatar(skipReply, false);
+                return;
             }
+
+            if (parsed && parsed.name) {
+                const name = parsed.name;
+                this.userName = name;
+                localStorage.setItem('rayaUserName', name);
+                if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('userName', name);
+                    localStorage.setItem('userName', name);
+                }
+                fetch('/api/learn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        type: 'preference', 
+                        content: `User's name is ${name}`, 
+                        sessionId: this.sessionId,
+                        userId: this.userId,
+                        userName: name
+                    })
+                }).catch(()=>{});
+
+                this.showUserBubble(text);
+                this.messages.push({ role: 'user', content: text });
+
+                const greeting = `Nice to meet you, ${name}! Welcome to Ratnesh's portfolio. Feel free to ask me anything about his projects, tell me to navigate or scroll, or play a song!`;
+                this._awaitingCommand = true;
+                this.messages.push({ role: 'assistant', content: greeting });
+                localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+                this.speakAvatar(greeting, false);
+                return;
+            }
+
+            // If not a valid name (e.g. user clicked "Take me to projects", "Recruiter Quick Tour",
+            // or typed a command/question), do NOT return!
+            // Fall through so the user's intent is immediately and smoothly executed.
+        }
+
+        // ── Explicit Name Introduction during conversation ───────────────────
+        const midChatName = parseValidName(text, false);
+        if (midChatName && midChatName.name && !this.isAdminMode) {
+            const name = midChatName.name;
+            this.userName = name;
+            localStorage.setItem('rayaUserName', name);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('userName', name);
+                localStorage.setItem('userName', name);
+            }
+            fetch('/api/learn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    type: 'preference', 
+                    content: `User's name is ${name}`, 
+                    sessionId: this.sessionId,
+                    userId: this.userId,
+                    userName: name
+                })
+            }).catch(()=>{});
+
+            this.showUserBubble(text);
+            this.messages.push({ role: 'user', content: text });
+
+            const greeting = `Nice to meet you, ${name}! I've remembered your name. What would you like to explore next?`;
+            this._awaitingCommand = true;
+            this.messages.push({ role: 'assistant', content: greeting });
+            localStorage.setItem('rayaMessages', JSON.stringify(this.messages));
+            this.speakAvatar(greeting, false);
+            return;
         }
 
         // ── Admin Command: Explicit Rule Adding ─────────────────────────────────

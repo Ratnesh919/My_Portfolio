@@ -108,10 +108,20 @@ The portfolio uses a **hybrid architecture** combining a modern **React 18 singl
   - Click-and-drag avatar across the screen with HTML5 Pointer Capture.
   - Minimized floating dock button when avatar is stowed.
   - Top-layer Z-Index (`2147483647`) to stay visible without card clipping.
+- **CSP & Texture Pipeline Hardening**:
+  - `vercel.json` Content Security Policy configured with `blob:`, `data:`, `worker-src 'self' blob:;`, and `connect-src https: blob: data: https://*.githubusercontent.com`.
+  - Ensures embedded GLTF/VRM texture unpacking and worker decoding execute seamlessly without causing pure white silhouette rendering bugs across Edge, Chrome, and mobile browsers.
 
 ### 🤖 3. Raya AI Companion & Natural Voice Core
 - **Speech Synthesis (TTS)**: Web Speech API tuned to a lively character voice (`pitch: 1.35`, `rate: 1.10`), prioritizing Microsoft Edge Natural Neural voices (`Microsoft Ava`, `Jenny`, `Neerja`, `Aria`).
 - **Speech Recognition (STT)**: Hands-free continuous listening with wake-word detection (`hey raya`, `raya`, `raaya`, etc.).
+- **Hardened Visitor Name Onboarding Engine**:
+  - Robust two-tier validation preventing commands, navigation verbs, and button labels (e.g. "Take", "Tour", "Recruiter", "Scroll") from being mistakenly captured as visitor names.
+  - Supported formats: Strict explicit introduction (`My name is [Name]`, `I am [Name]`, `Call me [Name]`, `Mera naam [Name]`) and 1–2 word direct answers to Raya's name inquiry.
+  - 150+ stop-word filter (`RAYA_FORBIDDEN_NAME_WORDS`) blocking verbs, prepositions, adjectives, career titles, and domain terms.
+  - Graceful passthrough: commands entered while awaiting name bypass name storage and execute instantly (e.g. scrolling to contact or starting recruiter tour).
+  - Skips and polite refusals (`skip`, `no thanks`, `rather not say`) acknowledge gracefully without nagging.
+  - Client (`localStorage`/`sessionStorage`) and server (`/api/learn`/`/api/init-user`) multi-layer sanitization purging corrupt legacy keys on initialization.
 - **Real-Time Phonetic Transliteration**:
   - Chat bubbles display clean Romanized English letters (A–Z) across all languages.
   - Text sent to the speech synthesizer is dynamically converted into native Unicode scripts (Devanagari for Hindi, Bengali script for Bengali, Gurmukhi for Punjabi, Gujarati script for Gujarati) for flawless native phonetic pronunciation by Edge neural TTS engines.

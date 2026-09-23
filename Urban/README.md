@@ -52,6 +52,7 @@ The portfolio features a two-phase introductory experience:
 The 3D character engine runs via Three.js and `@pixiv/three-vrm` directly inside `<canvas id="vrm-canvas">`:
 - **Z-Index Layering**: Rendered at `z-index: 2147483647` (maximum 32-bit integer) to ensure the avatar is always visible above UI cards.
 - **Draggable Viewport**: Users can drag the avatar anywhere across the screen using HTML5 Pointer Capture (`setPointerCapture`).
+- **CSP Texture Compatibility**: Content Security Policy allows `blob:`, `data:`, `worker-src 'self' blob:;`, and `https://*.githubusercontent.com` to prevent Three.js texture decode failures (white silhouette bug).
 - **Global Communication Bridge**:
   - `window.activateAvatarAndChatbot()`: Unveils the canvas and triggers Raya's audio introduction after bubble pop.
   - `window.playWaveAnimation()`: Triggers procedural arm-waving gesture.
@@ -63,6 +64,10 @@ The 3D character engine runs via Three.js and `@pixiv/three-vrm` directly inside
 
 ## 🤖 3. Raya AI Companion (`RayaAICompanion.tsx` & `ChatbotBar.tsx`)
 
+- **Strict Name Onboarding & Validation**:
+  - Employs `FORBIDDEN_NAME_WORDS` and `parseValidName()` to reject action words, quick commands (e.g., "Take me to contact section", "Recruiter Quick Tour"), prepositions, and pronouns from being wrongly recorded as visitor names.
+  - Commands sent while awaiting a name bypass name assignment and execute immediately without false greeting responses.
+  - Polite fallback handling for user skips ("skip", "no thanks", "rather not say").
 - **Natural Command Routing**:
   - All shortcut chips (`Scroll down`, `Tell me about projects`, `Tell me about skills`, `Take me to contact`, `Play a song`, etc.) are routed through the backend AI brain (`/api/chat`).
   - Raya generates a conversational response, speaks it aloud, and *then* fires the action (`window.scrollBy`, `onScrollToSection`, etc.) with a natural delay.

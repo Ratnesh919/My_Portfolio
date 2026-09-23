@@ -213,4 +213,68 @@ Each model is configured with overrides inside `vrm-config.js` to adjust materia
 *   **Shorekeeper / Camellya / Carlotta / Chixia / Jinshi / Kid Changli / Pinkshi / Roccia / Rover / Sanhua / Verina / Yangyang**: Stiffness `10.0`, Chest Drag `0.1`.
 *   **Default Fallback**: Stiffness `10.0`, Chest Drag `0.1`, Brightness `1.0`.
 
+### 7. 3D VRM Texture Pipeline & Content Security Policy (CSP) Directives
+When deploying Three.js VRM avatars to platforms with strict security headers (e.g., Vercel, Cloudflare, Netlify), texture loading failures can cause avatars to render as pure white silhouettes or untextured mannequins.
+To guarantee flawless WebGL rendering across all browsers (Chrome, Edge, Opera, Mobile Safari):
+1. **Blob & Data URLs for Texture Extraction**:
+   Three.js and `@pixiv/three-vrm` extract embedded GLTF/VRM binary textures into in-memory `blob:` and base64 `data:` URI buffers. The CSP `img-src` and `connect-src` directives must explicitly permit `blob:` and `data:`.
+2. **Worker Decoding Pipeline**:
+   GLTFLoader and WebGL texture decompression utilize web workers for asynchronous decoding. The CSP must define `worker-src 'self' blob:;`.
+3. **CDN Asset Fetching**:
+   VRM binary streams hosted on GitHub Releases require `connect-src` to permit `https://*.githubusercontent.com` and `https://github.com`.
+4. **Mandatory `vercel.json` CSP Configuration**:
+   ```json
+   {
+     "key": "Content-Security-Policy",
+     "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: blob: data: https://*.githubusercontent.com; worker-src 'self' blob:; frame-src 'self' https://www.youtube.com https://*.youtube.com; object-src 'none';"
+   }
+   ```
+
 ---
+
+## 🛡️ Part 4: Raya Visitor Name Extraction & Onboarding Security Directives
+
+During new visitor onboarding, Raya prompts: *"By the way, what is your name?"*. To prevent accidental capture of commands, navigation words, and recruiter buttons as false visitor names (e.g. capturing "Take" from *"Take me to contact section"* or "Recruiter" from *"Recruiter Quick Tour"*):
+
+### 1. Dual-Path Name Validation Architecture
+A valid name is **only** accepted through two guarded channels:
+1. **Explicit Introduction Pattern**:
+   Input matches strict full-phrase syntax:
+   ```javascript
+   /^(?:(?:hi|hello|hey|namaste|greetings)[,\s]+)?(?:my name is|my name's|i am|i'm|call me|this is|mera naam|amar naam)\s+([a-zA-Z\s'-]+?)(?:\s+hai)?[\.!]?$/i
+   ```
+   - Matches from start `^` to end `$`.
+   - Adjectives and queries like *"I am looking for a developer"* or *"This is awesome"* are rejected because trailing words contain verbs/adjectives and fail single/double-name constraints.
+2. **Direct Name Response (Awaiting Name Only)**:
+   - Only active while `this._awaitingName === true`.
+   - Input must be strictly **1 or 2 words** (e.g., *"Alex"* or *"Sarah Connor"*).
+   - Must contain **no punctuation** (`?`, `!`, `/`, `\`, numbers, or special symbols).
+   - Each word must be between 2 and 20 characters in length and match `/^[a-zA-Z]+(?:['-][a-zA-Z]+)?$/`.
+   - **None of the words** may exist in `RAYA_FORBIDDEN_NAME_WORDS`.
+
+### 2. Comprehensive 150+ Forbidden Word Taxonomy (`RAYA_FORBIDDEN_NAME_WORDS`)
+The stop-word registry blocks words across six distinct categories:
+*   **Action Verbs & Navigation**: `take`, `took`, `get`, `give`, `let`, `make`, `show`, `tell`, `play`, `open`, `view`, `look`, `see`, `watch`, `check`, `find`, `call`, `help`, `run`, `start`, `begin`, `launch`, `scroll`, `navigate`, `go`, `visit`, `explore`, `try`, `test`, `click`, `read`, `write`, `leave`, `send`, `submit`, `stop`, `pause`, `resume`, `cancel`, `close`, `exit`, `switch`, `change`, `choose`, `select`, `follow`, `wait`, `listen`, `hear`, `talk`, `speak`, `ask`, `answer`, `think`, `know`, `want`, `need`, `like`, `love`, `wish`, `hope`, `hire`, `work`, `build`, `create`, `learn`, `study`, `graduate`, `pass`, `skip`, `do`, `have`, `be`, `am`, `is`, `are`, `was`, `were`.
+*   **Pronouns & Articles**: `i`, `me`, `my`, `mine`, `myself`, `you`, `your`, `yours`, `yourself`, `he`, `him`, `his`, `she`, `her`, `hers`, `it`, `its`, `we`, `us`, `our`, `they`, `them`, `their`, `this`, `that`, `these`, `those`, `a`, `an`, `the`, `some`, `any`, `all`, `each`, `every`, `both`, `few`, `much`, `many`, `more`, `most`, `other`, `another`, `such`.
+*   **Prepositions & Conjunctions**: `to`, `from`, `in`, `out`, `on`, `off`, `at`, `by`, `for`, `with`, `about`, `into`, `through`, `during`, `before`, `after`, `above`, `below`, `under`, `down`, `up`, `over`, `between`, `and`, `but`, `or`, `nor`, `so`, `yet`, `because`, `although`, `since`, `where`, `when`, `how`, `why`, `what`, `which`, `who`, `if`, `then`, `else`.
+*   **Conversational Fillers & Adjectives**: `good`, `great`, `awesome`, `cool`, `fine`, `okay`, `ok`, `well`, `nice`, `bad`, `really`, `very`, `quite`, `just`, `only`, `now`, `here`, `there`, `today`, `tomorrow`, `yesterday`, `soon`, `later`, `always`, `never`, `sometimes`, `actually`, `maybe`, `please`, `thanks`, `thank`, `sorry`, `welcome`, `hello`, `hi`, `hey`, `sure`, `yeah`, `yes`, `no`.
+*   **Domain, Portfolio & Career Words**: `recruiter`, `recruiting`, `talent`, `acquisition`, `hr`, `hiring`, `interview`, `engineer`, `engineering`, `developer`, `coder`, `architect`, `designer`, `manager`, `lead`, `founder`, `ceo`, `cto`, `candidate`, `visitor`, `guest`, `user`, `admin`, `root`, `owner`, `ratnesh`, `singh`, `raya`, `portfolio`, `project`, `projects`, `skill`, `skills`, `experience`, `education`, `certificate`, `contact`, `resume`, `cv`, `demo`, `site`, `website`, `code`, `repo`, `github`, `linkedin`, `audio`, `dsp`, `music`, `song`, `youtube`, `model`, `vrm`, `avatar`, `3d`, `webgl`, `tour`, `quick`, `fast`, `walkthrough`, `android`.
+*   **Refusal & Placeholder Terms**: `skip`, `pass`, `refuse`, `secret`, `anon`, `anonymous`, `private`, `unknown`, `undefined`, `null`, `none`, `nothing`, `nobody`, `test`, `tester`, `asdf`, `qwerty`.
+
+### 3. Graceful Command Passthrough (Zero User Friction)
+When `_awaitingName` is active and the visitor inputs a command or question (e.g. clicks *"Take me to contact section"*, selects *"Recruiter Quick Tour"*, or types *"Show projects"*):
+1. `_awaitingName` is automatically cleared (`this._awaitingName = false`).
+2. Name registration is safely bypassed.
+3. Execution **falls through immediately** to normal command routing and the AI brain.
+4. Raya scrolls to the requested section, starts the tour, or answers the query without interruption or awkward misidentification.
+
+### 4. Explicit Skip & Refusal Protocol
+If the visitor responds with refusal words (`skip`, `pass`, `no`, `nope`, `nah`, `no thanks`, `never mind`, `prefer not to say`, `rather not`, `later`, `not now`):
+1. `_awaitingName` is set to `false`.
+2. Raya answers with a polite, non-intrusive acknowledgment:
+   *"No problem at all! Welcome to Ratnesh's portfolio. Feel free to explore his projects, ask questions, or tell me where you'd like to go!"*
+3. Normal conversation resumes immediately.
+
+### 5. Client & Server Persistence Hygiene
+- **Client Init Sanitization**: On page load, `localStorage.getItem('rayaUserName')` and `sessionStorage.getItem('userName')` are verified against `parseValidName()`. If corrupted with legacy stop-words (e.g. `"Take"`), they are purged immediately.
+- **Backend Guardrails (`/api/learn` & `/api/init-user`)**: Both routes run `validatePersonName()` before updating Supabase preferences or returning stored visitor identities.

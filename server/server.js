@@ -154,6 +154,59 @@ function redactSensitiveData(text) {
     return cleaned;
 }
 
+// ── Visitor Name Validation & Text Sanitization Engine ───────────────────────
+const SERVER_FORBIDDEN_NAME_WORDS = new Set([
+    'take', 'taking', 'took', 'get', 'getting', 'got', 'give', 'giving', 'gave', 'let', 'lets',
+    'make', 'show', 'tell', 'play', 'open', 'view', 'look', 'see', 'watch', 'check', 'find', 'call',
+    'help', 'run', 'start', 'begin', 'launch', 'scroll', 'navigate', 'go', 'visit', 'explore', 'try', 'test',
+    'click', 'read', 'write', 'leave', 'send', 'submit', 'stop', 'pause', 'resume', 'cancel', 'close', 'exit',
+    'switch', 'change', 'choose', 'select', 'follow', 'wait', 'listen', 'hear', 'talk', 'speak', 'ask', 'answer',
+    'think', 'know', 'want', 'need', 'like', 'love', 'wish', 'hope', 'hire', 'work', 'build', 'create', 'learn', 'study',
+    'graduate', 'pass', 'skip', 'do', 'have', 'be', 'am', 'is', 'are', 'was', 'were',
+    'i', 'me', 'my', 'mine', 'myself', 'you', 'your', 'yours', 'yourself', 'he', 'him', 'his', 'she', 'her', 'hers',
+    'it', 'its', 'we', 'us', 'our', 'ours', 'they', 'them', 'their', 'theirs', 'this', 'that', 'these', 'those',
+    'a', 'an', 'the', 'some', 'any', 'all', 'each', 'every', 'both', 'few', 'much', 'many', 'more', 'most', 'other', 'another',
+    'to', 'from', 'in', 'out', 'on', 'off', 'at', 'by', 'for', 'with', 'about', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'under', 'down', 'up', 'over', 'between', 'and', 'but', 'or', 'nor', 'so', 'yet',
+    'where', 'when', 'how', 'why', 'what', 'which', 'who', 'whom', 'whose', 'if', 'then', 'else',
+    'good', 'great', 'awesome', 'cool', 'fine', 'okay', 'ok', 'well', 'nice', 'bad', 'really', 'very', 'quite', 'just', 'only',
+    'now', 'here', 'there', 'today', 'tomorrow', 'yesterday', 'soon', 'later', 'always', 'never', 'sometimes', 'actually', 'maybe',
+    'please', 'thanks', 'thank', 'sorry', 'welcome', 'hello', 'hi', 'hey', 'yo', 'hola', 'sup', 'bye', 'goodbye', 'sure', 'yeah', 'yes', 'no',
+    'recruiter', 'recruiting', 'talent', 'acquisition', 'hr', 'hiring', 'interview', 'interviewer',
+    'engineer', 'engineering', 'developer', 'development', 'coder', 'programmer', 'architect', 'designer',
+    'manager', 'lead', 'director', 'founder', 'ceo', 'cto', 'candidate', 'visitor', 'guest', 'user', 'admin', 'root', 'owner',
+    'ratnesh', 'singh', 'raya', 'portfolio', 'project', 'projects', 'skill', 'skills', 'experience',
+    'education', 'academics', 'cert', 'certs', 'certificate', 'certificates', 'certification', 'certifications',
+    'contact', 'resume', 'cv', 'demo', 'live', 'site', 'website', 'code', 'repo', 'repository', 'github', 'linkedin',
+    'instagram', 'facebook', 'email', 'audio', 'dsp', 'music', 'song', 'youtube', 'model', 'vrm', 'avatar', 'character',
+    '3d', 'webgl', 'three', 'tour', 'quick', 'fast', 'instant', 'walkthrough', 'system', 'systems',
+    'skip', 'pass', 'refuse', 'secret', 'anon', 'anonymous', 'private', 'unknown', 'undefined', 'null', 'none', 'nothing', 'nobody', 'test'
+]);
+
+function sanitizeText(input, maxLen = 2000) {
+    if (!input || typeof input !== 'string') return '';
+    return input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().slice(0, maxLen);
+}
+
+function validatePersonName(candidate) {
+    if (!candidate || typeof candidate !== 'string') return null;
+    const clean = sanitizeText(candidate, 50).replace(/^["']|["']$/g, '').trim();
+    if (!clean) return null;
+    const words = clean.split(/\s+/).filter(Boolean);
+    if (words.length < 1 || words.length > 2) return null;
+
+    const validated = [];
+    for (const w of words) {
+        const cleanWord = w.replace(/[^a-zA-Z'-]/g, '');
+        const lower = cleanWord.toLowerCase();
+        if (!/^[a-zA-Z]+(?:['-][a-zA-Z]+)?$/.test(cleanWord)) return null;
+        if (cleanWord.length < 2 || cleanWord.length > 20) return null;
+        if (SERVER_FORBIDDEN_NAME_WORDS.has(lower)) return null;
+        validated.push(cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1).toLowerCase());
+    }
+    return validated.length > 0 ? validated.join(' ') : null;
+}
+
 // ── Security Headers Middleware ──────────────────────────────────────────────
 // Applies to all responses served by the Express backend (Render).
 // Vercel static responses are covered separately in vercel.json headers.
@@ -792,7 +845,8 @@ app.post('/api/init-user', initUserLimiter, async (req, res) => {
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const location = extractLocation(req);
     const { userName } = await mem.initUser(userId, isNewUser, ipAddress, location);
-    res.json({ ok: true, userName });
+    const validUserName = validatePersonName(userName);
+    res.json({ ok: true, userName: validUserName });
 });
 
 app.get('/api/insights', adminEndpointLimiter, checkAdmin, async (req, res) => {
@@ -1451,10 +1505,10 @@ app.post('/api/learn', generalApiLimiter, async (req, res) => {
 
     // If this learning contains a user's name, save to preferences & users tables as well!
     const nameCandidate = userName || (safeContent.toLowerCase().startsWith("user's name is ") ? safeContent.replace(/user's name is\s*/i, '').trim() : null);
-    if (nameCandidate && nameCandidate.length >= 2 && nameCandidate.length <= 40) {
-        const safeName = sanitizeText(nameCandidate, 40);
-        await mem.setPreference(userId, 'user_name', safeName);
-        await mem.recordVisitorProfile(userId, safeName);
+    const validName = validatePersonName(nameCandidate);
+    if (validName) {
+        await mem.setPreference(userId, 'user_name', validName);
+        await mem.recordVisitorProfile(userId, validName);
     }
 
     res.json({ ok: true });
