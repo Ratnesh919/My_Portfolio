@@ -119,9 +119,10 @@ The portfolio uses a **hybrid architecture** combining a modern **React 18 singl
   - Robust two-tier validation preventing commands, navigation verbs, and button labels (e.g. "Take", "Tour", "Recruiter", "Scroll") from being mistakenly captured as visitor names.
   - Supported formats: Strict explicit introduction (`My name is [Name]`, `I am [Name]`, `Call me [Name]`, `Mera naam [Name]`) and 1–2 word direct answers to Raya's name inquiry.
   - 150+ stop-word filter (`RAYA_FORBIDDEN_NAME_WORDS`) blocking verbs, prepositions, adjectives, career titles, and domain terms.
-  - Graceful passthrough: commands entered while awaiting name bypass name storage and execute instantly (e.g. scrolling to contact or starting recruiter tour).
-  - Skips and polite refusals (`skip`, `no thanks`, `rather not say`) acknowledge gracefully without nagging.
-  - Client (`localStorage`/`sessionStorage`) and server (`/api/learn`/`/api/init-user`) multi-layer sanitization purging corrupt legacy keys on initialization.
+  - Graceful passthrough: commands entered while awaiting name default visitor identity to `"User"` and execute instantly (e.g. scrolling to contact or starting recruiter tour).
+  - Skips and polite refusals (`skip`, `no thanks`, `rather not say`) acknowledge gracefully as `"User"` (*"No problem at all, User! Welcome to Ratnesh's portfolio..."*) without nagging.
+  - Strict `"User"` Default Addressing: If a visitor skips providing their name or remains unnamed, Raya addresses them strictly as `"User"` across all greetings, conversational turns, and return visits (*"Welcome back, User!"*).
+  - Client (`localStorage`/`sessionStorage`) and server (`/api/learn`/`/api/init-user`) multi-layer sanitization purging corrupt legacy keys while safely preserving valid names or the `"User"` fallback identifier.
 - **Real-Time Phonetic Transliteration**:
   - Chat bubbles display clean Romanized English letters (A–Z) across all languages.
   - Text sent to the speech synthesizer is dynamically converted into native Unicode scripts (Devanagari for Hindi, Bengali script for Bengali, Gurmukhi for Punjabi, Gujarati script for Gujarati) for flawless native phonetic pronunciation by Edge neural TTS engines.

@@ -100,6 +100,8 @@ const recruiterKeywords = [
 To prevent bot injections, button commands (e.g. "Take", "Tour", "Recruiter", "Scroll"), or arbitrary conversational words from polluting `visitor_profiles` and `preferences`:
 - `/api/learn` and `/api/init-user` validate candidate names against `SERVER_FORBIDDEN_NAME_WORDS` and strict length/character rules before committing to Supabase.
 - Disallowed words return `null` and are discarded without interrupting the user's conversation.
+- `/api/init-user` returns `userName: 'User'` if no verified personal name exists.
+- In `/api/chat`, the system prompt injects `[VISITOR IDENTITY: The visitor has NOT provided their name. You MUST address them strictly as "User" only!]` whenever an unnamed visitor interacts with Raya.
 
 ---
 

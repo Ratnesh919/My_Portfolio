@@ -139,6 +139,18 @@ function getTimeOfDayGreeting() {
   return "Good evening";
 }
 
+function parseSkipOrRefusal(rawText: string): boolean {
+  if (!rawText) return false;
+  const text = rawText.trim().toLowerCase();
+  return /^(?:skip|pass|no|nope|nah|no\s+thanks?|no\s+thank\s+you|never\s*mind|nevermind|don'?t\s+want\s+to(?:\s+say)?|prefer\s+not\s+to\s+say|rather\s+not(?:\s+say)?|i'?d\s+rather\s+not|later|not\s+now|private|anonymous)$/i.test(text);
+}
+
+function getStoredUserName(): string {
+  if (typeof window === 'undefined') return 'User';
+  const stored = sessionStorage.getItem('userName') || localStorage.getItem('userName') || localStorage.getItem('rayaUserName') || '';
+  return (stored && stored.toLowerCase() !== 'user') ? stored : 'User';
+}
+
 export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({ 
   isOpen, 
   onClose,
@@ -187,7 +199,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       id: 'welcome',
       sender: 'raya',
       text: isReturningUser
-        ? `Welcome back! It's nice to have you back, what can I help you with?`
+        ? `Welcome back, ${getStoredUserName()}! It's nice to have you back, what can I help you with?`
         : `${getGreeting()}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh, or play a song. You can also choose any inbuilt command from this panel. By the way, what is your name?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
@@ -230,7 +242,7 @@ export const RayaAICompanion: React.FC<RayaAICompanionProps> = ({
       let welcomeText: string;
 
       if (isReturning) {
-        welcomeText = `Welcome back! It's nice to have you back, what can I help you with?`;
+        welcomeText = `Welcome back, ${getStoredUserName()}! It's nice to have you back, what can I help you with?`;
       } else {
         const greeting = getGreeting();
         welcomeText = `${greeting}! It's nice to meet you, I am Raya, your guide to Ratnesh's portfolio. I can navigate you to different sections, tell you about Ratnesh, or play a song. You can also choose any inbuilt command from this panel. By the way, what is your name?`;
@@ -781,12 +793,22 @@ function getSpokenTextForTTS(text: string, lang: string): string {
       return `All visitor telemetry and portfolio systems are verified and operating smoothly. There are no pending unverified claims at this time.`;
     }
 
-    // User name introductions
+    // User skips or name introductions
+    if (parseSkipOrRefusal(query)) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userName', 'User');
+        localStorage.setItem('userName', 'User');
+        localStorage.setItem('rayaUserName', 'User');
+      }
+      return "No problem at all, User! Welcome to Ratnesh's portfolio. Feel free to explore his projects, ask questions, or tell me where you'd like to go!";
+    }
+
     const validatedName = parseValidName(query);
     if (validatedName) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('userName', validatedName);
         localStorage.setItem('userName', validatedName);
+        localStorage.setItem('rayaUserName', validatedName);
       }
       return `Nice to meet you, ${validatedName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
     }
@@ -1029,7 +1051,7 @@ function getSpokenTextForTTS(text: string, lang: string): string {
   const RAYA_SYSTEM_PROMPT = `You are Raya, a friendly, lively, and intelligent female AI companion living inside Ratnesh Kumar Singh's virtual 3D portfolio.
 Your name is Raya. Speak naturally, warmly, playfully, and conversationally.
 CRITICAL RESPONSE LENGTH RULE: Keep your replies concise and under 150 words (aim for 1-3 natural sentences).
-CRITICAL NAME USAGE RULE: NEVER use the user's name in your responses. You are strictly forbidden from saying their name during conversation.
+CRITICAL VISITOR ADDRESSING RULE: If the visitor has shared their real name, address them warmly by their name. If the visitor has NOT provided their name, or their name is unknown, or they skipped providing their name, you MUST address them as "User" only! Never invent, assume, or guess any other name. Always address an unnamed visitor as "User".
 CRITICAL EMOJI RULE: NEVER output emojis or asterisks in your speech text because it is spoken out loud by text-to-speech.
 
 [UNIVERSAL LANGUAGE & SCRIPT RULES]
@@ -1154,12 +1176,32 @@ You can control the website and open any demo/link based on user commands! When 
       return;
     }
 
-    // 0e. User Introductions & Names
+    // 0e. User Introductions & Names / Skips
+    if (parseSkipOrRefusal(query)) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userName', 'User');
+        localStorage.setItem('userName', 'User');
+        localStorage.setItem('rayaUserName', 'User');
+      }
+      const reply = "No problem at all, User! Welcome to Ratnesh's portfolio. Feel free to explore his projects, ask questions, or tell me where you'd like to go!";
+      const rayaMsg: Message = {
+        id: `raya_${Date.now()}`,
+        sender: 'raya',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, rayaMsg]);
+      onUpdateSpeechText?.(reply);
+      speakRaya(reply);
+      return;
+    }
+
     const validatedName = parseValidName(query);
     if (validatedName) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('userName', validatedName);
         localStorage.setItem('userName', validatedName);
+        localStorage.setItem('rayaUserName', validatedName);
       }
       const reply = `It's wonderful to meet you, ${validatedName}! Welcome to Ratnesh's portfolio. I can show you his featured engineering projects, technical skills, or play some music. What would you like to explore?`;
       const rayaMsg: Message = {
@@ -1204,7 +1246,7 @@ You can control the website and open any demo/link based on user commands! When 
           userId: userIdRef.current,
           sessionId: sessionIdRef.current,
           isAdmin: typeof window !== 'undefined' && (sessionStorage.getItem('isAdmin') === 'true' || localStorage.getItem('isAdmin') === 'true'),
-          userName: typeof window !== 'undefined' ? (sessionStorage.getItem('userName') || localStorage.getItem('userName') || '') : ''
+          userName: getStoredUserName()
         })
       });
 

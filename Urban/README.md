@@ -66,8 +66,9 @@ The 3D character engine runs via Three.js and `@pixiv/three-vrm` directly inside
 
 - **Strict Name Onboarding & Validation**:
   - Employs `FORBIDDEN_NAME_WORDS` and `parseValidName()` to reject action words, quick commands (e.g., "Take me to contact section", "Recruiter Quick Tour"), prepositions, and pronouns from being wrongly recorded as visitor names.
-  - Commands sent while awaiting a name bypass name assignment and execute immediately without false greeting responses.
-  - Polite fallback handling for user skips ("skip", "no thanks", "rather not say").
+  - Commands sent while awaiting a name assign the default `"User"` identity and execute immediately without false greeting responses.
+  - Polite fallback handling for user skips ("skip", "no thanks", "rather not say"), confirming with *"No problem at all, User! Welcome to Ratnesh's portfolio..."*.
+  - Strict `"User"` default: If a visitor has not provided their name, Raya addresses them strictly as `"User"` across initial and return greetings (*"Welcome back, User!"*) and chat interactions.
 - **Natural Command Routing**:
   - All shortcut chips (`Scroll down`, `Tell me about projects`, `Tell me about skills`, `Take me to contact`, `Play a song`, etc.) are routed through the backend AI brain (`/api/chat`).
   - Raya generates a conversational response, speaks it aloud, and *then* fires the action (`window.scrollBy`, `onScrollToSection`, etc.) with a natural delay.

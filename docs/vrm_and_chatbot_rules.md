@@ -264,17 +264,25 @@ The stop-word registry blocks words across six distinct categories:
 ### 3. Graceful Command Passthrough (Zero User Friction)
 When `_awaitingName` is active and the visitor inputs a command or question (e.g. clicks *"Take me to contact section"*, selects *"Recruiter Quick Tour"*, or types *"Show projects"*):
 1. `_awaitingName` is automatically cleared (`this._awaitingName = false`).
-2. Name registration is safely bypassed.
+2. Visitor identity defaults to `"User"` (`this.userName = 'User'`).
 3. Execution **falls through immediately** to normal command routing and the AI brain.
 4. Raya scrolls to the requested section, starts the tour, or answers the query without interruption or awkward misidentification.
 
-### 4. Explicit Skip & Refusal Protocol
+### 4. Explicit Skip & Refusal Protocol ("User" Default)
 If the visitor responds with refusal words (`skip`, `pass`, `no`, `nope`, `nah`, `no thanks`, `never mind`, `prefer not to say`, `rather not`, `later`, `not now`):
 1. `_awaitingName` is set to `false`.
-2. Raya answers with a polite, non-intrusive acknowledgment:
-   *"No problem at all! Welcome to Ratnesh's portfolio. Feel free to explore his projects, ask questions, or tell me where you'd like to go!"*
-3. Normal conversation resumes immediately.
+2. Visitor identity is explicitly recorded as `"User"` (`this.userName = 'User'`, `localStorage.setItem('rayaUserName', 'User')`, `sessionStorage.setItem('userName', 'User')`).
+3. Raya answers with a polite, non-intrusive acknowledgment addressing them as `"User"`:
+   *"No problem at all, User! Welcome to Ratnesh's portfolio. Feel free to explore his projects, ask questions, or tell me where you'd like to go!"*
+4. Normal conversation resumes immediately.
 
-### 5. Client & Server Persistence Hygiene
-- **Client Init Sanitization**: On page load, `localStorage.getItem('rayaUserName')` and `sessionStorage.getItem('userName')` are verified against `parseValidName()`. If corrupted with legacy stop-words (e.g. `"Take"`), they are purged immediately.
-- **Backend Guardrails (`/api/learn` & `/api/init-user`)**: Both routes run `validatePersonName()` before updating Supabase preferences or returning stored visitor identities.
+### 5. Returning Visitor Addressing Protocol
+- If the visitor previously introduced themselves with a verified personal name, Raya greets them warmly:
+  *"Welcome back, <Name>! It's nice to have you back. What would you like to explore today?"*
+- If the visitor previously skipped their name, entered commands without introducing themselves, or has no stored name, Raya strictly greets them as `"User"`:
+  *"Welcome back, User! It's nice to have you back. What would you like to explore today?"*
+- System prompts across `js/chatbot.js`, `Urban/src/components/portfolio/RayaAICompanion.tsx`, and `server/server.js` enforce that unnamed visitors must **strictly be addressed as "User" only**. The model is strictly forbidden from guessing, inventing, or assuming any other name or title.
+
+### 6. Client & Server Persistence Hygiene
+- **Client Init Sanitization**: On page load, `localStorage.getItem('rayaUserName')` and `sessionStorage.getItem('userName')` are verified against `parseValidName()`. If corrupted with legacy stop-words (e.g. `"Take"`), they are purged immediately. If the stored identity is `"User"`, it is preserved as the default addressing identifier.
+- **Backend Guardrails (`/api/learn` & `/api/init-user`)**: Both routes run `validatePersonName()` before updating Supabase preferences or returning stored visitor identities. `/api/init-user` returns `'User'` if no verified name exists.
