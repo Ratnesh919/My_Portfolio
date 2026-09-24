@@ -326,7 +326,9 @@ To safeguard production integrity and enable instant rollbacks, milestone states
 | **Restore Point 2** | `restore-point-2` | `5ec2cf2` | Single-page layout, viewport scrolling, and initial command routing. |
 | **Restore Point 3** | `restore-point-3` | `5e3fe22` | Real-time VRM avatar loading progress bar, enhanced soap bubble entry screen, site title set to `Ratnesh Kumar Singh`. |
 | **Restore Point 4** | `restore-point-4` | `b05c3bb` | Inbuilt commands wired through AI brain with natural response delays, visitor profiles sync with Supabase (`visitor_profiles` table), and admin endpoints. |
-| **Restore Point 5** | `restore-point-5` | `HEAD` | **Current Master Baseline**: Comprehensive architecture documentation, full project manuals across all directories, and zero legacy remnants. |
+| **Restore Point 5** | `restore-point-5` | `e2a5f10` | Full architecture documentation, project manuals across directories, zero legacy remnants. |
+| **Restore Point 6** | `restore-point-6` | `af2abd0` | VRM finger rigging, expression presets, enter experience CTA button, and section cleanup. |
+| **Restore Point 7** | `restore-point-7` | `HEAD` | **Current Master Baseline**: True VRM colors restored (SRGBColorSpace + CSP blob/worker fix), hardened Raya name onboarding with 150+ forbidden word filter & "User" default protocol, unified master `Resume.pdf` distribution, left sidebar button cleanup, and Graphify Knowledge Graph baseline. |
 
 ### How to Roll Back to a Restore Point:
 ```bash
