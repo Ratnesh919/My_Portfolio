@@ -5,8 +5,14 @@
 - **Frontend**: `cd Urban && npm run dev` (Vite dev server)
 - **Build**: `npm run build` (`Urban: tsc && vite build`)
 
+## Mandatory Knowledge Graph Protocol (ALWAYS CONSULT FIRST)
+The repository maintains an active Graphify Knowledge Graph (`graphify-out/graph.json` & `graphify-out/GRAPH_REPORT.md`):
+1. **Always Consult the Knowledge Graph First**: When asked to implement or modify any feature, inspect `graphify-out/graph.json` or query the graph via `& (Get-Content graphify-out\.graphify_python) -m graphify.cli query "<feature>"` to check connected nodes, callers, and dependencies before making edits.
+2. **Impact Radius Analysis**: Use node connections to inspect callers, dependents, and shared event handlers across `Urban/` and vanilla `js/` modules.
+3. **Sync Graph After Edits**: After code changes, run `graphify update .` to keep the structural graph synchronized.
+
 ## Feature-to-File Direct Map (JUMP DIRECTLY TO THESE FILES)
-When asked to modify a feature, NEVER perform broad directory searches. Go directly to:
+When asked to modify a feature, NEVER perform broad directory searches. Consult the Knowledge Graph or jump directly to:
 
 - **Raya Chatbot & AI Companion** (Chatbot responses, name handling, voice, prompt logic):
   - Frontend Chatbot & Web Speech API: `js/chatbot.js`
