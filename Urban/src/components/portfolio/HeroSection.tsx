@@ -58,8 +58,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate, onOpenProj
             {/* Prominent High-Craft Download Resume Button with Moving Outline Glow */}
             <div className="moving-outline-glow-container group cursor-pointer">
               <a
-                href="./Ratnesh_Kumar_Singh_Resume.pdf"
-                download="Ratnesh_Kumar_Singh_Resume.pdf"
+                href="./Resume.pdf"
+                download="Resume.pdf"
                 target="_blank"
                 rel="noreferrer"
                 className="moving-outline-glow-inner active:scale-95 transition-transform"

@@ -1801,7 +1801,7 @@ class AvatarChatBot {
         resumeBtn.addEventListener('click', () => {
             this.hideChoices();
             this.speakAvatar("Opening Ratnesh's resume for you now!", false);
-            window.open('./Ratnesh_Kumar_Singh_Resume.pdf', '_blank');
+            window.open('./Resume.pdf', '_blank');
         });
 
         this.choiceContainer.appendChild(projectBtn);

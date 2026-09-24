@@ -1,0 +1,22 @@
+# Ignore heavy binary and non-code folders to prevent agent credit burn
+node_modules/
+Urban/node_modules/
+Model Animation/
+assets/
+certificates/
+docs/
+scratch/
+.vercel/
+
+# Heavy 3D assets, audio, and documents
+*.vrm
+*.glb
+*.gltf
+*.mp3
+*.wav
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico

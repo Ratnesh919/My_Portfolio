@@ -118,8 +118,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Resume Quick Access Button in Sidebar */}
       <div className="pt-2">
         <a
-          href="./Ratnesh_Kumar_Singh_Resume.pdf"
-          download="Ratnesh_Kumar_Singh_Resume.pdf"
+          href="./Resume.pdf"
+          download="Resume.pdf"
           target="_blank"
           rel="noreferrer"
           className="group flex items-center justify-between w-full px-3 py-2 rounded-xl bg-gradient-to-r from-purple-950/60 to-purple-900/40 border border-purple-500/30 hover:border-purple-400/70 text-purple-200 hover:text-white transition-all text-xs font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:scale-95"
