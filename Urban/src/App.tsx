@@ -9,14 +9,17 @@ import { CertificationsSection } from '@/components/portfolio/CertificationsSect
 import { ContactSection } from '@/components/portfolio/ContactSection';
 import { AvatarStudioModal, AVATAR_CHARACTERS } from '@/components/portfolio/AvatarStudioModal';
 import { IntroLoader } from '@/components/portfolio/IntroLoader';
+import { DPDPConsentBanner } from '@/components/portfolio/DPDPConsentBanner';
+import { DPDPPrivacyModal } from '@/components/portfolio/DPDPPrivacyModal';
 import { Modal } from '@/components/ui/modal';
 import { ProjectItem, CertificateItem, PORTFOLIO_DATA } from '@/lib/portfolioData';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Shield } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('home');
   const [isRayaOpen, setIsRayaOpen] = useState<boolean>(false);
   const [isAvatarStudioOpen, setIsAvatarStudioOpen] = useState<boolean>(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
   const [currentAvatar, setCurrentAvatar] = useState<string>('changli');
   const [currentAvatarFile, setCurrentAvatarFile] = useState<string>('./Wuwa/changli(fixed).vrm');
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
@@ -199,8 +202,16 @@ export const App: React.FC = () => {
               &copy; {new Date().getFullYear()} {PORTFOLIO_DATA.name} &bull; Next-Gen 3D Neomorphic Portfolio
             </span>
           </div>
-          <div>
-            <span>Kolkata, India &bull; MAKAUT ECE Graduate '26</span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              onClick={() => setIsPrivacyModalOpen(true)}
+              className="hover:text-cyan-400 text-purple-300/80 transition-colors flex items-center gap-1.5 underline underline-offset-4 decoration-purple-500/40 cursor-pointer"
+            >
+              <Shield size={13} className="text-cyan-400" />
+              <span>Privacy &amp; DPDP Notice</span>
+            </button>
+            <span className="text-slate-600">&bull;</span>
+            <span>Kolkata, India &bull; MAKAUT ECE '26</span>
           </div>
         </footer>
       </div>
@@ -216,6 +227,17 @@ export const App: React.FC = () => {
         </button>
       )}
 
+      {/* India DPDP Act 2023 Consent Toast Banner */}
+      <DPDPConsentBanner
+        onOpenPrivacyModal={() => setIsPrivacyModalOpen(true)}
+        introDone={introDone}
+      />
+
+      {/* Statutory DPDP Privacy Governance Modal */}
+      <DPDPPrivacyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
 
       {/* 14-Character 3D Avatar Studio Modal */}
       <AvatarStudioModal

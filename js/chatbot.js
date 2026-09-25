@@ -590,6 +590,9 @@ class AvatarChatBot {
                 <li class="suggest-cmd">"Tell me a joke"</li>
                 <li class="suggest-cmd">"Play a song"</li>
             </ul>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 10px; color: #94a3b8; font-family: monospace; line-height: 1.4;">
+                🛡️ India DPDP Act 2023: Conversations are processed solely for portfolio guidance and never sold or shared.
+            </div>
         `;
         panel.appendChild(this.infoPanel);
         panel.appendChild(inputRow);

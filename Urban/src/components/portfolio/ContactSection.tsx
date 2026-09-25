@@ -11,7 +11,8 @@ import {
   Twitter,
   Instagram,
   Facebook,
-  MessageSquare
+  MessageSquare,
+  ShieldCheck
 } from 'lucide-react';
 import { PORTFOLIO_DATA } from '@/lib/portfolioData';
 
@@ -204,6 +205,11 @@ export const ContactSection: React.FC = () => {
               <span>{formSubmitted ? 'Message Dispatched!' : 'Send Message'}</span>
               <Send size={16} />
             </button>
+
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono mt-1 opacity-80">
+              <ShieldCheck size={13} className="text-cyan-400 shrink-0" />
+              <span>Protected under India DPDP Act 2023. Data submitted is used exclusively for professional replies.</span>
+            </div>
           </form>
         </div>
       </div>
