@@ -120,7 +120,7 @@ export const App: React.FC = () => {
     if (introSpokenRef.current) return;
     introSpokenRef.current = true;
 
-    // Trigger wave animation and Raya intro voice simultaneously
+    // Trigger wave animation and Raya intro voice simultaneously if not already triggered
     const triggerIntro = () => {
       try {
         if ('speechSynthesis' in window) {
@@ -131,10 +131,10 @@ export const App: React.FC = () => {
       if ((window as any).playWaveAnimation) {
         (window as any).playWaveAnimation();
       }
-      if ((window as any).introduceRaya) {
-        (window as any).introduceRaya();
-      } else if ((window as any).chatBot && typeof (window as any).chatBot.introduceHerself === 'function') {
+      if ((window as any).chatBot && !(window as any).chatBot.vrmIntroPlayed) {
         (window as any).chatBot.introduceHerself();
+      } else if ((window as any).introduceRaya) {
+        (window as any).introduceRaya();
       }
     };
 

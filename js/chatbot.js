@@ -364,19 +364,43 @@ class AvatarChatBot {
         // Always attempt to speak immediately (Autoplay)
         console.log('[Raya Intro] Attempting auto-play immediately.');
         try { window.playWaveAnimation?.(); } catch(e) {}
-        this.speakAvatar(introMessage, false);
 
-        if (!this._userHasGestured) {
-            // Also attach a one-shot gesture listener as a silent fallback if auto-play fails
-            const EVTS = ['click', 'touchstart', 'keydown', 'pointerdown'];
-            const onGesture = () => {
-                EVTS.forEach(ev => document.removeEventListener(ev, onGesture));
-                if (this.synth && !this.synth.speaking && !this.hasIntroduced) {
-                    this.speakAvatar(introMessage, false);
-                }
+        const triggerSpeech = () => {
+            try { if (this.synth && this.synth.resume) this.synth.resume(); } catch(e) {}
+            this.speakAvatar(introMessage, false);
+        };
+
+        if (this.synth && !this.synth.getVoices().length) {
+            let voicesHandled = false;
+            const onVoices = () => {
+                if (voicesHandled) return;
+                voicesHandled = true;
+                this.loadVoices();
+                triggerSpeech();
             };
-            EVTS.forEach(ev => document.addEventListener(ev, onGesture, { once: true, passive: true }));
+            window.speechSynthesis.addEventListener('voiceschanged', onVoices, { once: true });
+            setTimeout(() => {
+                if (!voicesHandled) {
+                    voicesHandled = true;
+                    this.loadVoices();
+                    triggerSpeech();
+                }
+            }, 250);
+        } else {
+            triggerSpeech();
         }
+
+        // Also attach a one-shot gesture listener as a fallback if browser blocked autoplay
+        const EVTS = ['click', 'touchstart', 'keydown', 'pointerdown'];
+        const onGesture = () => {
+            EVTS.forEach(ev => document.removeEventListener(ev, onGesture));
+            this._userHasGestured = true;
+            if (this.synth && !this.synth.speaking) {
+                try { if (this.synth.resume) this.synth.resume(); } catch(e) {}
+                this.speakAvatar(introMessage, false);
+            }
+        };
+        EVTS.forEach(ev => document.addEventListener(ev, onGesture, { once: true, passive: true }));
     }
 
     // Called when a specific skill pillar or skill badge is selected in the portfolio
@@ -1944,7 +1968,6 @@ class AvatarChatBot {
         const ytIframe1 = document.querySelector('#raya-yt-wrapper iframe'); if (ytIframe1) ytIframe1.contentWindow.postMessage(JSON.stringify({event: 'command', func: 'setVolume', args: [20]}), '*');
         this.isSpeaking = true;
         this.updateMicUI();
-        this.synth.cancel();
 
         // Activate cooldown: mic ignores input while Raya is speaking
         if (this._cooldownTimeoutId) {
@@ -2159,8 +2182,13 @@ class AvatarChatBot {
             const spokenScriptText = getNativeScriptForTTS(cleanText, langCode);
             const utterance = new SpeechSynthesisUtterance(spokenScriptText);
 
-            utterance.voice = selectedVoice;
-            utterance.lang = selectedVoice ? selectedVoice.lang : langCode;
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                utterance.lang  = selectedVoice.lang;
+            } else {
+                const hasIndianVoice = allVoices.some(v => v.lang && (v.lang.startsWith('en-IN') || v.lang.startsWith('en_IN')));
+                utterance.lang  = (langCode === 'en-IN' && !hasIndianVoice) ? (navigator.language || 'en-US') : (langCode || 'en-US');
+            }
             utterance.rate   = speechRate;
             utterance.pitch  = speechPitch;
             utterance.volume = 1.0;
@@ -2230,9 +2258,11 @@ class AvatarChatBot {
                     this.setAvatarTalkingStatus(true);
                 };
 
-                // Watchdog: poll every 300ms — catch silent failures faster
+                // Watchdog: poll every 300ms — allow at least 1500ms startup grace period
+                let watchdogElapsed = 0;
                 watchdog = setInterval(() => {
-                    if (!this.synth.speaking && !this.synth.pending && this.isSpeaking && !speechEnded) {
+                    watchdogElapsed += 300;
+                    if (watchdogElapsed > 1500 && !this.synth.speaking && !this.synth.pending && this.isSpeaking && !speechEnded) {
                         console.warn('[Raya TTS] Watchdog: synthesis silently stopped, forcing cleanup.');
                         cleanupSpeech();
                     }
@@ -2254,20 +2284,18 @@ class AvatarChatBot {
             }
         };
 
-        // Cancel any stale utterance.
-        // Edge requires a short delay after cancel() before speak() works reliably.
-        const isEdge = /Edg\//.test(navigator.userAgent);
-        if (this.synth.speaking) {
+        // Cancel any stale utterance safely with delay for Chromium / Edge / Opera / Brave
+        const isChromium = /Chrome|Chromium|Edg|OPR|Opera/i.test(navigator.userAgent);
+        if (this.synth.speaking || this.synth.pending) {
             try { this.synth.cancel(); } catch(e) {}
-            if (isEdge) {
-                setTimeout(() => doSpeak(), 120);
-            } else {
+            setTimeout(() => {
+                try { if (this.synth.resume) this.synth.resume(); } catch(e) {}
                 doSpeak();
-            }
+            }, 80);
         } else {
-            if (isEdge && this.synth.pending) {
-                try { this.synth.cancel(); } catch(e) {}
-                setTimeout(() => doSpeak(), 120);
+            try { if (this.synth.resume) this.synth.resume(); } catch(e) {}
+            if (isChromium) {
+                setTimeout(() => doSpeak(), 40);
             } else {
                 doSpeak();
             }

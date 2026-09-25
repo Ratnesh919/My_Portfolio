@@ -68,6 +68,16 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     if (!isReady || isCompletedRef.current) return;
     isCompletedRef.current = true;
 
+    // Synchronously unlock and unpause SpeechSynthesis within user gesture event
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.resume();
+      } catch (e) {}
+    }
+    if ((window as any).chatBot) {
+      (window as any).chatBot._userHasGestured = true;
+    }
+
     setIsExiting(true);
     sessionStorage.setItem('raya_bubble_done', '1');
 
@@ -76,22 +86,12 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
       onComplete();
 
       // Activate 3D avatar canvas & Raya chatbot
-      if ((window as any).activateAvatarAndChatbot) (window as any).activateAvatarAndChatbot();
-
-      // Unlock autonomous speech synthesis
-      if ((window as any).chatBot) (window as any).chatBot._userHasGestured = true;
-      try {
-        const primer = new SpeechSynthesisUtterance('');
-        primer.volume = 0;
-        window.speechSynthesis.speak(primer);
-      } catch (_) {}
-
-      // Wave animation + Raya greeting
-      if ((window as any).playWaveAnimation) (window as any).playWaveAnimation();
-
-      // Legacy listeners
-      if ((window as any).onBubblePopped) (window as any).onBubblePopped();
-    }, 450);
+      if ((window as any).activateAvatarAndChatbot) {
+        (window as any).activateAvatarAndChatbot();
+      } else if ((window as any).onBubblePopped) {
+        (window as any).onBubblePopped();
+      }
+    }, 300);
   };
 
   if (isDone) return null;
