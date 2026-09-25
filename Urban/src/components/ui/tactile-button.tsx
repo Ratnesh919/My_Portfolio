@@ -29,6 +29,7 @@ export type TactileButtonProps = {
   hue?: number;
   saturation?: number;
   brightness?: number;
+  label?: string;
   className?: string;
   style?: CSSProperties;
   onClick?: () => void;
@@ -431,12 +432,15 @@ function effectBackground(definition: EffectDefinition, mode: EffectMode) {
   return definition.theme?.[`${mode}Background`] ?? definition.background;
 }
 
-function buildFocusedDocument(definition: EffectDefinition, mode: EffectMode) {
+function buildFocusedDocument(definition: EffectDefinition, mode: EffectMode, label?: string) {
   const background = effectBackground(definition, mode);
   const invertBackground =
     definition.theme?.invertBackground === true &&
     definition.theme.nativeMode !== mode;
-  const source = definition.source;
+  let source = definition.source;
+  if (label) {
+    source = source.replace(/SURGE/g, label);
+  }
   const targetJson = JSON.stringify(definition.targets).replace(
     /</g,
     "\\u003c",
@@ -450,13 +454,13 @@ function buildFocusedDocument(definition: EffectDefinition, mode: EffectMode) {
     : "";
   const focusStyle = `<style data-threeui-focus>
 html, body { width: 100% !important; height: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: ${background} !important; color-scheme: ${mode} !important; }
-body { position: relative !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+body { position: relative !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; }
 body > * { visibility: hidden !important; }
 body[data-threeui-ready] > [data-threeui-role] { visibility: visible !important; }
 [data-threeui-residual] { display: none !important; }
 [data-threeui-hidden] { display: none !important; }
 [data-threeui-role="background"] { position: fixed !important; inset: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; z-index: 0 !important; opacity: 1 !important; pointer-events: none !important; ${backgroundFilter} }
-[data-threeui-role="button"] { position: relative !important; z-index: 2 !important; opacity: 1 !important; flex: none !important; }
+[data-threeui-role="button"] { position: relative !important; z-index: 2 !important; opacity: 1 !important; flex: none !important; cursor: pointer !important; }
 [data-threeui-role="button"]:not([data-threeui-preserve-transform]) { transform: none !important; }
 </style>`;
   const focusScript = `<script data-threeui-focus>
@@ -485,14 +489,23 @@ body[data-threeui-ready] > [data-threeui-role] { visibility: visible !important;
     });
     if (!roots.length) return;
     isolated = true;
+    function notifyClick() {
+      try { window.parent.postMessage({ type: 'TACTILE_BUTTON_CLICK' }, '*'); } catch (e) {}
+    }
     roots.forEach(function (root) {
       var placeholderLink = root.matches('a[href="#"]') ? root : root.querySelector('a[href="#"]');
       if (placeholderLink) placeholderLink.addEventListener('click', function (event) { event.preventDefault(); });
-      root.addEventListener('click', function() {
-        try { window.parent.postMessage({ type: 'TACTILE_BUTTON_CLICK' }, '*'); } catch (e) {}
-      });
+      root.addEventListener('click', notifyClick);
+      root.addEventListener('touchend', notifyClick);
       document.body.appendChild(root);
     });
+    var btn = document.getElementById('btn');
+    if (btn) {
+      btn.addEventListener('click', notifyClick);
+      btn.addEventListener('touchend', notifyClick);
+    }
+    window.addEventListener('click', notifyClick);
+    window.addEventListener('touchend', notifyClick);
     Array.from(document.body.children).forEach(function (element) {
       if (roots.indexOf(element) !== -1) return;
       element.setAttribute('data-threeui-residual', '');
@@ -518,6 +531,7 @@ function NeuformIsolatedEffect({
   hue = TACTILE_BUTTON_DEFAULTS.hue,
   saturation = TACTILE_BUTTON_DEFAULTS.saturation,
   brightness = TACTILE_BUTTON_DEFAULTS.brightness,
+  label,
   className,
   style,
   onClick,
@@ -526,8 +540,8 @@ function NeuformIsolatedEffect({
   const safeMode: EffectMode = mode === "light" ? "light" : "dark";
   const background = effectBackground(definition, safeMode);
   const source = useMemo(
-    () => buildFocusedDocument(definition, safeMode),
-    [safeMode],
+    () => buildFocusedDocument(definition, safeMode, label),
+    [safeMode, label],
   );
   const safeHue = clamp(hue, -180, 180);
   const safeSaturation = clamp(saturation, 0, 2);
