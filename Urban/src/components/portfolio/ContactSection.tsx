@@ -208,7 +208,7 @@ export const ContactSection: React.FC = () => {
 
             <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono mt-1 opacity-80">
               <ShieldCheck size={13} className="text-cyan-400 shrink-0" />
-              <span>Protected under India DPDP Act 2023. Data submitted is used exclusively for professional replies.</span>
+              <span>Privacy &amp; security assured. Data submitted is used exclusively for professional replies.</span>
             </div>
           </form>
         </div>

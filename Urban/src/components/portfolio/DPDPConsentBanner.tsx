@@ -42,7 +42,7 @@ export const DPDPConsentBanner: React.FC<DPDPConsentBannerProps> = ({
   return (
     <div
       role="region"
-      aria-label="Privacy and Data Protection Notice"
+      aria-label="Privacy and Security Consent"
       className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 max-w-lg w-[92vw] sm:w-[480px] animate-in fade-in slide-in-from-bottom-5 duration-500"
     >
       <div className="relative p-4 sm:p-5 rounded-2xl bg-[#0f091a]/95 border border-purple-500/35 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(168,85,247,0.25)] flex flex-col gap-3 text-slate-200 select-none">
@@ -57,18 +57,13 @@ export const DPDPConsentBanner: React.FC<DPDPConsentBannerProps> = ({
         </button>
 
         {/* Header Tag */}
-        <div className="flex items-center gap-2 pr-6">
+        <div className="flex items-center gap-2.5 pr-6">
           <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-            <ShieldCheck size={16} />
+            <ShieldCheck size={17} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-mono tracking-widest text-cyan-400 uppercase font-semibold">
-              INDIA DPDP ACT 2023 COMPLIANT
-            </span>
-            <span className="text-xs sm:text-sm font-bold text-white tracking-wide">
-              Data Privacy &amp; Consent Notice
-            </span>
-          </div>
+          <span className="text-xs sm:text-sm font-bold text-white tracking-wide">
+            Privacy and Security Consent
+          </span>
         </div>
 
         {/* Description Body */}

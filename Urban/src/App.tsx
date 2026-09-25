@@ -208,7 +208,7 @@ export const App: React.FC = () => {
               className="hover:text-cyan-400 text-purple-300/80 transition-colors flex items-center gap-1.5 underline underline-offset-4 decoration-purple-500/40 cursor-pointer"
             >
               <Shield size={13} className="text-cyan-400" />
-              <span>Privacy &amp; DPDP Notice</span>
+              <span>Privacy &amp; Security Policy</span>
             </button>
             <span className="text-slate-600">&bull;</span>
             <span>Kolkata, India &bull; MAKAUT ECE '26</span>
