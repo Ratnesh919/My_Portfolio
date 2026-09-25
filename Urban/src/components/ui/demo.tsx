@@ -1,12 +1,9 @@
-import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
+import TactileButton from "@/components/ui/tactile-button";
 
-export default function LiquidMetalButtonDemo() {
+export default function TactileButtonDemo() {
   return (
-    <div className="flex flex-col items-center justify-center gap-8 p-8">
-      <div className="flex items-center gap-8">
-        <LiquidMetalButton label="Get Started" />
-        <LiquidMetalButton viewMode="icon" />
-      </div>
+    <div className="h-[420px] w-full overflow-hidden">
+      <TactileButton className="h-full w-full" />
     </div>
   );
 }
