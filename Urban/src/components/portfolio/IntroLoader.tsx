@@ -185,14 +185,11 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
 
             {/* Fluidic Tactile Button Container */}
             <div className="relative w-full flex flex-col items-center justify-center my-2">
-              <div className="w-[280px] h-[90px] sm:w-[320px] sm:h-[95px] relative rounded-[22px] overflow-hidden p-[1px] bg-gradient-to-r from-cyan-500/40 via-[#ff416c]/40 to-cyan-500/40 shadow-[0_10px_35px_rgba(6,182,212,0.3)] transition-transform hover:scale-105 active:scale-95">
-                <TactileButton
-                  mode="dark"
-                  label="ENTER PORTFOLIO"
-                  onClick={handleEnter}
-                  className="w-full h-full rounded-[21px]"
-                />
-              </div>
+              <TactileButton
+                label="ENTER PORTFOLIO"
+                onClick={handleEnter}
+                className="w-[280px] h-[78px] sm:w-[320px] sm:h-[82px]"
+              />
 
               {/* Direct fallback click anchor for accessibility & instant trigger */}
               <button
