@@ -43,9 +43,9 @@ export const DPDPConsentBanner: React.FC<DPDPConsentBannerProps> = ({
     <div
       role="region"
       aria-label="Privacy and Security Consent"
-      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 max-w-lg w-[92vw] sm:w-[480px] animate-in fade-in slide-in-from-bottom-5 duration-500"
+      className="fixed top-3 sm:top-auto sm:bottom-5 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[2147483646] max-w-lg sm:w-[480px] animate-in fade-in slide-in-from-top-3 sm:slide-in-from-bottom-5 duration-500"
     >
-      <div className="relative p-4 sm:p-5 rounded-2xl bg-[#0f091a]/95 border border-purple-500/35 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(168,85,247,0.25)] flex flex-col gap-3 text-slate-200 select-none">
+      <div className="relative p-3.5 sm:p-5 rounded-2xl bg-[#0f091a]/95 border border-purple-500/35 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(168,85,247,0.25)] flex flex-col gap-2.5 sm:gap-3 text-slate-200 select-none">
         {/* Dismiss Icon */}
         <button
           onClick={handleDismiss}

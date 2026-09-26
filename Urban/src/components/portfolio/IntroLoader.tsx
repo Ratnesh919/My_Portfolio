@@ -37,7 +37,7 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
     // VRM may have already loaded before React mounted
     if ((window as any)._vrmIsReady) { finish(); return; }
 
-    // Live download progress from vrm-loader.js
+    // Live download progress from vrm-character.js
     (window as any).onVRMLoadProgress = (pct: number, customStatus?: string) => {
       setProgress((prev) => Math.max(prev, Math.min(pct, 100)));
       if (customStatus) {
@@ -48,13 +48,13 @@ export const IntroLoader: React.FC<IntroLoaderProps> = ({ onComplete }) => {
         else if (pct < 90) setStatusText('Retargeting animations...');
         else               setStatusText('Almost ready...');
       }
-      if (pct >= 100) finish();
+      if (pct >= 100 && (window as any)._vrmIsReady) finish();
     };
 
     (window as any).onVRMReady = finish;
 
-    // 12-second safety net in case WebGL or network stalls
-    const fallback = setTimeout(finish, 12000);
+    // 30-second safety net in case WebGL or network stalls
+    const fallback = setTimeout(finish, 30000);
 
     return () => {
       clearTimeout(fallback);

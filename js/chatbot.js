@@ -545,6 +545,19 @@ class AvatarChatBot {
 
         this.chatBubble.appendChild(this.bubbleText);
         this.chatBubble.appendChild(this.choiceContainer);
+
+        // Close / Dismiss button for chat bubble
+        const closeBubbleBtn = document.createElement('button');
+        closeBubbleBtn.id = 'chatbot-bubble-close';
+        closeBubbleBtn.innerHTML = '&times;';
+        closeBubbleBtn.setAttribute('title', 'Dismiss message');
+        closeBubbleBtn.setAttribute('aria-label', 'Dismiss message');
+        closeBubbleBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.hideBubble();
+        };
+        this.chatBubble.appendChild(closeBubbleBtn);
+
         panel.appendChild(this.chatBubble);
 
         // Input row

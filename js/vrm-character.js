@@ -156,14 +156,35 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,  // enabled always (2x antialiasing requested on mobile, and desktop)
     powerPreference: 'high-performance' 
 });
-// Set pixel ratio: cap at 1.25 for crisp graphics with zero laptop lag / thermal throttling
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+// Set pixel ratio: cap at 2.0 for crisp retina / OLED high-DPI graphics
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(28, window.innerWidth/window.innerHeight, 0.1, 60);
-camera.position.set(0, 0.9, 7.5);
+
+function updateCameraFraming() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    camera.aspect = w / h;
+    if (w <= 768) {
+        // Mobile portrait: frame upper body and character prominently
+        camera.fov = 28;
+        camera.position.set(0, 0.82, 6.3);
+    } else if (w < 1024) {
+        // Tablet portrait
+        camera.fov = 28;
+        camera.position.set(0, 0.88, 7.0);
+    } else {
+        // Desktop: full body on left side
+        camera.fov = 28;
+        camera.position.set(0, 0.9, 7.5);
+    }
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+}
+updateCameraFraming();
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
 ambientLight.userData.baseIntensity = 0.8;
@@ -188,20 +209,24 @@ function getVisibleWidth() {
 function updateCharPos() {
     if (hasDragged || !vrm) return;
     const width = getVisibleWidth();
-    // Position cleanly on the left side of the portfolio
-    if (window.innerWidth >= 1024) {
+    const w = window.innerWidth;
+    if (w >= 1024) {
+        // Desktop: clean placement on left side of portfolio content
         let xTarget = -(width / 2) + 0.95;
-        vrm.scene.position.x = xTarget;
+        vrm.scene.position.set(xTarget, -0.97, 0);
+    } else if (w >= 768) {
+        // Tablet
+        let xTarget = -(width / 2) + 0.70;
+        vrm.scene.position.set(xTarget, -0.85, 0);
     } else {
-        let xTarget = 0;
-        vrm.scene.position.x = xTarget;
+        // Mobile portrait: dock neatly on bottom-left leaving center content & chat open
+        let xTarget = -(width / 2) + 0.46;
+        vrm.scene.position.set(xTarget, -0.75, 0);
     }
 }
 
 window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth/window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    updateCameraFraming();
     updateCharPos();
 });
 
@@ -471,7 +496,7 @@ vrmLoader.load(
     window.getAvatarUrl ? window.getAvatarUrl(initialFile) : initialFile,
     async gltf => {
         if (typeof window.onVRMLoadProgress === 'function') {
-            window.onVRMLoadProgress(92, 'Initializing bone physics & facial blendshapes...');
+            window.onVRMLoadProgress(75, 'Configuring bone physics & blendshapes...');
         }
         vrm = gltf.userData.vrm;
         if (VRMUtils?.rotateVRM0) VRMUtils.rotateVRM0(vrm);
@@ -480,15 +505,7 @@ vrmLoader.load(
         applyModelVisuals(vrm, initialFile);
         fixVRMHitbox(vrm);   // always expand skinned-mesh hitboxes for reliable drag
 
-        window._vrmIsReady = true;
-        if (typeof window.onVRMLoadProgress === 'function') {
-            window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
-        }
-        if (typeof window.onVRMReady === 'function') {
-            window.onVRMReady();
-        }
-
-        window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.65 : 0.95);
+        window.currentVRMScale = window.currentVRMScale || (isMobile ? 0.88 : 0.95);
 
     window.setVRMScale = (scale) => {
         if (!isFinite(scale) || scale <= 0) return;
@@ -558,9 +575,6 @@ vrmLoader.load(
     }
 
     vrm.scene.scale.setScalar(window.currentVRMScale);
-    
-    // Plant feet exactly at the bottom edge of the visible screen
-    vrm.scene.position.set(0, -0.97, 0);
     updateCharPos();
     vrm.scene.rotation.y = Math.PI; // default face-camera; animate() will smooth-track from here
 
@@ -584,21 +598,28 @@ vrmLoader.load(
     scene.add(vrm.scene);
 
     if (typeof window.onVRMLoadProgress === 'function') {
-        window.onVRMLoadProgress(80, 'Setting up graphics & shaders...');
+        window.onVRMLoadProgress(78, 'Setting up graphics & shaders...');
     }
 
     loadEssentialAnimations(vrm).then(() => {
-        // Step 1: Start idle immediately
-        applyState('idle', 'happy', 0.6);
-        playAnim(ANIM.idle, true, 0.3);
-        if (mixer) mixer.update(0);
+        // Step 1: Ensure idle animation is active on the skeleton
+        if (actions[ANIM.idle]) {
+            applyState('idle', 'happy', 0.6);
+            if (!currentAction || currentKey !== ANIM.idle) {
+                playAnim(ANIM.idle, true, 0.1);
+            }
+        }
+        if (mixer) {
+            mixer.update(0.016);
+            vrm.update(0.016);
+        }
+        renderer.render(scene, camera);
 
+        // Notify IntroLoader that VRM is fully loaded, posed, and ready in GPU memory
+        window._vrmIsReady = true;
         if (typeof window.onVRMLoadProgress === 'function') {
             window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
         }
-
-        // Notify IntroLoader that VRM is fully loaded and ready
-        window._vrmIsReady = true;
         if (typeof window.onVRMReady === 'function') {
             window.onVRMReady();
         }
@@ -814,7 +835,7 @@ async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
                 console.log('[VRM] ✓ Loaded Essential:', file);
             }
             loadedCount++;
-            const animPct = 80 + Math.round((loadedCount / uniqueAnims.length) * 18); // 80% -> 98%
+            const animPct = 78 + Math.round((loadedCount / uniqueAnims.length) * 18); // 78% -> 96%
             if (typeof window.onVRMLoadProgress === 'function') {
                 window.onVRMLoadProgress(animPct, `Setting up animations (${loadedCount}/${uniqueAnims.length})...`);
             }
@@ -822,10 +843,21 @@ async function loadEssentialAnimations(vrmInstance, extraAnims = []) {
             console.error('[VRM] ✗ Essential FBX load error:', file, e.message || e);
         }
     }));
-    if (typeof window.onVRMLoadProgress === 'function') {
-        window.onVRMLoadProgress(100, 'Ready! Tap to enter...');
+    // Prime the idle animation immediately onto the skeleton and pre-render
+    if (actions[ANIM.idle] && mixer) {
+        const idleAction = actions[ANIM.idle];
+        idleAction.loop = THREE.LoopRepeat;
+        idleAction.clampWhenFinished = false;
+        idleAction.setEffectiveTimeScale(1.0);
+        idleAction.reset().play();
+        currentAction = idleAction;
+        currentKey = ANIM.idle;
+        applyState('idle', 'happy', 0.6);
+        mixer.update(0.016);
+        vrmInstance.update(0.016);
+        renderer.render(scene, camera);
     }
-    console.log('[VRM] Essential animations ready. Remaining animations will stream on-demand.');
+    console.log('[VRM] Essential animations ready. Idle animation primed and playing.');
 }
 
 // Background bulk loading is disabled to prevent laptop hanging/lagging

@@ -65,10 +65,11 @@
 
 /* ── Speech Bubble ── */
 #chatbot-bubble {
+    position: relative;
     background: rgba(14, 10, 26, 0.95);
     border: 1px solid rgba(168, 85, 247, 0.4);
     border-radius: 22px 22px 4px 22px;
-    padding: 16px 20px;
+    padding: 14px 34px 14px 18px;
     color: #f1f5f9;
     font-size: 0.9rem;
     line-height: 1.55;
@@ -80,6 +81,32 @@
     overflow-y: auto;
     word-break: break-word;
     width: 100%;
+}
+
+#chatbot-bubble-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 50%;
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+#chatbot-bubble-close:hover {
+    background: rgba(168, 85, 247, 0.3);
+    color: #ffffff;
+    border-color: #a855f7;
 }
 
 #cb-inner-text {
@@ -277,8 +304,9 @@
         bottom: 12px;
     }
     #chatbot-bubble {
-        max-height: 200px;
+        max-height: 160px;
         font-size: 0.82rem;
+        padding: 12px 32px 12px 14px;
     }
 }
 
